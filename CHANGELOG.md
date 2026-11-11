@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- `rules` explains unmatched queries, rejects unknown categories with exit code 2, and lists valid categories in its help (#11).
+
 ## 0.3.0
 
 The first release on npm since 0.1.0: it holds everything below, 0.2.0 included.

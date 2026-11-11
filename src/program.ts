@@ -9,7 +9,7 @@ import { indexFor } from "./core.js";
 import { formatMarkdown, formatText } from "./review/format.js";
 import { formatFix, fix } from "./review/fix.js";
 import { review } from "./review/review.js";
-import type { Severity } from "./review/types.js";
+import { CATEGORIES, type Severity } from "./review/types.js";
 import { doctor, formatDoctor } from "./doctor/doctor.js";
 import { explain, formatExplanations } from "./explain/explain.js";
 import { formatScene } from "./check/inspect.js";
@@ -689,12 +689,16 @@ export function buildProgram(): Command {
     .command("rules")
     .description("List every review rule with its category, severity, release gating and fix")
     .argument("[query]", "words in the id or title")
-    .option("--category <name>", "only this category")
+    .option("--category <name>", CATEGORIES.join(" | "))
     .option("--json", "JSON output")
     .action((query: string | undefined, o: { category?: string; json?: boolean }) => {
+      if (o.category !== undefined && !(CATEGORIES as readonly string[]).includes(o.category)) {
+        throw new Error(`--category must be one of ${CATEGORIES.join(", ")} (got "${o.category}")`);
+      }
       const q = query?.toLowerCase();
       const list = RULES.filter((r) => (!o.category || r.category === o.category) && (!q || `${r.id} ${r.title}`.toLowerCase().includes(q)));
       if (o.json) out(JSON.stringify(list.map(({ check: _c, ...r }) => r), null, 2));
+      else if (!list.length) out(`no rule matches${query ? ` ${JSON.stringify(query)}` : ""} (threesmith rules lists all of them)`);
       else out(list.map((r) => `${r.id} (${r.category}, ${r.severity}${r.removedIn ? `, removed r${r.removedIn}` : ""}): ${r.title}\n  fix: ${r.fix}`).join("\n"));
       if (!list.length) process.exitCode = 1;
     });

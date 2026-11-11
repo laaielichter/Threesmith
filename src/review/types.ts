@@ -3,7 +3,8 @@ import type { ThreeInstall } from "../api/types.js";
 import type { SourceFile } from "./source.js";
 
 export type Severity = "error" | "warn" | "info";
-export type Category = "correctness" | "api" | "performance" | "lifecycle" | "color";
+export const CATEGORIES = ["correctness", "api", "performance", "lifecycle", "color"] as const;
+export type Category = (typeof CATEGORIES)[number];
 
 export interface Finding {
   rule: string;

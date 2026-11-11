@@ -86,6 +86,44 @@ describe.skipIf(!existsSync("dist/cli.js"))("built cli", () => {
     expect(record.stdout.toString()).toContain("recorded: shadows/acne-and-bias helped");
   });
 
+  it("rejects an unknown rules category and lists the valid categories", () => {
+    for (const category of ["perf", ""]) {
+      const r = spawnSync("node", ["dist/cli.js", "rules", "--category", category]);
+      expect(r.status).toBe(2);
+      expect(r.stdout.toString()).toBe("");
+      expect(r.stderr.toString()).toContain(`--category must be one of correctness, api, performance, lifecycle, color (got "${category}")`);
+    }
+  });
+
+  it("explains an unmatched rule query while preserving empty JSON output", () => {
+    const miss = spawnSync("node", ["dist/cli.js", "rules", "nosuchrule"]);
+    expect(miss.status).toBe(1);
+    expect(miss.stdout.toString()).toBe('no rule matches "nosuchrule" (threesmith rules lists all of them)\n');
+    expect(miss.stderr.toString()).toBe("");
+
+    const json = spawnSync("node", ["dist/cli.js", "rules", "nosuchrule", "--json"]);
+    expect(json.status).toBe(1);
+    expect(json.stdout.toString()).toBe("[]\n");
+    expect(json.stderr.toString()).toBe("");
+
+    const filtered = spawnSync("node", ["dist/cli.js", "rules", "nosuchrule", "--category", "performance"]);
+    expect(filtered.status).toBe(1);
+    expect(filtered.stdout.toString()).toBe(miss.stdout.toString());
+  });
+
+  it("lists categories in rules help and keeps valid filters working", () => {
+    const help = spawnSync("node", ["dist/cli.js", "rules", "--help"]);
+    expect(help.status).toBe(0);
+    for (const category of ["correctness", "api", "performance", "lifecycle", "color"]) {
+      expect(help.stdout.toString()).toContain(category);
+      const r = spawnSync("node", ["dist/cli.js", "rules", "--category", category, "--json"]);
+      expect(r.status).toBe(0);
+      const rules = JSON.parse(r.stdout.toString()) as { category: string }[];
+      expect(rules.length).toBeGreaterThan(0);
+      expect(rules.every((rule) => rule.category === category)).toBe(true);
+    }
+  });
+
   it("validates model view options and renders views", () => {
     const robot = "examples/agent-mistakes/public/models/robot.glb";
 
