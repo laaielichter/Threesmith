@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- `review` and `ci` reject invalid `--fail-on` and `--min-score` gates with exit code 2; the library `ci()` validates these options too (#10).
+
 ## 0.3.0
 
 The first release on npm since 0.1.0: it holds everything below, 0.2.0 included.

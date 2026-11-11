@@ -1,6 +1,7 @@
 import { check, type CheckOptions, type CheckResult } from "./check/check.js";
 import { formatMarkdown } from "./review/format.js";
 import { review, type ReviewResult } from "./review/review.js";
+import { validateFailOn, validateMinScore } from "./review/gates.js";
 import type { Severity } from "./review/types.js";
 import { loadScenarios, runScenarios, type ScenarioResult } from "./check/scenario.js";
 import { projectRootOf } from "./scan/scan.js";
@@ -30,14 +31,15 @@ export interface CiResult {
 const RANK: Record<Severity, number> = { error: 0, warn: 1, info: 2 };
 
 export async function ci(opts: CiOptions): Promise<CiResult> {
+  const failOn = validateFailOn(opts.failOn === undefined ? "error" : opts.failOn);
+  const minScore = opts.minScore === undefined ? undefined : validateMinScore(opts.minScore);
   const r = review({ path: opts.path, ...(opts.three ? { three: opts.three } : {}), ...(opts.disable ? { disable: opts.disable } : {}) });
   const reasons: string[] = [];
-  const failOn = opts.failOn ?? "error";
   if (failOn !== "none" && r.findings.some((f) => RANK[f.severity] <= RANK[failOn])) {
     reasons.push(`review has ${failOn === "error" ? "errors" : `findings at ${failOn} or worse`}`);
   }
-  if (opts.minScore !== undefined && r.score !== null && r.score < opts.minScore) {
-    reasons.push(`score ${r.score} is below the minimum ${opts.minScore}`);
+  if (minScore !== undefined && r.score !== null && r.score < minScore) {
+    reasons.push(`score ${r.score} is below the minimum ${minScore}`);
   }
   let c: CheckResult | undefined;
   if (opts.check) {

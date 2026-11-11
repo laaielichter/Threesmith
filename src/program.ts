@@ -9,7 +9,7 @@ import { indexFor } from "./core.js";
 import { formatMarkdown, formatText } from "./review/format.js";
 import { formatFix, fix } from "./review/fix.js";
 import { review } from "./review/review.js";
-import type { Severity } from "./review/types.js";
+import { validateFailOn, validateMinScore } from "./review/gates.js";
 import { doctor, formatDoctor } from "./doctor/doctor.js";
 import { explain, formatExplanations } from "./explain/explain.js";
 import { formatScene } from "./check/inspect.js";
@@ -76,6 +76,11 @@ function positiveInt(name: string, value: string): number {
     throw new Error(`${name} must be a whole number of 1 or more (got "${value}")`);
   }
   return n;
+}
+
+function parseMinScore(value: string): number {
+  // Number("") and Number(" ") are zero, but neither specifies a score.
+  return validateMinScore(value.trim() ? Number(value) : NaN, "--min-score", value);
 }
 
 function suggestRule(name: string): string | undefined {
@@ -158,6 +163,8 @@ export function buildProgram(): Command {
     .option("--disable <rules>", "comma separated rule ids to skip")
     .action(
       (path: string, o: { three?: string; json?: boolean; markdown?: boolean; sarif?: string; compact?: boolean; limit: string; minScore?: string; failOn: string; disable?: string }) => {
+        const failOn = validateFailOn(o.failOn, "--fail-on");
+        const minScore = o.minScore === undefined ? undefined : parseMinScore(o.minScore);
         const disable = o.disable ? parseRuleList(o.disable, "--disable") : undefined;
         const { review: r, learned } = applyFeedback(review({ path, ...(o.three ? { three: o.three } : {}), ...(disable ? { disable } : {}) }));
         const note = formatLearned(learned);
@@ -168,8 +175,8 @@ export function buildProgram(): Command {
         }
         out(o.json ? JSON.stringify(r, null, 2) : o.markdown ? formatMarkdown(r, { limit: Number(o.limit) }) : o.compact ? formatCompact(r, { limit: Number(o.limit) }) : formatText(r, { limit: Number(o.limit) }));
         const rank: Record<string, number> = { error: 0, warn: 1, info: 2 };
-        if (o.failOn !== "none" && r.findings.some((f) => (rank[f.severity] ?? 9) <= (rank[o.failOn] ?? -1))) process.exitCode = 1;
-        if (o.minScore !== undefined && r.score !== null && r.score < Number(o.minScore)) process.exitCode = 1;
+        if (failOn !== "none" && r.findings.some((f) => (rank[f.severity] ?? 9) <= (rank[failOn] ?? -1))) process.exitCode = 1;
+        if (minScore !== undefined && r.score !== null && r.score < minScore) process.exitCode = 1;
       },
     );
 
@@ -544,12 +551,14 @@ export function buildProgram(): Command {
     .option("--json", "JSON output")
     .action(async (path: string, o: { three?: string; minScore?: string; failOn: string; check?: string; entry: string; root?: string; baseline?: string; updateBaseline?: boolean; wait: string; disable?: string; scenarios: boolean; junit?: string; sarif?: string; summary?: string; out?: string; json?: boolean }) => {
       const disable = o.disable ? parseRuleList(o.disable, "--disable") : undefined;
+      const failOn = validateFailOn(o.failOn, "--fail-on");
+      const minScore = o.minScore === undefined ? undefined : parseMinScore(o.minScore);
       const r = await ci({
         path,
         scenarios: o.scenarios,
-        failOn: o.failOn as Severity | "none",
+        failOn,
         ...(o.three ? { three: o.three } : {}),
-        ...(o.minScore !== undefined ? { minScore: Number(o.minScore) } : {}),
+        ...(minScore !== undefined ? { minScore } : {}),
         ...(disable ? { disable } : {}),
         ...(o.check
           ? { check: { target: o.check, entry: o.entry, ...(o.root ? { root: o.root } : {}), wait: Number(o.wait), ...(o.baseline ? { baseline: o.baseline } : {}), ...(o.updateBaseline ? { updateBaseline: true } : {}) } }

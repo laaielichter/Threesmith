@@ -2,7 +2,7 @@ import { execFileSync, spawnSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { ci } from "../src/ci.js";
+import { ci, type CiOptions } from "../src/ci.js";
 import { project, THREE_DIR } from "./helpers.js";
 
 describe("ci receipt", () => {
@@ -15,9 +15,62 @@ describe("ci receipt", () => {
     expect(bad.reasons.join(" ")).toContain("below the minimum");
     expect(bad.markdown).toContain("❌ fail");
   });
+  it.each(["warning", "ERROR", "", "toString", null, 1])("rejects invalid library failOn %j before reviewing", async (failOn) => {
+    await expect(ci({ path: "/does-not-exist", failOn } as unknown as CiOptions))
+      .rejects.toThrow("failOn must be one of error, warn, info, none");
+  });
+
+  it.each([NaN, Infinity, -Infinity, -1, 101, "", "90", null, false])("rejects invalid library minScore %j before reviewing", async (minScore) => {
+    await expect(ci({ path: "/does-not-exist", minScore } as unknown as CiOptions))
+      .rejects.toThrow("minScore must be a finite number between 0 and 100");
+  });
+
+  it("preserves valid library severity and score gates", async () => {
+    const path = project({ "a.js": "import * as THREE from 'three';\nnew THREE.Geometry();\n" });
+    for (const failOn of ["error", "warn", "info", "none"] as const) {
+      const result = await ci({ path, three: THREE_DIR, failOn, scenarios: false });
+      expect(result.ok).toBe(failOn === "none");
+    }
+    expect((await ci({ path, three: THREE_DIR, scenarios: false })).ok).toBe(false);
+    const clean = project({ "a.js": readFileSync("test/fixtures/modern.js", "utf8") });
+    for (const minScore of [0, 50.5, 100]) {
+      expect((await ci({ path: clean, three: THREE_DIR, minScore, scenarios: false })).ok).toBe(true);
+    }
+    expect((await ci({ path, three: THREE_DIR, failOn: "none", minScore: 100, scenarios: false })).ok).toBe(false);
+  });
 });
 
 describe.skipIf(!existsSync("dist/cli.js"))("built cli", () => {
+  describe.each(["review", "ci"])("%s gates", (command) => {
+    it.each(["warning", "ERROR", "", "toString"])("rejects invalid --fail-on %j with exit 2", (value) => {
+      const result = spawnSync("node", ["dist/cli.js", command, "/does-not-exist", "--fail-on", value]);
+      expect(result.status).toBe(2);
+      expect(result.stderr.toString()).toContain("--fail-on must be one of error, warn, info, none");
+      expect(result.stdout.toString()).toBe("");
+    });
+
+    it.each(["abc", "8O", "NaN", "Infinity", "-Infinity", "", " ", "-1", "100.01"])("rejects invalid --min-score %j with exit 2", (value) => {
+      const result = spawnSync("node", ["dist/cli.js", command, "/does-not-exist", `--min-score=${value}`]);
+      expect(result.status).toBe(2);
+      expect(result.stderr.toString()).toContain(`--min-score must be a finite number between 0 and 100 (got "${value}")`);
+      expect(result.stdout.toString()).toBe("");
+    });
+
+    it("preserves valid severity gates, score boundaries, and defaults", () => {
+      const path = project({ "a.js": "import * as THREE from 'three';\nnew THREE.Geometry();\n" });
+      const run = (dir: string, flags: string[]) => spawnSync("node", ["dist/cli.js", command, dir, "--three", THREE_DIR, ...flags]);
+      for (const severity of ["error", "warn", "info", "none"]) {
+        expect(run(path, ["--fail-on", severity]).status).toBe(severity === "none" ? 0 : 1);
+      }
+      expect(run(path, []).status).toBe(command === "review" ? 0 : 1);
+      const clean = project({ "a.js": readFileSync("test/fixtures/modern.js", "utf8") });
+      for (const score of ["0", "50.5", "100"]) {
+        expect(run(clean, ["--min-score", score]).status).toBe(0);
+      }
+      expect(run(path, ["--fail-on", "none", "--min-score", "100"]).status).toBe(1);
+    });
+  });
+
   it("prints version and exit codes", () => {
     expect(execFileSync("node", ["dist/cli.js", "--version"]).toString().trim()).toMatch(/^\d+\.\d+\.\d+/);
     const dir = project({ "a.js": "import * as THREE from 'three';\nnew THREE.Geometry();\n" });
