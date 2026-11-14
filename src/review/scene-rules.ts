@@ -469,6 +469,26 @@ export const SCENE_RULES: Rule[] = [
       }
     },
   },
+  {
+    id: "buffer-attribute-plain-array",
+    category: "correctness",
+    severity: "error",
+    title: "BufferAttribute given a plain array throws at load",
+    message: "`THREE.BufferAttribute` needs a typed array and throws on a plain array, so the page dies at load.",
+    fix: "Use new THREE.Float32BufferAttribute( [ ... ], 3 ) (it accepts a plain array) or new THREE.BufferAttribute( new Float32Array( [ ... ] ), 3 ).",
+    check(ctx, report) {
+      // Literal arrays only for now: a plain variable declared as `const name = [...]`
+      // is the second step (see #39) and stays quiet here rather than guessed at.
+      for (const cls of ["BufferAttribute", "InstancedBufferAttribute"]) {
+        for (const c of created(ctx, cls)) {
+          const args = callArgs(c.f.text, c.at + c.f.text.slice(c.at).indexOf("("));
+          if (!args) continue;
+          const first = splitTop(c.f.text.slice(args.start, args.end))[0]?.text.trim() ?? "";
+          if (first.startsWith("[")) report(c.f, c.at);
+        }
+      }
+    },
+  },
   legacy("update-range-removed", "updateRange was replaced by addUpdateRange()", /\.updateRange\b/, "`BufferAttribute.updateRange` was deprecated in r159 and removed in r169.", "attribute.clearUpdateRanges(); attribute.addUpdateRange( start, count ); attribute.needsUpdate = true;", { deprecatedIn: 159, removedIn: 169, introducedIn: 159 }),
 
   // ---- camera and depth ----

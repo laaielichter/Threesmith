@@ -186,6 +186,11 @@ export const CASES: RuleCase[] = [
     quiet: { "a.js": `${T}const pos = geometry.attributes.position;\nfunction animate() {\n  for (let i = 0; i < pos.count; i++) pos.setXYZ(i, 0, Math.sin(i), 0);\n  pos.needsUpdate = true;\n}\n` },
   },
   {
+    id: "buffer-attribute-plain-array",
+    fire: { "a.js": `${T}const geometry = new THREE.BufferGeometry();\ngeometry.setAttribute("position", new THREE.BufferAttribute([0, 0, 0, 1, 0, 0, 0, 1, 0], 3));\ngeometry.setAttribute("color", new THREE.InstancedBufferAttribute([1, 0, 0, 0, 1, 0, 0, 0, 1], 3));\n` },
+    quiet: { "a.js": `${T}const geometry = new THREE.BufferGeometry();\ngeometry.setAttribute("position", new THREE.BufferAttribute(new Float32Array([0, 0, 0, 1, 0, 0, 0, 1, 0]), 3));\ngeometry.setAttribute("color", new THREE.Float32BufferAttribute([1, 0, 0, 0, 1, 0, 0, 0, 1], 3));\nconst vertices = [0, 0, 0];\ngeometry.setAttribute("index", new THREE.BufferAttribute(vertices, 3));\n` },
+  },
+  {
     id: "update-range-removed",
     fire: { "a.js": `${T}attr.updateRange.offset = 0;\n` },
     quiet: { "a.js": `${T}attr.addUpdateRange(0, 3);\n` },
