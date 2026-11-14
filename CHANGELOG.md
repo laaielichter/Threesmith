@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- **Review:** new `buffer-attribute-plain-array` rule: `new THREE.BufferAttribute(...)` / `new THREE.InstancedBufferAttribute(...)` with a plain array throws at load, and the review gave it 100/100 (#39). Literal arrays only for now; the plain-variable case is a follow-up. The rule count is now 98.
+- **Review:** new `buffer-attribute-plain-array` rule: `new THREE.BufferAttribute(...)` / `new THREE.InstancedBufferAttribute(...)` with a plain array throws at load, and the review gave it 100/100 (#39). Literal arrays only for now; the plain-variable case is a follow-up. The rule count is now 98. Thanks to @IG-ABHINAV! (#39, #60)
 
 ## 0.3.0
 
