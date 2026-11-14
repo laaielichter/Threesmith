@@ -15,7 +15,7 @@ Done since (unreleased, each has tests):
 
 - [x] Doctor grouped by cause and project map (`three_doctor`, `three_scan`).
 - [x] Tool sets, cheap and premium profiles, read-only mode, structured results.
-- [x] Review: 97 rules incl. shaders against the installed ShaderChunk, R3F, loaders; only_new, unsaved code, SARIF.
+- [x] Review: 98 rules incl. shaders against the installed ShaderChunk, R3F, loaders; only_new, unsaved code, SARIF.
 - [x] Type-aware review for TypeScript projects (`three_types`, the project's own tsc).
 - [x] Lessons from real projects and local lessons; false-alarm feedback.
 - [x] Asset check (paths, case, decoders); build check of the deployed output.

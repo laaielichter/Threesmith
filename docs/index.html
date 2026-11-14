@@ -4,14 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Threesmith: three.js MCP server and CLI for coding agents</title>
-<meta name="description" content="Threesmith checks the three.js code your coding agent writes and runs the page headless. MCP server, CLI and Claude Code plugin: the API of your installed three version, a 97-rule review, asset and decoder checks, the live scene read back, claims proven frame by frame, perf and leak checks, and 3D models without Blender.">
+<meta name="description" content="Threesmith checks the three.js code your coding agent writes and runs the page headless. MCP server, CLI and Claude Code plugin: the API of your installed three version, a 98-rule review, asset and decoder checks, the live scene read back, claims proven frame by frame, perf and leak checks, and 3D models without Blender.">
 <link rel="canonical" href="https://laaielichter.github.io/Threesmith/">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <meta name="theme-color" content="#faf8f3">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Threesmith">
 <meta property="og:title" content="Threesmith: make any coding agent better at three.js">
-<meta property="og:description" content="The API of your installed three version, a 97-rule review, asset checks, the page run headless with the live scene read back, and 3D models without Blender. MCP server, CLI and Claude Code plugin. MIT.">
+<meta property="og:description" content="The API of your installed three version, a 98-rule review, asset checks, the page run headless with the live scene read back, and 3D models without Blender. MCP server, CLI and Claude Code plugin. MIT.">
 <meta property="og:url" content="https://laaielichter.github.io/Threesmith/">
 <meta property="og:image" content="https://laaielichter.github.io/Threesmith/assets/social.jpg">
 <meta property="og:image:width" content="1280">
@@ -32,7 +32,7 @@
   "applicationCategory": "DeveloperApplication",
   "operatingSystem": "Windows, macOS, Linux",
   "description": "MCP server, CLI and Claude Code plugin that checks the three.js code coding agents write: the API of the installed three version, a scored review pinned to it, asset and decoder checks, the page run in headless Chromium with the live scene read back, behaviour proven with steps and claims, perf and leak measurements, build checks, and 3D models built without Blender.",
-  "featureList": ["three.js API lookup pinned to the installed version", "Doctor that groups problems by cause", "Scored review with 97 rules incl. shaders and React Three Fiber", "TypeScript type errors answered from the installed release", "Asset path, case and decoder checks", "Headless WebGL 2 check with screenshots and baselines", "Live scene inspector: why objects are not visible", "Play with steps and claims, regression scenarios with JUnit", "Draw-call, triangle and leak measurements", "Build output check", "100 lessons from real three.js projects", "110 ready-made 3D models (.glb) with text views and lint", "Claude Code plugin with hooks, skills and subagents", "GitHub Action receipt on pull requests"],
+  "featureList": ["three.js API lookup pinned to the installed version", "Doctor that groups problems by cause", "Scored review with 98 rules incl. shaders and React Three Fiber", "TypeScript type errors answered from the installed release", "Asset path, case and decoder checks", "Headless WebGL 2 check with screenshots and baselines", "Live scene inspector: why objects are not visible", "Play with steps and claims, regression scenarios with JUnit", "Draw-call, triangle and leak measurements", "Build output check", "100 lessons from real three.js projects", "110 ready-made 3D models (.glb) with text views and lint", "Claude Code plugin with hooks, skills and subagents", "GitHub Action receipt on pull requests"],
   "url": "https://laaielichter.github.io/Threesmith/",
   "codeRepository": "https://github.com/laaielichter/Threesmith",
   "license": "https://opensource.org/licenses/MIT",
@@ -174,7 +174,7 @@ screenshot: ./examples/agent-mistakes/.threesmith/last.png<!--/out--></pre></div
   <div class="tbl"><table>
     <thead><tr><th>Your agent…</th><th>On its own</th><th>With Threesmith</th></tr></thead>
     <tbody>
-      <tr><td>writes three.js</td><td class="no"><code>Geometry</code>, <code>outputEncoding</code>, <code>examples/js</code>: old habits</td><td>97 rules pinned to the installed release, each with the fix; <code>three_fix</code> does the pure renames, undoable</td></tr>
+      <tr><td>writes three.js</td><td class="no"><code>Geometry</code>, <code>outputEncoding</code>, <code>examples/js</code>: old habits</td><td>98 rules pinned to the installed release, each with the fix; <code>three_fix</code> does the pure renames, undoable</td></tr>
       <tr><td>calls an API</td><td class="no">guesses a name or import path from memory</td><td><code>three_api</code> reads <code>node_modules/three</code>: signature, deprecation, the right <code>three/addons/…</code> path</td></tr>
       <tr><td>writes a shader</td><td class="no"><code>#include &lt;encodings_fragment&gt;</code>, a patch on a chunk that is gone</td><td>includes checked against the installed <code>ShaderChunk</code>; patches that silently do nothing found</td></tr>
       <tr><td>loads a model</td><td class="no"><code>/models/Robot.glb</code>: works on a Mac, 404 on the server</td><td><code>three_assets</code> resolves every path like the host does; names missing Draco, meshopt and KTX2 setup</td></tr>
@@ -195,7 +195,7 @@ screenshot: ./examples/agent-mistakes/.threesmith/last.png<!--/out--></pre></div
       <li><code>three_doctor</code> what is wrong, in order</li>
       <li><code>three_scan</code> the project map</li>
       <li><code>three_api</code> · <code>three_search</code> installed API</li>
-      <li><code>three_review</code> 97 rules, 0-100</li>
+      <li><code>three_review</code> 98 rules, 0-100</li>
       <li><code>three_types</code> tsc, answered for three</li>
       <li><code>three_fix</code> · <code>three_undo</code></li>
       <li><code>three_explain</code> cause of a message</li>

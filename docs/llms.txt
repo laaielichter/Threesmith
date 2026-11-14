@@ -4,7 +4,7 @@
 
 - Install: `claude mcp add threesmith -- npx -y threesmith mcp` (Node 22.12+; three must be installed in the project). Claude Code plugin: `/plugin marketplace add laaielichter/Threesmith`, then `/plugin install threesmith@threesmith`.
 - Start: three_doctor (what is wrong, in which order), three_scan (project map)
-- Code: three_api, three_search, three_review (97 rules, score 0-100, code+file for unsaved code, only_new for fix loops), three_types (tsc with three.js answers), three_fix (pure renames, undoable), three_explain, three_lessons, three_lesson_add, three_rules, three_feedback, three_undo, three_version
+- Code: three_api, three_search, three_review (98 rules, score 0-100, code+file for unsaved code, only_new for fix loops), three_types (tsc with three.js answers), three_fix (pure renames, undoable), three_explain, three_lessons, three_lesson_add, three_rules, three_feedback, three_undo, three_version
 - Run: three_check (headless Chromium, errors with causes, blank frames, screenshot, baselines), three_inspect (why objects are not visible), three_play (steps, watch, claims), three_scenario (regression tests), three_perf (draw calls, triangles, budgets), three_leaks (what grows per cycle)
 - Live: three_session, three_page (a page kept open between calls: eval against the live scene, steps, screenshots)
 - Build: three_assets (paths, case, decoders), three_build (bundle check and the built page headless)

@@ -38,7 +38,7 @@ safe, undoable edits. Everything runs locally; nothing leaves the machine.
 
 | Your agent... | On its own | With Threesmith |
 | --- | --- | --- |
-| writes three.js | `Geometry`, `outputEncoding`, `BoxBufferGeometry`, `examples/js`: old habits | 97 rules pinned to the installed release flag each line with the fix; `fix` does the 23 pure renames |
+| writes three.js | `Geometry`, `outputEncoding`, `BoxBufferGeometry`, `examples/js`: old habits | 98 rules pinned to the installed release flag each line with the fix; `fix` does the 23 pure renames |
 | calls an API | guesses a name or an import path from memory | `three_api` reads `node_modules/three`: signature, deprecation and the right `three/addons/...` path |
 | writes a shader | `#include <encodings_fragment>`, `gl_FragColor` with GLSL3, a `.replace()` on a chunk that is gone | includes checked against the installed `ShaderChunk`, patches that silently do nothing found, renames fixed |
 | loads a model | `/models/Car.glb` that is a 404 on Linux, Draco without a decoder | `three_assets` resolves every path like the server does and names the missing decoder setup |
@@ -120,7 +120,7 @@ project. The browser tools need `playwright-core` and a Chromium (`npx playwrigh
 | core | `three_scan` | Map the project: bundler and framework, three vs `@types/three` vs package.json, the libraries around it, pages and import maps, every file that uses three with what it creates and where its loop is, renderer settings, assets |
 | core | `three_api` | Exact API of a class, member or constant in the installed three: signature, deprecation, import path; did-you-mean for unknown names |
 | core | `three_search` | Find classes, constants and members by part of a name |
-| core | `three_review` | Scored review (0-100) with 97 rules pinned to the installed release; `code` + `file` for unsaved code, `only_new` in a fix loop, `files` to focus |
+| core | `three_review` | Scored review (0-100) with 98 rules pinned to the installed release; `code` + `file` for unsaved code, `only_new` in a fix loop, `files` to focus |
 | core | `three_types` | The project's own `tsc --noEmit`, with each three.js type error answered from the installed release (the member that exists, the real import path) |
 | core | `three_fix` | The renames that mean exactly the same, dry run first, undoable |
 | core | `three_explain` | Cause and fix of a console, build or test message (35 kinds), with the right import path for the installed release |
