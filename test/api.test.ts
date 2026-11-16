@@ -43,6 +43,10 @@ describe("api index (needs three in node_modules)", () => {
   it("looks up a constant", () => {
     expect(lookup(index!, "SRGBColorSpace").text).toContain("Constant");
   });
+  it("does not suggest names for an empty query", () => {
+    expect(suggest(index!, "")).toEqual([]);
+    expect(suggest(index!, "   ")).toEqual([]);
+  });
   it("suggests near names for a typo", () => {
     expect(suggest(index!, "WebGLRendrer")).toContain("WebGLRenderer");
     const r = lookup(index!, "Geometry");
