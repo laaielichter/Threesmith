@@ -654,7 +654,7 @@ export function buildProgram(): Command {
         out(hit ? (o.json ? JSON.stringify(hit, null, 2) : formatLesson(hit)) : `no lesson ${o.id}`);
         return;
       }
-      const limit = Number(o.limit);
+      const limit = positiveInt("--limit", o.limit);
       const topic = o.topic as (typeof LESSON_TOPICS)[number] | undefined;
       const hits = o.error ? lessonsForError(o.error, { limit }) : o.rule ? lessonsForRule(o.rule, { limit }) : searchLessons(words.join(" "), { ...(topic ? { topic } : {}), limit });
       out(o.json ? JSON.stringify(hits, null, 2) : formatLessonList(hits, o.error ?? o.rule ?? words.join(" ")));
