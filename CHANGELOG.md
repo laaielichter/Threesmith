@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- **CLI:** `review --limit` and `assets --limit` refuse `abc`, `0`, `-3` and `1.5` with exit 2 (`--limit must be a whole number of 1 or more`) instead of silently hiding every finding. Valid limits work as before. Thanks to @ADAMDEV01! (#26, #74)
 - **CLI:** a path that does not exist stops `review`, `fix`, `ci`, `doctor`, `scan` and `assets` with `threesmith: path not found: <path>` and exit 2 before anything is scanned, so `ci ./typo` can no longer pass, and `scan`/`assets` no longer report on the enclosing project instead. A folder without three.js code and a single file work as before. Thanks to @ADAMDEV01! (#37, #72)
 - **Review:** new `buffer-attribute-plain-array` rule: `new THREE.BufferAttribute(...)` / `new THREE.InstancedBufferAttribute(...)` with a plain array throws at load, and the review gave it 100/100 (#39). Literal arrays only for now; the plain-variable case is a follow-up. The rule count is now 98. Thanks to @IG-ABHINAV! (#39, #60)
 - **Scenarios:** `scenario run <name>` with a name that matches no scenario now fails with exit 2 (`no scenario matches "jmup" (known: jump)`, at most 10 names listed) before any browser starts, also over MCP, instead of printing "No scenarios to run." and writing an empty, green JUnit report. Thanks to @timmiballz22! (#51, #66)
