@@ -60,6 +60,23 @@ describe.skipIf(!existsSync("dist/cli.js"))("built cli", () => {
     const goodLimit = spawnSync("node", ["dist/cli.js", "search", "Vector3", "--three", THREE_DIR, "--limit", "1"]);
     expect(goodLimit.status).toBe(0);
     expect(goodLimit.stdout.toString()).toContain("Vector3");
+
+    for (const value of ["abc", "0", "-3", "1.5"]) {
+      const badReviewLimit = spawnSync("node", ["dist/cli.js", "review", dir, "--three", THREE_DIR, "--limit", value]);
+      expect(badReviewLimit.status).toBe(2);
+      expect(badReviewLimit.stderr.toString()).toContain(`threesmith: --limit must be a whole number of 1 or more (got "${value}")`);
+
+      const badAssetsLimit = spawnSync("node", ["dist/cli.js", "assets", dir, "--limit", value]);
+      expect(badAssetsLimit.status).toBe(2);
+      expect(badAssetsLimit.stderr.toString()).toContain(`threesmith: --limit must be a whole number of 1 or more (got "${value}")`);
+    }
+
+    const goodReviewLimit = spawnSync("node", ["dist/cli.js", "review", dir, "--three", THREE_DIR, "--limit", "1"]);
+    expect(goodReviewLimit.status).toBe(0);
+    expect(goodReviewLimit.stdout.toString()).toContain("geometry-class");
+
+    const goodAssetsLimit = spawnSync("node", ["dist/cli.js", "assets", dir, "--limit", "1"]);
+    expect(goodAssetsLimit.status).toBe(0);
   });
 
   it("rejects missing paths before scanning and preserves existing path behavior", () => {

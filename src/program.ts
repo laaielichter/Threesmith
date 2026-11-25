@@ -163,6 +163,7 @@ export function buildProgram(): Command {
     .action(
       (path: string, o: { three?: string; json?: boolean; markdown?: boolean; sarif?: string; compact?: boolean; limit: string; minScore?: string; failOn: string; disable?: string }) => {
         existingPath(path);
+        const limit = positiveInt("--limit", o.limit);
         const disable = o.disable ? parseRuleList(o.disable, "--disable") : undefined;
         const { review: r, learned } = applyFeedback(review({ path, ...(o.three ? { three: o.three } : {}), ...(disable ? { disable } : {}) }));
         const note = formatLearned(learned);
@@ -171,7 +172,7 @@ export function buildProgram(): Command {
           mkdirSync(dirname(o.sarif), { recursive: true });
           writeFileSync(o.sarif, JSON.stringify(toSarif(r), null, 1) + "\n");
         }
-        out(o.json ? JSON.stringify(r, null, 2) : o.markdown ? formatMarkdown(r, { limit: Number(o.limit) }) : o.compact ? formatCompact(r, { limit: Number(o.limit) }) : formatText(r, { limit: Number(o.limit) }));
+        out(o.json ? JSON.stringify(r, null, 2) : o.markdown ? formatMarkdown(r, { limit }) : o.compact ? formatCompact(r, { limit }) : formatText(r, { limit }));
         const rank: Record<string, number> = { error: 0, warn: 1, info: 2 };
         if (o.failOn !== "none" && r.findings.some((f) => (rank[f.severity] ?? 9) <= (rank[o.failOn] ?? -1))) process.exitCode = 1;
         if (o.minScore !== undefined && r.score !== null && r.score < Number(o.minScore)) process.exitCode = 1;
@@ -689,9 +690,10 @@ export function buildProgram(): Command {
     .option("--json", "JSON output")
     .action((path: string, o: { limit: string; json?: boolean }) => {
       existingPath(path);
+      const limit = positiveInt("--limit", o.limit);
       const root = projectRootOf(path);
       const r = checkAssets(root, collect(root).files);
-      out(o.json ? JSON.stringify(r, null, 2) : formatAssets(r, { limit: Number(o.limit) }));
+      out(o.json ? JSON.stringify(r, null, 2) : formatAssets(r, { limit }));
       if (r.problems.some((p) => p.severity === "error")) process.exitCode = 1;
     });
 
