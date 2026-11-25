@@ -722,7 +722,8 @@ export function buildProgram(): Command {
     .action((dir: string | undefined, o: { path: string; steps: string; force?: boolean; list?: boolean }) => {
       if (dir) o.path = dir;
       const root = projectRootOf(o.path);
-      out(o.list ? formatJournal(readJournal(root)) : formatUndo(undoJournal(root, { steps: Number(o.steps), ...(o.force ? { force: true } : {}) })));
+      if (o.list) out(formatJournal(readJournal(root)));
+      else out(formatUndo(undoJournal(root, { steps: positiveInt("--steps", o.steps), ...(o.force ? { force: true } : {}) })));
     });
 
   program

@@ -3,6 +3,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { ci } from "../src/ci.js";
+import { writeFiles } from "../src/project/journal.js";
 import { project, THREE_DIR } from "./helpers.js";
 
 describe("ci receipt", () => {
@@ -110,6 +111,41 @@ describe.skipIf(!existsSync("dist/cli.js"))("built cli", () => {
 
     const singleFile = spawnSync("node", ["dist/cli.js", "review", "examples/agent-mistakes-fixed/main.js", "--three", THREE_DIR]);
     expect(singleFile.status).toBe(0);
+  });
+
+  it("validates undo steps before touching journaled files", () => {
+    const invalidValues = ["abc", "0", "-2", "1.5"];
+    for (const value of invalidValues) {
+      const dir = project({ "a.js": "original" });
+      writeFiles(dir, "test", "one write", [{ file: "a.js", data: "changed" }]);
+
+      const result = spawnSync("node", ["dist/cli.js", "undo", dir, "--steps", value]);
+      expect(result.status).toBe(2);
+      expect(result.stderr.toString()).toContain(
+        `threesmith: --steps must be a whole number of 1 or more (got "${value}")`,
+      );
+      expect(readFileSync(join(dir, "a.js"), "utf8")).toBe("changed");
+
+      // --list deliberately ignores --steps, including an invalid value, and proves the journal remains.
+      const listed = spawnSync("node", ["dist/cli.js", "undo", dir, "--steps", value, "--list"]);
+      expect(listed.status).toBe(0);
+      expect(listed.stdout.toString()).toContain("test: one write");
+      expect(readFileSync(join(dir, "a.js"), "utf8")).toBe("changed");
+    }
+
+    const explicit = project({ "a.js": "original" });
+    writeFiles(explicit, "test", "explicit write", [{ file: "a.js", data: "changed" }]);
+    const one = spawnSync("node", ["dist/cli.js", "undo", explicit, "--steps", "1"]);
+    expect(one.status).toBe(0);
+    expect(one.stdout.toString()).toContain("restored a.js");
+    expect(readFileSync(join(explicit, "a.js"), "utf8")).toBe("original");
+
+    const defaultDir = project({ "a.js": "original" });
+    writeFiles(defaultDir, "test", "default write", [{ file: "a.js", data: "changed" }]);
+    const defaultUndo = spawnSync("node", ["dist/cli.js", "undo", defaultDir]);
+    expect(defaultUndo.status).toBe(0);
+    expect(defaultUndo.stdout.toString()).toContain("restored a.js");
+    expect(readFileSync(join(defaultDir, "a.js"), "utf8")).toBe("original");
   });
 
   it("rejects unmatched scenario names before writing JUnit reports", () => {
