@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, statSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { basename, dirname, extname, isAbsolute, join, relative, resolve } from "node:path";
 
 /**
@@ -88,9 +88,14 @@ export async function validateBytes(data: Uint8Array, file: string, dir: string,
 }
 
 function readModel(file: string): Uint8Array {
-  if (!existsSync(file) || !statSync(file).isFile()) throw new Error(`model not found: ${file}`);
   if (!/\.(?:glb|gltf)$/i.test(file)) throw new Error(`${file} is not a .glb or .gltf file`);
-  return new Uint8Array(readFileSync(file));
+  // read once, without a check-then-read gap; a missing file or a folder is an error from the read itself
+  try {
+    return new Uint8Array(readFileSync(file));
+  } catch (e) {
+    const code = (e as NodeJS.ErrnoException).code;
+    throw new Error(code === "ENOENT" || code === "EISDIR" ? `model not found: ${file}` : `cannot read ${file}: ${(e as Error).message}`);
+  }
 }
 
 export async function validateGltf(file: string, opts: { maxIssues?: number } = {}): Promise<ValidationReport> {
