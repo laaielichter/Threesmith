@@ -125,5 +125,13 @@ describe("doctor triage", () => {
     expect(text).toContain("(three_fix)");
     expect(text).toContain("Next:");
     expect(t.next.join(" ")).toContain("three_fix");
+    expect(t.next.join(" ")).not.toContain("three_compare");
+  });
+
+  it("suggests three_compare before a bump when a page uses a deprecated API", () => {
+    const files = { "package.json": "{}", "index.html": '<!doctype html><script type="module" src="./main.js"></script>', "main.js": "import * as THREE from 'three';\nconst clock = new THREE.Clock();\n" };
+    expect(triage(project(files)).next.join(" ")).toContain("call three_compare with: next on the page");
+    const { "index.html": _page, ...noPage } = files;
+    expect(triage(project(noPage)).next.join(" ")).not.toContain("three_compare");
   });
 });

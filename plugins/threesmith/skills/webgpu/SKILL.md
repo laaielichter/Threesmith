@@ -22,4 +22,6 @@ Work on $ARGUMENTS (or the project).
 6. `three_review` with `only_new: true` after each file: `webgpu-glsl-material` must be gone.
 7. `three_check` with `webgpu: true` and the baseline: the `backend` line must say WebGPU (on a machine with an
    adapter; `threesmith doctor --env` says whether this one has one), and also check it on the WebGL 2 fallback.
-8. End with the score before and after, the drafts used, what is still TODO, and the screenshot diff.
+8. WebGPURenderer and TSL still change from release to release: before a three bump, `three_compare` with
+   `with: next` (and `webgpu: true`) runs the page on both releases and names the migration note behind each change.
+9. End with the score before and after, the drafts used, what is still TODO, and the screenshot diff.

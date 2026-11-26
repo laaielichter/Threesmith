@@ -1,6 +1,7 @@
 import { decodersBroken, planDecoders } from "../decoders/decoders.js";
 import { FIXES } from "../review/fix.js";
 import { review, type ReviewResult } from "../review/review.js";
+import { RULES } from "../review/rules.js";
 import type { Finding, Severity } from "../review/types.js";
 import { applyFeedback } from "../learn/feedback.js";
 import { scanProject, type ProjectMap } from "../scan/scan.js";
@@ -156,6 +157,10 @@ export function triage(path: string, opts: { three?: string; disable?: string[] 
   const rest = r.findings.filter((f) => f.severity === "error" && !FIXABLE.has(f.rule)).length;
   if (rest) next.push(`Fix the remaining ${rest} error(s) by hand; three_api gives the exact names for the installed release.`);
   if (r.findings.length) next.push("Call three_review with only_new: true after each change, until no errors are left.");
+  // a deprecated API that still works is what the next release may change: show it on the page before the bump
+  const deprecated = new Set(RULES.filter((x) => x.deprecatedIn !== undefined && x.removedIn === undefined).map((x) => x.id));
+  if (map.pages.length && r.findings.some((f) => deprecated.has(f.rule)))
+    next.push("Before you move to a newer three release, call three_compare with: next on the page: it runs it on both releases and explains each change with its migration note (bisect: a range finds the first release that changes it).");
   next.push(map.pages.length ? `Run three_check on the page (${map.pages[0]!.file}) before you call it done.` : "Run three_check on the dev server URL before you call it done.");
   const install = map.three.installed ? `three r${map.three.release}` : "three not installed";
   return {
