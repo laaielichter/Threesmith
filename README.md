@@ -73,13 +73,13 @@ frame measured object by object, and safe, undoable edits. Everything runs local
 | makes it fast | changes things and hopes | `three_perf` counts draw calls, triangles and programs against a budget and the last run; `three_leaks` names what is never disposed |
 | upgrades three | merges the "bump three" PR blind | `three_compare` runs your page on both releases and says what changed (console, scene, draw calls, light per object), each change with the migration note that explains it |
 | ships it | builds once, deploys, sees a 404 | `three_build` builds, finds two copies of three, missing assets and sub-path URLs, then opens the built page |
-| needs a 3D model | needs Blender or a placeholder cube | `three_model_build` makes a clean `.glb` from one of 110 kinds, then shows it as text views and lints it |
+| needs a 3D model | needs Blender or a placeholder cube | `three_model_build` makes a clean `.glb` from one of 110 kinds or 1000 library models, then shows it as text views and lints it |
 | finishes a change | checks the file it touched, not the pages that run it | `three_impact` names what the change touches, which pages and tests run it, and the checks that prove it |
 | does not know the project | reads twenty files | `three_scan` and `three_doctor` give the map and the order to fix things in one call |
 
 <p align="center">
   <a href="https://laaielichter.github.io/Threesmith/models.html"><img src="docs/gallery/overview.jpg" alt="A car, an airship, a wizard tower, an excavator, a treasure chest, a dragon, a lighthouse, a mech, a longship, a stone golem, a hot-air balloon and a castle, built by Threesmith and rendered by three.js" width="860"></a><br>
-  <sub>3D models from code, no Blender: 110 ready-made kinds, from cars and airships to swords, teapots and golems, rendered here by three.js itself. <a href="https://laaielichter.github.io/Threesmith/models.html">See all</a></sub>
+  <sub>3D models from code, no Blender: 110 ready-made kinds and a library of 1000 base models (see <a href="LIBRARY.md">LIBRARY.md</a>), from cars and airships to swords, teapots and golems, rendered here by three.js itself. <a href="https://laaielichter.github.io/Threesmith/models.html">See all</a></sub>
 </p>
 
 ## Quickstart
@@ -130,7 +130,7 @@ the doctor, fix in its order) and `threesmith-<skill>` for each skill (`debug`, 
 - **Tool sets.** `--tools core` loads 18 tools; add `run`, `live`, `build`, `model` when you need them, or name single
   tools. A tool list the client pays for in every turn stays small. The server instructions only ever name tools
   that are loaded.
-- **Lean mode.** `--lean` offers two tools instead of 44: `three` runs any tool by name
+- **Lean mode.** `--lean` offers two tools instead of 45: `three` runs any tool by name
   (`{"tool": "review", "args": {"only_new": true}}`) and `three_help` gives a tool's parameters when they are needed.
   Same tools, same results, same read-only refusals; the tool list drops from about 22,000 to about 2,600 tokens
   (estimated at 4 characters per token; `threesmith mcp --stats` prints the numbers for your options).
@@ -145,7 +145,7 @@ the doctor, fix in its order) and `threesmith-<skill>` for each skill (`debug`, 
   with `three_lesson_add` come back under the same error. `three_dream` looks back at past sessions and proposes
   project hints and lesson changes, each with its evidence. Only hashes, counters and scrubbed text, on this machine.
 
-## The 44 tools
+## The 45 tools
 
 **core** · read files, answer, fix
 
@@ -210,7 +210,8 @@ the doctor, fix in its order) and `threesmith-<skill>` for each skill (`debug`, 
 | `three_model_brief` | One page before you build a model: nearest kind, parts, real size, rules, order of tools |
 | `three_model_identify` | What a thing is (English or Dutch): parts, pivots, typical size, usual mistakes |
 | `three_model_spec` | The JSON model spec, an example, and the 110 ready-made kinds |
-| `three_model_build` | A clean, deterministic `.glb` from a kind or a spec, linted |
+| `three_model_library` | 1000 ready-made base models (furniture, street, storage, nature, buildings, vehicles, props), searchable in English or Dutch, each with parameters |
+| `three_model_build` | A clean, deterministic `.glb` from a kind, a library id or a spec, linted |
 | `three_model_view` | A `.glb` as text: front, side and top views, parts with sizes, parts that do not touch |
 | `three_model_lint` | Score a `.glb` for the web, and against what it should be |
 | `three_model_inspect` | What is in a `.glb` and which loaders and decoders it needs, with the setup code |
@@ -219,7 +220,7 @@ the doctor, fix in its order) and `threesmith-<skill>` for each skill (`debug`, 
 Every tool explains itself in full to the agent (its MCP description); `threesmith <command> --help` does the same in the shell.
 
 CLI: `threesmith doctor | scan | api | search | review | types | fix | impact | migrate | tsl | rules | dream | undo | lessons | assets | decoders | gltf | check |
-inspect | look | capture | play | scenario | perf | device | leaks | compare | build | model <inspect|needs|code|view|lint|identify|brief|spec|kinds|recipes|build>
+inspect | look | capture | play | scenario | perf | device | leaks | compare | build | model <inspect|needs|code|view|lint|identify|brief|spec|kinds|recipes|library|build>
 | explain | ci | hook | mcp`. `threesmith <command> --help` lists the options.
 
 ### The review

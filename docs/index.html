@@ -212,13 +212,13 @@ Objects (share of the frame it really shows; place; cut by the edge; hidden):
       <tr><td>animates a model</td><td class="no">a T-pose, a clip that never plays, feet in the floor</td><td><code>three_animation</code>: why it does not play, the pose at any time, the lowest point per step</td></tr>
       <tr><td>writes TSL</td><td class="no"><code>uv().x * 8</code> and <code>if</code> on a node, as if it were GLSL</td><td><code>three_tsl</code>: those mistakes found, the node graph and the generated shader from the page</td></tr>
       <tr><td>finishes a change</td><td class="no">checks the file it touched, not the pages that run it</td><td><code>three_impact</code>: what the change touches, which pages and tests run it, the checks that prove it</td></tr>
-      <tr><td>needs a 3D model</td><td class="no">a placeholder cube</td><td><code>three_model_build</code>: a clean <code>.glb</code> from 110 kinds, shown as text views, linted</td></tr>
+      <tr><td>needs a 3D model</td><td class="no">a placeholder cube</td><td><code>three_model_build</code>: a clean <code>.glb</code> from 110 kinds or 1000 library models, shown as text views, linted</td></tr>
     </tbody>
   </table></div>
 </div></section>
 
 <section id="tools"><div class="wrap">
-  <h2>44 MCP tools, one CLI</h2>
+  <h2>45 MCP tools, one CLI</h2>
   <p class="sub">Load the sets you need: <code>--tools core,run</code>. Most tools are also CLI commands (<code>threesmith &lt;command&gt; --help</code>).</p>
   <div class="tools">
     <div><h4>core</h4><ul>
@@ -263,6 +263,7 @@ Objects (share of the frame it really shows; place; cut by the edge; hidden):
     <div><h4>model</h4><ul>
       <li><code>three_model_brief</code> · <code>three_model_identify</code></li>
       <li><code>three_model_spec</code> · <code>three_model_build</code></li>
+      <li><code>three_model_library</code> 1000 base models</li>
       <li><code>three_model_view</code> text views</li>
       <li><code>three_model_lint</code> · <code>three_model_inspect</code></li>
       <li><code>three_model_code</code> module or R3F component</li>

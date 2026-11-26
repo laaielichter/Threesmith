@@ -40,7 +40,7 @@ and look at the page before you say it works.
    `if` mistakes); op graph and op shader in the page when a node material looks wrong.
 11. **Past sessions:** when the session start says a dream is due, `three_dream`, and apply what the user approves.
 12. **Loading a model in code:** `three_model_code` writes the module or R3F component for a `.glb`.
-13. **3D models:** `three_model_brief`, `three_model_build`, `three_model_view` (text views), `three_model_lint`.
+13. **3D models:** `three_model_brief`, `three_model_library` (1000 base models), `three_model_build`, `three_model_view` (text views), `three_model_lint`.
 
 ## Rules of thumb
 

@@ -32,7 +32,8 @@
     "version": "node scripts/sync-version.mjs && git add server.json plugins/threesmith gemini-extension.json",
     "build:mcpb": "node scripts/build-mcpb.mjs",
     "plugin:local": "node scripts/plugin-local.mjs",
-    "build:site": "npm run build && node scripts/build-site.mjs"
+    "build:site": "npm run build && node scripts/build-site.mjs",
+    "build:library": "npm run build && node scripts/build-library.mjs"
   },
   "keywords": [
     "threejs",

@@ -1159,7 +1159,19 @@
   "id": "vehicle.rail.train",
   "name": "train",
   "description": "A locomotive, railcar or train.",
-  "aliases": ["train", "trains", "trein", "locomotive", "loc", "railcar", "metro", "subway", "sneltrein", "intercity", "treinstel"],
+  "aliases": [
+   "train",
+   "trains",
+   "trein",
+   "locomotive",
+   "loc",
+   "railcar",
+   "metro",
+   "subway",
+   "sneltrein",
+   "intercity",
+   "treinstel"
+  ],
   "extends": "vehicle.rail",
   "scale": {
    "length": [
@@ -2206,7 +2218,19 @@
   "id": "vehicle.rail.tram",
   "name": "tram",
   "description": "A low-floor articulated city tram: several short carbody sections joined by bellows, with a cab at each end, wide double doors, large windows and a pantograph; bogies sit under some sections, the others hang between them.",
-  "aliases": ["tram", "streetcar", "light rail vehicle", "low-floor tram", "articulated tram", "stadstram", "sneltram", "lagevloertram", "lrv", "strassenbahn", "trolley car"],
+  "aliases": [
+   "tram",
+   "streetcar",
+   "light rail vehicle",
+   "low-floor tram",
+   "articulated tram",
+   "stadstram",
+   "sneltram",
+   "lagevloertram",
+   "lrv",
+   "strassenbahn",
+   "trolley car"
+  ],
   "extends": "vehicle.rail",
   "hints": [
    "tram",
@@ -2967,5 +2991,91 @@
    "A hovercraft rests on its skirt on y = 0; it has no keel below the waterline like a boat.",
    "The propellers push air backwards: they sit at the stern, facing -z, with the rudders behind them."
   ]
+ },
+ {
+  "id": "vehicle.wheeled.cart",
+  "name": "cart",
+  "description": "A hand-pushed or animal-drawn cart: a wheelbarrow, handcart or wagon.",
+  "aliases": [
+   "cart",
+   "carts",
+   "handcart",
+   "hand cart",
+   "kar",
+   "karretje",
+   "handkar",
+   "bolderkar",
+   "wheelbarrow",
+   "kruiwagen",
+   "wagon",
+   "boerenkar",
+   "trolley"
+  ],
+  "extends": "vehicle.wheeled",
+  "parts": [
+   {
+    "name": "Body",
+    "role": "body",
+    "required": true,
+    "aliases": [
+     "body",
+     "bed",
+     "bak",
+     "tray",
+     "box",
+     "bin"
+    ]
+   },
+   {
+    "name": "Wheel",
+    "role": "wheel",
+    "required": true,
+    "aliases": [
+     "wheel",
+     "wiel",
+     "wielen"
+    ],
+    "count": [
+     1,
+     4
+    ],
+    "moves": [
+     {
+      "kind": "spin",
+      "axis": "x"
+     }
+    ],
+    "pivot": "hub"
+   },
+   {
+    "name": "Handle",
+    "role": "handle",
+    "required": false,
+    "aliases": [
+     "handle",
+     "handles",
+     "shaft",
+     "shafts",
+     "disselboom",
+     "handvat"
+    ]
+   }
+  ],
+  "scale": {
+   "length": [
+    0.8,
+    4.5
+   ],
+   "width": [
+    0.5,
+    2.2
+   ],
+   "height": [
+    0.5,
+    2.0
+   ],
+   "source": "general knowledge: typical production range, not a standard",
+   "confidence": "C"
+  }
  }
 ]

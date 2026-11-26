@@ -298,7 +298,16 @@
   "id": "building.tower",
   "name": "tower",
   "description": "A tall building or tower.",
-  "aliases": ["tower", "skyscraper", "wolkenkrabber", "toren", "office tower", "kantoortoren", "high-rise", "hoogbouw"],
+  "aliases": [
+   "tower",
+   "skyscraper",
+   "wolkenkrabber",
+   "toren",
+   "office tower",
+   "kantoortoren",
+   "high-rise",
+   "hoogbouw"
+  ],
   "extends": "building",
   "scale": {
    "length": [
@@ -398,7 +407,6 @@
    "schuur",
    "stal",
    "loods",
-   "shed",
    "warehouse",
    "magazijn",
    "hangar",
@@ -1287,7 +1295,16 @@
   "id": "building.lighthouse",
   "name": "lighthouse",
   "description": "A coastal light tower: a tall round or many-sided tower with a gallery and a glazed lantern room on top, often with a keeper's house at its foot.",
-  "aliases": ["vuurtoren", "lighthouse", "lighthouse tower", "light tower", "lichttoren", "beacon tower", "pharos", "kustlicht"],
+  "aliases": [
+   "vuurtoren",
+   "lighthouse",
+   "lighthouse tower",
+   "light tower",
+   "lichttoren",
+   "beacon tower",
+   "pharos",
+   "kustlicht"
+  ],
   "extends": "building.tower",
   "parts": [
    {
@@ -1409,7 +1426,16 @@
   "id": "building.water-tower",
   "name": "water tower",
   "description": "An elevated water tank: a tank high on steel legs or on a masonry or concrete column, with a ladder or stair, a balcony and a roof on the tank.",
-  "aliases": ["watertoren", "water tower", "elevated water tank", "water tank tower", "hoogreservoir", "watertank op poten", "elevated tank", "water tank on legs"],
+  "aliases": [
+   "watertoren",
+   "water tower",
+   "elevated water tank",
+   "water tank tower",
+   "hoogreservoir",
+   "watertank op poten",
+   "elevated tank",
+   "water tank on legs"
+  ],
   "extends": "building.tower",
   "parts": [
    {
@@ -2085,5 +2111,174 @@
   "pitfalls": [
    "Dispensers stand on raised islands with bollards, and the canopy fascia is deep and lit: a thin slab on poles reads as a carport."
   ]
+ },
+ {
+  "id": "building.shed",
+  "name": "shed",
+  "description": "A small outbuilding: a garden shed, garage, workshop or hut.",
+  "aliases": [
+   "shed",
+   "sheds",
+   "garden shed",
+   "schuurtje",
+   "tuinhuis",
+   "tool shed",
+   "hutje",
+   "garage",
+   "garages",
+   "workshop",
+   "werkplaats",
+   "berging",
+   "blokhut",
+   "cabin"
+  ],
+  "extends": "building",
+  "parts": [
+   {
+    "name": "Walls",
+    "role": "walls",
+    "required": true,
+    "aliases": [
+     "walls",
+     "wall",
+     "muren",
+     "body"
+    ]
+   },
+   {
+    "name": "Roof",
+    "role": "roof",
+    "required": true,
+    "aliases": [
+     "roof",
+     "dak"
+    ]
+   },
+   {
+    "name": "Door",
+    "role": "door",
+    "required": true,
+    "aliases": [
+     "door",
+     "deur",
+     "garage door"
+    ],
+    "count": [
+     1,
+     2
+    ],
+    "moves": [
+     {
+      "kind": "hinge",
+      "axis": "y"
+     }
+    ],
+    "pivot": "hinge"
+   },
+   {
+    "name": "Window",
+    "role": "window",
+    "required": false,
+    "aliases": [
+     "window",
+     "windows",
+     "raam",
+     "ramen"
+    ]
+   }
+  ],
+  "scale": {
+   "length": [
+    2,
+    9
+   ],
+   "width": [
+    1.5,
+    7
+   ],
+   "height": [
+    2,
+    5
+   ],
+   "source": "general knowledge: typical production range, not a standard",
+   "confidence": "C"
+  }
+ },
+ {
+  "id": "building.gazebo",
+  "name": "gazebo",
+  "description": "An open garden pavilion: a gazebo, pergola, bandstand or carport.",
+  "aliases": [
+   "gazebo",
+   "gazebos",
+   "prieel",
+   "paviljoen",
+   "pavilion",
+   "pergola",
+   "bandstand",
+   "muziektent",
+   "carport",
+   "overkapping",
+   "tuinoverkapping"
+  ],
+  "extends": "building",
+  "parts": [
+   {
+    "name": "Post",
+    "role": "post",
+    "required": true,
+    "aliases": [
+     "post",
+     "posts",
+     "column",
+     "columns",
+     "paal",
+     "palen",
+     "zuil"
+    ],
+    "count": [
+     3,
+     12
+    ]
+   },
+   {
+    "name": "Roof",
+    "role": "roof",
+    "required": true,
+    "aliases": [
+     "roof",
+     "dak",
+     "canopy",
+     "beams"
+    ]
+   },
+   {
+    "name": "Floor",
+    "role": "floor",
+    "required": false,
+    "aliases": [
+     "floor",
+     "deck",
+     "platform",
+     "vloer"
+    ]
+   }
+  ],
+  "scale": {
+   "length": [
+    2.5,
+    10
+   ],
+   "width": [
+    2.5,
+    10
+   ],
+   "height": [
+    2.2,
+    6
+   ],
+   "source": "general knowledge: typical production range, not a standard",
+   "confidence": "C"
+  }
  }
 ]

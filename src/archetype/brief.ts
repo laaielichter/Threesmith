@@ -1,3 +1,4 @@
+import { searchAssets } from "../library/library.js";
 import { allKinds } from "../build/generators/index.js";
 import { SPEC_CHEAT } from "../build/spec-help.js";
 import { formatPart, range } from "./format.js";
@@ -119,6 +120,13 @@ export function briefFor(what: string, library: ArchetypeLibrary = loadLibrary()
       if (k.related?.length) out.push(`      tune it with: ${k.related.join(", ")}`);
     }
     out.push(`  To change the shape itself: threesmith model recipes ${(kinds[0] as KindRef).kind} > my.spec.json, edit it, then threesmith model build --spec my.spec.json -o m.glb`);
+  }
+
+  // Library assets of this archetype (or below it): finished variants to build as they are or to start a spec from.
+  const assets = a.chain.length > 1 ? searchAssets({ archetype: a.id }) : [];
+  if (assets.length) {
+    out.push(`  Library: ${assets.length} ready-made base recipe${assets.length === 1 ? "" : "s"} of this thing, e.g. ${assets.slice(0, 3).map((x) => x.id).join(", ")}`);
+    out.push(`      threesmith model library --archetype ${a.id}   (search: model library "<words>"; copy one: model library <id> --spec > my.spec.json)`);
   }
 
   out.push("", "2. PARTS (name your nodes like this; moving parts get their own node)");

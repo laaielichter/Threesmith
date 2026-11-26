@@ -650,7 +650,10 @@
     "name": "Stem",
     "role": "trunk",
     "required": true,
-    "count": 1,
+    "count": [
+     1,
+     16
+    ],
     "aliases": [
      "stem",
      "stalk",
@@ -664,7 +667,10 @@
     "name": "Cap",
     "role": "cap",
     "required": true,
-    "count": 1,
+    "count": [
+     1,
+     16
+    ],
     "aliases": [
      "cap",
      "hoed",
@@ -761,5 +767,66 @@
    "A cap without an underside reads as a lamp shade: show the gills.",
    "A real mushroom at metre scale (a unit mistake) looks like a fantasy one."
   ]
+ },
+ {
+  "id": "plant.stump",
+  "name": "tree stump",
+  "description": "A cut tree stump or a fallen log.",
+  "aliases": [
+   "tree stump",
+   "stump",
+   "boomstronk",
+   "stronk",
+   "log",
+   "logs",
+   "fallen log",
+   "boomstam",
+   "stam",
+   "omgevallen boom"
+  ],
+  "extends": "plant",
+  "parts": [
+   {
+    "name": "Wood",
+    "role": "wood",
+    "required": true,
+    "aliases": [
+     "wood",
+     "trunk",
+     "log",
+     "stump",
+     "stam",
+     "stronk",
+     "hout"
+    ]
+   },
+   {
+    "name": "Root",
+    "role": "root",
+    "required": false,
+    "aliases": [
+     "root",
+     "roots",
+     "wortel",
+     "wortels"
+    ]
+   }
+  ],
+  "scale": {
+   "length": [
+    0.3,
+    8
+   ],
+   "width": [
+    0.3,
+    2
+   ],
+   "height": [
+    0.2,
+    1.5
+   ],
+   "source": "general knowledge: typical production range, not a standard",
+   "confidence": "C"
+  }
  }
 ]
