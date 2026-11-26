@@ -52,7 +52,7 @@ export function ensureStateDir(root: string): string {
   {
     try {
       // "wx": create it only when it is not there yet, in one step (an existing one is kept as it is)
-      writeFileSync(ignore, "# local Threesmith state; baselines/ and scenarios/ are meant to be committed\njournal/\nreview-last.json\nlast.png\ndiff/\nperf/\n", { flag: "wx" });
+      writeFileSync(ignore, "# local Threesmith state; baselines/ and scenarios/ are meant to be committed\njournal/\nreview-last.json\nlast.png\ndiff/\nperf/\ncapture/\n", { flag: "wx" });
     } catch {
       /* already there, or a read-only project */
     }

@@ -1,3 +1,4 @@
+import { capture, formatCapture } from "./check/capture.js";
 import { formatModelCode, modelCode } from "./model/code.js";
 import { publicDirOf } from "./scan/assets.js";
 import { formatOutline, live, outline } from "./tsl/tsl.js";
@@ -283,6 +284,25 @@ export function buildProgram(): Command {
         ...clockFrom(o),
       });
       out(o.json ? JSON.stringify(r, null, 2) : formatCheck(r));
+      if (!r.ok) process.exitCode = 1;
+    });
+
+  program
+    .command("capture")
+    .description("Frames of the page 1/fps apart on the deterministic clock, a contact sheet, still scenes and pops, and an .mp4 with ffmpeg")
+    .argument("<target>", "folder with the page, or an http(s) URL")
+    .option("--entry <file>", "HTML file inside the folder", "index.html")
+    .option("--fps <n>", "frames per second", "30")
+    .option("--seconds <s>", "length", "2")
+    .option("--wait <ms>", "let the scene run this long first", "500")
+    .option("--steps <json>", "steps first, as JSON (see play)")
+    .option("--name <name>", "capture folder under .threesmith/capture", "capture")
+    .option("--video", "encode an .mp4 with ffmpeg")
+    .action(async (target: string, o: { entry: string; fps: string; seconds: string; wait: string; steps?: string; name: string; video?: boolean }) => {
+      const seconds = Number(o.seconds);
+      if (!(seconds > 0)) throw new Error(`--seconds must be a number above 0 (got "${o.seconds}")`);
+      const r = await capture({ target, entry: o.entry, fps: positiveInt("--fps", o.fps), seconds, wait: Number(o.wait) || 0, name: o.name, ...(o.video ? { video: true } : {}), ...(o.steps ? { steps: parsePlaySteps(JSON.parse(o.steps)) } : {}) });
+      out(formatCapture(r));
       if (!r.ok) process.exitCode = 1;
     });
 
