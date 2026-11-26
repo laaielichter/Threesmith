@@ -63,6 +63,7 @@ import {
   viewModel,
 } from "../model/index.js";
 import { VERSION } from "../version.js";
+import { formatOutline, live, outline } from "../tsl/tsl.js";
 import { formatLook, look } from "../check/look.js";
 import { formatImpact, impact } from "../impact/impact.js";
 import { applyDream, apiHintFor, dream, formatApply, formatDream, markDreamed } from "../dream/dream.js";
@@ -433,6 +434,53 @@ export function createServer(options: ServerOptions = {}): McpServer {
           }
         }
         return text(parts.join("\n"), failed);
+      }),
+  );
+
+  tool(
+    "three_tsl",
+    {
+      title: "TSL: the node code in the files, the graph and the generated shader in the page",
+      description:
+        "Work on TSL (three.js shading language, node materials, WebGPURenderer). op outline (default, from the files): every Fn with its layout or inline, the uniforms, the node slots each material sets (colorNode, positionNode, ...), compute kernels, which renderer the project uses, and the review's TSL findings (JavaScript operators or if/?: on nodes, assign() outside Fn, wrong import paths, renamed TSL names, node materials under WebGLRenderer). op graph (in the page): the node graph each material really has, slot by slot, as an indented tree with ops, methods, names, uniform values and types. op shader (in the page): the WGSL or GLSL WebGPURenderer generated for an object, with `find` to jump to a uniform or variable name. Use outline before you edit TSL, graph when a node material looks wrong, shader when you need the generated code.",
+      inputSchema: {
+        op: z.enum(["outline", "graph", "shader"]).optional(),
+        path: pathParam,
+        target: z.string().optional().describe("page folder (with index.html) or dev server URL, for graph and shader"),
+        entry: z.string().optional(),
+        root: z.string().optional(),
+        webgpu: z.boolean().optional().describe("try a real WebGPU adapter (default: WebGPURenderer's WebGL 2 fallback, which also builds TSL)"),
+        wait: z.number().int().min(0).max(30000).optional(),
+        object: z.string().optional().describe("object or material name (graph, shader)"),
+        find: z.string().optional().describe("shader: only the lines with this text, 2 lines around"),
+        stage: z.enum(["vertex", "fragment", "both"]).optional().describe("shader: default fragment"),
+        depth: z.number().int().min(1).max(12).optional().describe("graph: depth (default 6)"),
+        max_lines: z.number().int().min(10).max(600).optional(),
+        detail: detailParam,
+      },
+      annotations: { ...READ, openWorldHint: true },
+    },
+    async (a) =>
+      guard(async () => {
+        const op = a.op ?? "outline";
+        if (op === "outline") {
+          const o = outline(projectRootOf(where(a.path)));
+          return text(formatOutline(o, a.detail ?? profile.detail), o.findings.some((f) => f.severity === "error"));
+        }
+        if (!a.target) return failure(`op ${op} needs target (a folder with index.html or a dev server URL).`);
+        const r = await live(op, {
+          target: /^https?:/.test(a.target) ? a.target : where(a.target),
+          ...(a.entry ? { entry: a.entry } : {}),
+          ...(a.root ? { root: where(a.root) } : {}),
+          ...(a.webgpu ? { webgpu: true } : {}),
+          ...(a.wait !== undefined ? { wait: a.wait } : {}),
+          ...(a.object ? { object: a.object } : {}),
+          ...(a.find ? { find: a.find } : {}),
+          ...(a.stage ? { stage: a.stage } : {}),
+          ...(a.depth ? { depth: a.depth } : {}),
+          ...(a.max_lines ? { maxLines: a.max_lines } : {}),
+        });
+        return text(r.text, !r.ok);
       }),
   );
 

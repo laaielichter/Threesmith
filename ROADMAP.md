@@ -39,6 +39,10 @@ Done since (unreleased, each has tests):
 - [x] The frame as text (`three_look`, `threesmith look`, `three_page` op `look`): per object the share of the frame
   it really shows, place, cut by the edge, hidden by what, and the frame's light, measured by rendering with and
   without each object; verdicts and claims on the same numbers.
+- [x] TSL (`three_tsl`, `threesmith tsl`): outline of Fn, uniforms, node slots and compute with the review's TSL
+  findings; three review rules for JavaScript operators and conditions on nodes and `assign()` outside `Fn()`
+  (quiet on three's own addons and the 244 official WebGPU examples); six TSL runtime messages explained; the node
+  graph and the generated shader read from the running page.
 
 Next:
 

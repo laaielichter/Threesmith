@@ -349,4 +349,20 @@ export const CASES: RuleCase[] = [
     fire: { "a.jsx": `${R3F}function Box() {\n  const geometry = new THREE.BoxGeometry();\n  return <mesh geometry={geometry} />;\n}\n` },
     quiet: { "a.jsx": `${R3F}function Box() {\n  const geometry = useMemo(() => new THREE.BoxGeometry(), []);\n  const onClick = () => { const m = new THREE.MeshBasicMaterial(); };\n  return <mesh geometry={geometry} onClick={onClick} />;\n}\n` },
   },
+  // ---- TSL ----
+  {
+    id: "tsl-js-operator",
+    fire: { "a.js": `${GPU}import { Fn, uv, time, vec3 } from 'three/tsl';\nconst m = new THREE.MeshBasicNodeMaterial();\nm.colorNode = Fn(() => {\n  const stripes = uv().x * 10.0;\n  return vec3(stripes.sin());\n})();\n` },
+    quiet: { "a.js": `${GPU}import { Fn, uv, time, vec3 } from 'three/tsl';\nconst m = new THREE.MeshBasicNodeMaterial();\nconst count = 4;\nm.colorNode = Fn(() => {\n  const stripes = uv().x.mul(10.0 * count);\n  for (let i = 0; i < count - 1; i++) stripes.addAssign(i * 0.1);\n  return vec3(stripes.sin());\n})();\nconst label = 'a' + 'b';\n` },
+  },
+  {
+    id: "tsl-js-condition",
+    fire: { "a.js": `${GPU}import { Fn, uv, vec3 } from 'three/tsl';\nconst m = new THREE.MeshBasicNodeMaterial();\nm.colorNode = Fn(() => {\n  const c = vec3(0).toVar();\n  if (uv().x.greaterThan(0.5)) c.assign(vec3(1));\n  return c;\n})();\n` },
+    quiet: { "a.js": `${GPU}import { Fn, If, uv, vec3, select } from 'three/tsl';\nconst m = new THREE.MeshBasicNodeMaterial();\nconst debug = false;\nm.colorNode = Fn(() => {\n  const c = vec3(0).toVar();\n  If(uv().x.greaterThan(0.5), () => { c.assign(vec3(1)); });\n  if (debug) c.assign(vec3(0.5));\n  return select(uv().y.lessThan(0.2), c, vec3(0));\n})();\n` },
+  },
+  {
+    id: "tsl-assign-outside-fn",
+    fire: { "a.js": `${GPU}import { uniform, vec3 } from 'three/tsl';\nconst tint = vec3(0).toVar();\ntint.assign(vec3(1, 0, 0));\n` },
+    quiet: { "a.js": `${GPU}import { Fn, uniform, vec3 } from 'three/tsl';\nconst tint = uniform(vec3(0));\ntint.value.set(1, 0, 0);\nconst paint = (c) => { c.assign(vec3(1)); };\nconst m = new THREE.MeshBasicNodeMaterial();\nm.colorNode = Fn(() => { const c = vec3(0).toVar(); paint(c); return c; })();\n` },
+  },
 ];
