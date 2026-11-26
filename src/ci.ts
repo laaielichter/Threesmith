@@ -1,4 +1,4 @@
-import { check, type CheckOptions, type CheckResult } from "./check/check.js";
+import { check, formatBackend, type CheckOptions, type CheckResult } from "./check/check.js";
 import { formatMarkdown } from "./review/format.js";
 import { review, type ReviewResult } from "./review/review.js";
 import type { Severity } from "./review/types.js";
@@ -70,7 +70,7 @@ export async function ci(opts: CiOptions): Promise<CiResult> {
     if (!c) lines.push("The browser check could not run.");
     else {
       lines.push(
-        `${c.ok ? "Passed" : "Failed"}: ${c.stats.canvases} canvas, contexts ${c.stats.contexts.join(", ") || "none"}, ${c.stats.frames} frames, three ${c.stats.threeRevision ? "r" + c.stats.threeRevision : "?"}.`,
+        `${c.ok ? "Passed" : "Failed"}: ${c.stats.canvases} canvas, contexts ${c.stats.contexts.join(", ") || "none"} (backend ${formatBackend(c.stats.backend)}), ${c.stats.frames} frames, three ${c.stats.threeRevision ? "r" + c.stats.threeRevision : "?"}.`,
       );
       for (const i of c.issues) lines.push(`- ${i.severity === "error" ? "✖" : "▲"} \`${i.kind}\` ${i.message}`);
       if (c.baseline) lines.push(`- baseline \`${c.baseline.name}\`: ${c.baseline.status}${c.baseline.ratio !== undefined ? ` (${(c.baseline.ratio * 100).toFixed(2)}% changed)` : ""}`);

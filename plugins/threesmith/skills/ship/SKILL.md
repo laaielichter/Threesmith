@@ -14,7 +14,9 @@ Make sure what works in the dev server also works where it is hosted ($ARGUMENTS
    bundle refers to that are not in the output, `/assets/...` paths that break under a sub-path such as
    `user.github.io/repo/`, size of three in the bundle) and opens the built page headless.
 3. For a sub-path host, set the bundler's base (`base: '/repo/'` in vite.config) and run `three_build` again.
-4. `three_check` on the built folder with a `baseline` you approved, so the deploy shows the same picture.
+4. `three_check` on the built folder with a `baseline` you approved, so the deploy shows the same picture. Read its
+   `backend` line: for a `WebGPURenderer` page, `WebGL 2 (WebGPU fallback)` means the WebGPU path was not tested
+   (pass `webgpu: true`, or check on a machine where `threesmith doctor --env` finds an adapter).
 5. In CI: the GitHub Action posts the review and the check as a receipt on every pull request.
 
 End with: the build result, the problems found and fixed, and the screenshot of the built page.

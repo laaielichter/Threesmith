@@ -77,7 +77,8 @@ export type IssueKind =
   | "step-failed"
   | "scene"
   | "leak"
-  | "load-failed";
+  | "load-failed"
+  | "webgpu-fallback";
 
 export interface Issue {
   kind: IssueKind;
@@ -102,25 +103,79 @@ export interface CheckResult {
     threeRevision: string | null;
     dominantColor: number;
     webgpuAdapter: boolean | null;
+    /** The backend the page actually drew with (see Backend). */
+    backend: Backend;
+    /** The GPU behind it: the WebGL renderer string or the WebGPU adapter (vendor, architecture), or null. */
+    adapter: string | null;
   };
   screenshot?: string;
   scene?: SceneReport;
   baseline?: { name: string; status: "created" | "updated" | "match" | "diff" | "size" | "missing"; ratio?: number; diffImage?: string };
 }
 
-/** Counts contexts, lost contexts and animation frames. Runs before any page script. */
+/**
+ * The backend the page drew with: `webgpu`, `webgl2`, `webgl` (WebGL 1), `webgpu-fallback-webgl2` (the page asked for
+ * a WebGPU adapter, got none or did not use it, and drew with WebGL 2, as WebGPURenderer does silently), `2d`, or `none`.
+ */
+export type Backend = "webgpu" | "webgl2" | "webgl" | "webgpu-fallback-webgl2" | "2d" | "none";
+
+/** What the page did with the GPU, as INIT records it. */
+export interface GpuUse {
+  contexts: string[];
+  /** The page called navigator.gpu.requestAdapter(). */
+  requested: boolean;
+  /** The adapter it got: "vendor architecture" (with "fallback adapter" when it is one), "" when unnamed, null when none. */
+  gpuAdapter: string | null;
+  /** The WebGL renderer string of the first WebGL context (unmasked when the browser allows it). */
+  glRenderer: string | null;
+}
+
+/** Names the backend from what the page did. Pure, so it can be tested without a browser. */
+export function backendOf(use: GpuUse): { backend: Backend; adapter: string | null } {
+  const has = (t: string) => use.contexts.includes(t);
+  const gl = use.glRenderer ? use.glRenderer.slice(0, 120) : null;
+  if (has("webgpu")) return { backend: "webgpu", adapter: use.gpuAdapter || (use.gpuAdapter === "" ? "unnamed adapter" : null) };
+  if (has("webgl2")) return { backend: use.requested ? "webgpu-fallback-webgl2" : "webgl2", adapter: gl };
+  if (has("webgl") || has("experimental-webgl")) return { backend: "webgl", adapter: gl };
+  if (has("2d")) return { backend: "2d", adapter: null };
+  return { backend: "none", adapter: null };
+}
+
+/** Counts contexts, lost contexts and animation frames, and records which GPU API the page used. Runs before any page script. */
 export const INIT = `(() => {
   const w = window;
-  w.__ts = { contexts: [], lost: 0, frames: 0 };
+  w.__ts = { contexts: [], lost: 0, frames: 0, gpu: { requested: false, adapter: null }, glRenderer: null };
   const orig = HTMLCanvasElement.prototype.getContext;
   HTMLCanvasElement.prototype.getContext = function (type, ...rest) {
     const ctx = orig.call(this, type, ...rest);
     if (ctx) {
       w.__ts.contexts.push(String(type));
-      if (String(type).startsWith('webgl')) this.addEventListener('webglcontextlost', () => { w.__ts.lost++; });
+      if (String(type).startsWith('webgl') || String(type) === 'experimental-webgl') {
+        this.addEventListener('webglcontextlost', () => { w.__ts.lost++; });
+        if (w.__ts.glRenderer === null) {
+          try {
+            const ext = ctx.getExtension('WEBGL_debug_renderer_info');
+            w.__ts.glRenderer = String(ctx.getParameter(ext ? ext.UNMASKED_RENDERER_WEBGL : ctx.RENDERER));
+          } catch { w.__ts.glRenderer = ''; }
+        }
+      }
     }
     return ctx;
   };
+  const gpu = navigator.gpu;
+  if (gpu && typeof gpu.requestAdapter === 'function') {
+    const request = gpu.requestAdapter.bind(gpu);
+    w.__ts.requestAdapter = request;
+    gpu.requestAdapter = async (...args) => {
+      w.__ts.gpu.requested = true;
+      const a = await request(...args);
+      if (a) {
+        const i = a.info || {};
+        w.__ts.gpu.adapter = [i.vendor, i.architecture, i.description].filter(Boolean).join(' ') + (i.isFallbackAdapter ? ' (fallback adapter)' : '');
+      }
+      return a;
+    };
+  }
   const raf = w.requestAnimationFrame.bind(w);
   w.requestAnimationFrame = (cb) => raf((t) => { w.__ts.frames++; cb(t); });
 })();`;
@@ -133,7 +188,7 @@ export async function check(opts: CheckOptions): Promise<CheckResult> {
     ok: false,
     url,
     issues,
-    stats: { canvases: 0, contexts: [], frames: 0, threeRevision: null, dominantColor: 0, webgpuAdapter: null },
+    stats: { canvases: 0, contexts: [], frames: 0, threeRevision: null, dominantColor: 0, webgpuAdapter: null, backend: "none", adapter: null },
   };
   try {
     if (!opened.loaded) return result;
@@ -150,8 +205,9 @@ export async function check(opts: CheckOptions): Promise<CheckResult> {
     const stats = await page.evaluate(`(async () => {
       const w = window;
       let adapter = null;
-      if (navigator.gpu) {
-        try { adapter = !!(await navigator.gpu.requestAdapter()); } catch { adapter = false; }
+      const request = w.__ts.requestAdapter || (navigator.gpu && navigator.gpu.requestAdapter.bind(navigator.gpu));
+      if (request) {
+        try { adapter = !!(await request()); } catch { adapter = false; }
       }
       return {
         canvases: document.querySelectorAll("canvas").length,
@@ -160,13 +216,23 @@ export async function check(opts: CheckOptions): Promise<CheckResult> {
         frames: w.__ts.frames,
         revision: w.__THREE__ ?? null,
         adapter,
+        requested: w.__ts.gpu.requested,
+        gpuAdapter: w.__ts.gpu.adapter,
+        glRenderer: w.__ts.glRenderer,
       };
-    })()`) as { canvases: number; contexts: string[]; lost: number; frames: number; revision: string | null; adapter: boolean | null };
+    })()`) as { canvases: number; contexts: string[]; lost: number; frames: number; revision: string | null; adapter: boolean | null; requested: boolean; gpuAdapter: string | null; glRenderer: string | null };
     result.stats.canvases = stats.canvases;
     result.stats.contexts = stats.contexts;
     result.stats.frames = stats.frames;
     result.stats.threeRevision = stats.revision;
     result.stats.webgpuAdapter = opts.webgpu ? stats.adapter : null;
+    const used = backendOf({ contexts: stats.contexts, requested: stats.requested, gpuAdapter: stats.gpuAdapter, glRenderer: stats.glRenderer });
+    result.stats.backend = used.backend;
+    result.stats.adapter = used.adapter;
+    if (used.backend === "webgpu-fallback-webgl2") {
+      const why = stats.gpuAdapter === null ? (opts.webgpu ? "no WebGPU adapter in this browser (on Linux it needs libvulkan and a Vulkan or SwiftShader driver; see threesmith doctor)" : "WebGPU is off in this run (pass webgpu: true / --webgpu to try it)") : "it got an adapter but drew with WebGL 2 (forceWebGL, or the WebGPU init failed)";
+      issues.push({ kind: "webgpu-fallback", severity: "warn", message: `The page asked for WebGPU but drew with WebGL 2: ${why}. This run did not test the WebGPU backend.` });
+    }
 
     const usesGpu = stats.contexts.some((c) => c.startsWith("webgl") || c === "webgpu");
     if (!stats.canvases) issues.push({ kind: "no-canvas", severity: "error", message: "The page has no <canvas>; the scene never attached its renderer." });
@@ -266,10 +332,16 @@ export async function check(opts: CheckOptions): Promise<CheckResult> {
   return result;
 }
 
+/** The backend in words, for the text output. */
+export function formatBackend(b: Backend): string {
+  return b === "webgpu-fallback-webgl2" ? "WebGL 2 (WebGPU fallback)" : b === "webgpu" ? "WebGPU" : b === "webgl2" ? "WebGL 2" : b === "webgl" ? "WebGL 1" : b;
+}
+
 export function formatCheck(r: CheckResult): string {
   const out = [`Threesmith check: ${r.ok ? "PASS" : "FAIL"} – ${r.url}`];
   const s = r.stats;
   out.push(`canvases ${s.canvases} · contexts ${s.contexts.join(",") || "none"} · frames ${s.frames} · three ${s.threeRevision ? "r" + s.threeRevision : "?"}`);
+  out.push(`backend ${formatBackend(s.backend)}${s.adapter ? ` · adapter ${s.adapter}` : ""}`);
   out.push(...formatIssues(r.issues));
   if (r.scene) out.push("", formatScene(r.scene, { maxNodes: 40 }));
   if (r.baseline) out.push(`baseline ${r.baseline.name}: ${r.baseline.status}${r.baseline.ratio !== undefined ? ` (${(r.baseline.ratio * 100).toFixed(2)}% changed)` : ""}${r.baseline.diffImage ? ` – diff: ${r.baseline.diffImage}` : ""}`);

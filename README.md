@@ -198,7 +198,10 @@ CI: `threesmith ci --check dist --junit junit.xml --sarif threesmith.sarif`. Com
 ## Limits
 
 - **WebGL 2** in headless Chromium works in GitHub Actions (SwiftShader software rendering). **WebGPU** is best effort
-  (`--webgpu`), depending on the runner having an adapter.
+  (`--webgpu`), depending on the runner having an adapter (on Linux: libvulkan and a Vulkan or SwiftShader driver).
+  `check` names the backend the page actually drew with (`WebGPU`, `WebGL 2`, or `WebGL 2 (WebGPU fallback)` with a
+  warning) and the adapter, so a pass on the WebGL 2 fallback is never taken for a WebGPU pass. `doctor --env` says
+  whether this machine has a WebGPU adapter.
 - Frame times come from software rendering: compare them before and after on the same machine. Draw calls, triangles,
   programs and resource counts are exact.
 - Baselines should be made in the environment that checks them (CI), with the default tolerance.

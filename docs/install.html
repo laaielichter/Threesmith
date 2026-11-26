@@ -109,6 +109,7 @@ pre.cfg { background: #070b10; color: #d6dee6; border: 1px solid var(--line); bo
 npx playwright-core install chromium
 npx threesmith doctor --env     # what is missing</pre>
     <p>Or set <code>THREESMITH_CHROMIUM</code> to a Chromium binary. Everything else works without a browser.</p>
+    <p>WebGPU is optional and best effort: <code>threesmith doctor --env</code> says whether this machine has a WebGPU adapter (on Linux it needs <code>libvulkan1</code> and a Vulkan or SwiftShader driver). <code>check</code> always names the backend the page drew with, so a <code>WebGPURenderer</code> page that fell back to WebGL 2 is reported as such.</p>
   </div>
 </div></section>
 

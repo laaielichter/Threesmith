@@ -12,7 +12,7 @@ const VITE = resolve("node_modules/vite/bin/vite.js");
 const copy = (rev: string) => `(function(){var a=1;typeof window<"u"&&(window.__THREE__?console.warn("WARNING: Multiple instances of Three.js being imported."):window.__THREE__="${rev}")})();`;
 
 const okRun: BuildRunner = async () => ({ code: 0, output: "vite v8 building for production...\n✓ built in 1s", timedOut: false, ms: 1000 });
-const passingCheck = async (o: CheckOptions): Promise<CheckResult> => ({ ok: true, url: `http://x/${o.target}`, issues: [], stats: { canvases: 1, contexts: ["webgl2"], frames: 10, threeRevision: "187", dominantColor: 0.5, webgpuAdapter: null } });
+const passingCheck = async (o: CheckOptions): Promise<CheckResult> => ({ ok: true, url: `http://x/${o.target}`, issues: [], stats: { canvases: 1, contexts: ["webgl2"], frames: 10, threeRevision: "187", dominantColor: 0.5, webgpuAdapter: null, backend: "webgl2", adapter: null } });
 
 describe("build check on a fixture output (no npm, no browser)", () => {
   it("finds two copies of three, missing and wrongly cased assets, absolute URLs and missing decoders", async () => {

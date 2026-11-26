@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- **Check:** `check` names the backend the page actually drew with (`WebGPU`, `WebGL 2`, `WebGL 1`, or `WebGL 2 (WebGPU fallback)`) and the adapter (the WebGL renderer string or the WebGPU adapter), in the text, the JSON, the MCP structured output and the CI receipt. A `WebGPURenderer` page that silently fell back to WebGL 2 gets a `webgpu-fallback` warning that says why, so a pass on the fallback is no longer taken for a WebGPU pass. `doctor --env` probes for a WebGPU adapter and, on Linux, says when libvulkan is missing.
+
 - **CLI:** `undo --steps` refuses `abc`, `0`, `-2` and `1.5` with exit 2 (`--steps must be a whole number of 1 or more`) before any file is touched, instead of saying "Nothing to undo." or undoing a write you did not ask for. `undo`, `undo --steps N` and `undo --list` work as before. Thanks to @ADAMDEV01! (#27, #76)
 - **CLI:** `review --limit` and `assets --limit` refuse `abc`, `0`, `-3` and `1.5` with exit 2 (`--limit must be a whole number of 1 or more`) instead of silently hiding every finding. Valid limits work as before. Thanks to @ADAMDEV01! (#26, #74)
 - **CLI:** a path that does not exist stops `review`, `fix`, `ci`, `doctor`, `scan` and `assets` with `threesmith: path not found: <path>` and exit 2 before anything is scanned, so `ci ./typo` can no longer pass, and `scan`/`assets` no longer report on the enclosing project instead. A folder without three.js code and a single file work as before. Thanks to @ADAMDEV01! (#37, #72)
