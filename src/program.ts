@@ -1,3 +1,5 @@
+import { formatModelCode, modelCode } from "./model/code.js";
+import { publicDirOf } from "./scan/assets.js";
 import { formatOutline, live, outline } from "./tsl/tsl.js";
 import { formatLook, look } from "./check/look.js";
 import { formatImpact, impact } from "./impact/impact.js";
@@ -564,6 +566,24 @@ export function buildProgram(): Command {
     });
 
   const model = program.command("model").description("3D models for three.js without Blender: inspect, view, lint, identify, brief, spec, kinds, recipes, build");
+  model
+    .command("code")
+    .description("Code that loads a .glb with the decoders it needs and hands back its parts, materials and animations: an ES module, or a React Three Fiber component (--r3f)")
+    .argument("<file>")
+    .option("-p, --path <dir>", "project directory (for the URL under public/)", ".")
+    .option("--r3f", "a React Three Fiber component (like gltfjsx)")
+    .option("--ts", "TypeScript")
+    .option("--url <url>", "URL the page loads the model from")
+    .option("--name <name>", "name of the function or component")
+    .option("-o, --out <file>", "write the code to this file (undoable)")
+    .action((file: string, o: { path: string; r3f?: boolean; ts?: boolean; url?: string; name?: string; out?: string }) => {
+      const root = projectRootOf(o.path);
+      const r = modelCode(file, { root, publicDir: publicDirOf(root), style: o.r3f ? "r3f" : "vanilla", ...(o.ts ? { typescript: true } : {}), ...(o.url ? { url: o.url } : {}), ...(o.name ? { name: o.name } : {}) });
+      if (o.out) {
+        writeFiles(root, "model code", `model code ${r.name}`, [{ file: relative(root, resolve(o.out)), data: r.code }]);
+        out(formatModelCode(r, o.out).split("\n")[0] + `\nwritten to ${o.out}`);
+      } else out(r.code.trimEnd());
+    });
   model
     .command("inspect")
     .description("What is in a .glb/.gltf and which three.js loaders and decoders it needs")

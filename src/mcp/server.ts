@@ -63,6 +63,8 @@ import {
   viewModel,
 } from "../model/index.js";
 import { VERSION } from "../version.js";
+import { formatModelCode, modelCode } from "../model/code.js";
+import { publicDirOf } from "../scan/assets.js";
 import { clearTweaks, formatSave, formatSet, formatTweaks, planSave, projectOf, tuneReset, tuneSet, tweaksOf } from "../tune/tune.js";
 import { formatOutline, live, outline } from "../tsl/tsl.js";
 import { formatLook, look } from "../check/look.js";
@@ -1180,6 +1182,41 @@ export function createServer(options: ServerOptions = {}): McpServer {
         const info = inspectModel(resolve(root, file));
         const problems = checkModelSetup(modelNeeds(info), collect(root).files.filter((f) => f.usesThree || /GLTFLoader|useGLTF/.test(f.text)).map((f) => f.text));
         return text(`${formatModelInfo(info, detail ?? profile.detail)}\n${formatModelNeeds(modelNeeds(info))}${problems.length ? `\n${formatSetupProblems(problems)}` : ""}`, problems.length > 0);
+      }),
+  );
+
+  tool(
+    "three_model_code",
+    {
+      title: "Code that loads a model, with its parts, materials and animations",
+      description:
+        "Write the code that loads a .glb/.gltf the right way for the installed three: style vanilla (default) gives an ES module (typescript: true for .ts with the part and clip names as types) that sets up the decoders the file needs (Draco, meshopt, KTX2), loads it and returns its parts by their name in the file, its materials, one action per animation, and dispose(); style r3f gives a React Three Fiber component like gltfjsx: the node tree as JSX (name, geometry, material, position, quaternion, scale per node) when the file allows it, else one <primitive> of a SkeletonUtils clone (skinned, morph targets, several primitives per mesh), with useAnimations and useGLTF.preload. The URL is worked out from the file's place under public/. The code is reviewed before it is shown. `out` + write: true saves it (undoable).",
+      inputSchema: {
+        file: fileParam,
+        style: z.enum(["vanilla", "r3f"]).optional(),
+        typescript: z.boolean().optional(),
+        url: z.string().optional().describe("URL the page loads the model from (default: from its place under public/)"),
+        name: z.string().optional().describe("name of the function or component"),
+        out: z.string().optional().describe("file to write (relative to the project), with write: true"),
+        write: z.boolean().optional(),
+        path: pathParam,
+      },
+      annotations: WRITES,
+    },
+    async (a) =>
+      guard(() => {
+        const root = projectRootOf(where(a.path));
+        const r = modelCode(resolve(root, a.file), { root, publicDir: publicDirOf(root), ...(a.style ? { style: a.style } : {}), ...(a.typescript ? { typescript: true } : {}), ...(a.url ? { url: a.url } : {}), ...(a.name ? { name: a.name } : {}) });
+        const target = a.out ?? join(dirname(a.file).replace(/(^|[\\/])public$/, "$1src"), r.file);
+        const rv = review({ path: root, overrides: { [relative(root, resolve(root, target)).split(sep).join("/")]: r.code } });
+        const mine = rv.findings.filter((f) => f.file === relative(root, resolve(root, target)).split(sep).join("/") && f.severity === "error");
+        let written: string | undefined;
+        if (a.write) {
+          writeFiles(root, "three_model_code", `model code ${r.name}`, [{ file: relative(root, resolve(root, target)), data: r.code }]);
+          written = relative(root, resolve(root, target));
+        }
+        const note = mine.length ? `\nReview errors in the generated code (report them): ${mine.map((f) => `[${f.rule}] ${f.message}`).join("; ")}` : "\nThe review finds no errors in this code.";
+        return text(`${formatModelCode(r, written)}${note}${a.write ? "" : `\nTo save it: out "${target}" and write: true.`}`);
       }),
   );
 

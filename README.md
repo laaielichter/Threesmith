@@ -106,7 +106,7 @@ the doctor, fix in its order) and `threesmith-<skill>` for each skill (`debug`, 
 - **Tool sets.** `--tools core` loads 18 tools; add `run`, `live`, `build`, `model` when you need them, or name single
   tools. A tool list the client pays for in every turn stays small. The server instructions only ever name tools
   that are loaded.
-- **Lean mode.** `--lean` offers two tools instead of 41: `three` runs any tool by name
+- **Lean mode.** `--lean` offers two tools instead of 42: `three` runs any tool by name
   (`{"tool": "review", "args": {"only_new": true}}`) and `three_help` gives a tool's parameters when they are needed.
   Same tools, same results, same read-only refusals; the tool list drops from about 19,900 to about 2,400 tokens
   (estimated at 4 characters per token; `threesmith mcp --stats` prints the numbers for your options).
@@ -121,7 +121,7 @@ the doctor, fix in its order) and `threesmith-<skill>` for each skill (`debug`, 
   with `three_lesson_add` come back under the same error. `three_dream` looks back at past sessions and proposes
   project hints and lesson changes, each with its evidence. Only hashes, counters and scrubbed text, on this machine.
 
-## The 41 tools
+## The 42 tools
 
 <details open>
 <summary>All MCP tools (most are also CLI commands)</summary>
@@ -168,12 +168,13 @@ the doctor, fix in its order) and `threesmith-<skill>` for each skill (`debug`, 
 | model | `three_model_build` | Build a clean, deterministic `.glb` from a kind or a spec, and lint it |
 | model | `three_model_view` | A `.glb` as text: front, side and top views, parts with sizes, parts that do not touch |
 | model | `three_model_lint` | Score a `.glb` for the web (geometry, materials, triangles, draw calls, texture memory, loading), and against what it should be |
+| model | `three_model_code` | The code that loads a `.glb` right for the installed three: an ES module (or TypeScript with the part and clip names as types) that sets up the decoders the file needs, loads it and returns its parts by their name in the file, its materials, one action per animation and `dispose()`; or a React Three Fiber component like gltfjsx (`style: r3f`) with the node tree as JSX, or one `<primitive>` of a SkeletonUtils clone when the file needs it, with `useAnimations` and `useGLTF.preload`. The URL comes from the file's place under `public/`; the code is reviewed before it is shown |
 | model | `three_model_inspect` | What is in a `.glb` and which loaders and decoders three.js needs, with the setup code, checked against the project's code |
 
 </details>
 
 CLI: `threesmith doctor | scan | api | search | review | types | fix | impact | migrate | tsl | rules | dream | undo | lessons | assets | decoders | gltf | check |
-inspect | look | play | scenario | perf | device | leaks | compare | build | model <inspect|needs|view|lint|identify|brief|spec|kinds|recipes|build>
+inspect | look | play | scenario | perf | device | leaks | compare | build | model <inspect|needs|code|view|lint|identify|brief|spec|kinds|recipes|build>
 | explain | ci | hook | mcp`. `threesmith <command> --help` lists the options.
 
 ### The review
