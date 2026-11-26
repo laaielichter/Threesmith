@@ -95,6 +95,14 @@ describe.skipIf(!have)("look (needs Chromium)", () => {
     expect(formatLook(r)).toMatch(/1\. crate: /);
   }, 60_000);
 
+  it("counts a model with named parts as one object, inside a group that holds everything", async () => {
+    const r = await look({ target: page(scene(`const world = new THREE.Group(); world.name = 'World'; scene.add(world);
+const car = new THREE.Group(); car.name = 'car'; world.add(car);
+for (const [n, x] of [['body', 0], ['wheel', 0.9]]) { const m = new THREE.Mesh(new THREE.BoxGeometry(1, 0.6, 0.6), new THREE.MeshBasicMaterial({ color: 0xff3030 })); m.name = n; m.position.x = x; car.add(m); }
+const tree = new THREE.Mesh(new THREE.ConeGeometry(0.5, 1.5), new THREE.MeshBasicMaterial({ color: 0x30a030 })); tree.name = 'tree'; tree.position.x = -2; world.add(tree);`)), wait: 600 });
+    expect(r.report.objects.map((o) => [o.name, o.meshes]).sort()).toEqual([["car", 2], ["tree", 1]]);
+  }, 60_000);
+
   it("says what hides an object", async () => {
     const r = await look({ target: page(scene("box('car', 0xff3030, 0, 0, -2, 1);\nbox('wall', 0x8080ff, 0, 0, 1, 2.5);")), wait: 600, expect: ["car hidden"] });
     const car = r.report.objects.find((o) => o.name === "car")!;

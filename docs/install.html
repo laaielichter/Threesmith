@@ -98,17 +98,20 @@ pre.cfg { background: #070b10; color: #d6dee6; border: 1px solid var(--line); bo
         <tr><td><code>--read-only</code></td><td><code>THREESMITH_READ_ONLY=1</code></td><td>leave out tools that always write, refuse write options; dry runs still work</td></tr>
         <tr><td><code>--project &lt;dir&gt;</code></td><td><code>THREESMITH_PROJECT</code></td><td>the folder tools use when no path is given</td></tr>
         <tr><td>—</td><td><code>THREESMITH_PROTECT</code></td><td>folders no write may touch (also <code>"protect"</code> in <code>threesmith.json</code>)</td></tr>
-        <tr><td>—</td><td><code>THREESMITH_LEARN=0</code></td><td>no local learning (false-alarm feedback)</td></tr>
+        <tr><td>—</td><td><code>THREESMITH_LEARN=0</code></td><td>no local learning (false-alarm feedback, kept lessons, the counters <code>three_dream</code> reads)</td></tr>
       </tbody>
     </table></div>
   </div>
   <div class="card client" id="browser">
     <h3>Browser tools</h3>
-    <p><code>three_check</code>, <code>three_inspect</code>, <code>three_play</code>, <code>three_perf</code>, <code>three_leaks</code>, <code>three_session</code> and <code>three_build</code> need <code>playwright-core</code> and a Chromium:</p>
+    <p>The tools that open the page (<code>three_check</code>, <code>three_inspect</code>, <code>three_look</code>, <code>three_capture</code>, <code>three_play</code>, <code>three_perf</code>, <code>three_leaks</code>, <code>three_compare</code>, <code>three_session</code>, <code>three_tune</code>, <code>three_animation</code>, <code>three_build</code>) need <code>playwright-core</code> and a Chromium:</p>
     <pre class="cfg">npm i -D playwright-core
 npx playwright-core install chromium
 npx threesmith doctor --env     # what is missing</pre>
     <p>Or set <code>THREESMITH_CHROMIUM</code> to a Chromium binary. Everything else works without a browser.</p>
+    <p>To work on your real GPU, start your own Chrome with remote debugging and attach to it: <code>three_session</code> op start with <code>cdp</code> and <code>match</code> (part of the tab's URL). Chrome 136 and later need a separate profile for this:</p>
+    <pre class="cfg">chrome --remote-debugging-port=9222 --user-data-dir=/tmp/threesmith-chrome http://localhost:5173
+# then, from the agent: three_session { "op": "start", "cdp": "http://127.0.0.1:9222", "match": "localhost:5173" }</pre>
     <p>WebGPU is optional and best effort: <code>threesmith doctor --env</code> says whether this machine has a WebGPU adapter (on Linux it needs <code>libvulkan1</code> and a Vulkan or SwiftShader driver). <code>check</code> always names the backend the page drew with, so a <code>WebGPURenderer</code> page that fell back to WebGL 2 is reported as such.</p>
   </div>
 </div></section>

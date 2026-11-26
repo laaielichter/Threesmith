@@ -122,18 +122,23 @@ export function lookEval(size: number, maxObjects: number): string {
   const isDrawable = (o) => o.isMesh || o.isPoints || o.isLine || o.isSprite;
   const shown = (o) => { let x = o; while (x) { if (!x.visible) return false; x = x.parent; } return true; };
   const pathOf = (o) => { const p = []; let x = o; while (x && x !== scene) { p.unshift(x.name || x.type); x = x.parent; } return p.join(' > '); };
-  // units: the nearest named object at or above each drawable (below the scene), else the drawable itself
-  const units = new Map();
+  // units: whole objects, as a person would name them. From the top of the scene down, the first named object that
+  // does not hold everything drawn (so a loaded model counts as one, and a "World" group around it all does not);
+  // with nothing named on the way, the nearest named object, else the drawable itself
   const drawables = [];
-  scene.traverse((o) => {
-    if (!isDrawable(o) || !shown(o)) return;
-    drawables.push(o);
-    let u = o; let x = o;
-    while (x && x !== scene) { if (x.name) { u = x; break; } x = x.parent; }
+  scene.traverse((o) => { if (isDrawable(o) && shown(o)) drawables.push(o); });
+  const counts = new Map();
+  for (const d of drawables) { let x = d; while (x && x !== scene) { counts.set(x, (counts.get(x) || 0) + 1); x = x.parent; } }
+  const limit = Math.max(1, drawables.length - 1);
+  const units = new Map();
+  for (const o of drawables) {
+    const chain = []; let x = o; while (x && x !== scene) { chain.unshift(x); x = x.parent; }
+    let u = chain.find((n) => n.name && counts.get(n) <= limit);
+    if (!u) { u = o; for (let i = chain.length - 1; i >= 0; i--) if (chain[i].name) { u = chain[i]; break; } }
     const key = u.uuid;
     if (!units.has(key)) units.set(key, { node: u, name: u.name || pathOf(u), meshes: [] });
     units.get(key).meshes.push(o);
-  });
+  }
   const radius = (m) => { const geo = m.geometry; if (!geo) return 1; if (!geo.boundingSphere && geo.computeBoundingSphere) geo.computeBoundingSphere(); const e = m.matrixWorld.elements; const s = Math.max(Math.hypot(e[0], e[1], e[2]), Math.hypot(e[4], e[5], e[6]), Math.hypot(e[8], e[9], e[10])); return ((geo.boundingSphere && geo.boundingSphere.radius) || 0) * s; };
   let list = [...units.values()];
   list.forEach((u) => { u.size = Math.max(...u.meshes.map(radius)); });

@@ -6,6 +6,7 @@
 MCP server, CLI and Claude Code plugin. Works with Claude Code, Codex, Cursor, VS Code, Gemini CLI and any MCP client.</p>
 <p align="center">
   <a href="https://github.com/laaielichter/Threesmith/actions/workflows/ci.yml"><img src="https://github.com/laaielichter/Threesmith/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://www.npmjs.com/package/threesmith"><img src="https://img.shields.io/npm/v/threesmith?color=cb3837&logo=npm" alt="npm version"></a>
   <img src="https://img.shields.io/badge/three.js-r187-049ef4?logo=threedotjs&logoColor=white" alt="Tested on three.js r187">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT license"></a>
   <a href="https://vscode.dev/redirect/mcp/install?name=threesmith&config=%7B%22name%22%3A%22threesmith%22%2C%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22threesmith%22%2C%22mcp%22%5D%7D"><img src="https://img.shields.io/badge/VS_Code-Install_MCP_server-0098FF?logo=visualstudiocode&logoColor=white" alt="Install in VS Code"></a>
@@ -32,9 +33,27 @@ MCP server, CLI and Claude Code plugin. Works with Claude Code, Codex, Cursor, V
 three.js ships a release almost every month and removes old APIs. Coding agents learned it from years of code that used
 `THREE.Geometry`, `outputEncoding`, `three/examples/js` and import paths that no longer exist, and they cannot see the
 canvas they draw on. Threesmith is the check between the agent and your project: the API of **the three version you
-have installed**, a scored review, the assets and decoders the code needs, the live scene in headless Chromium, and
-safe, undoable edits. Everything runs locally; nothing leaves the machine (`three_compare` fetches another three
-release from npm, only when you ask for one).
+have installed**, a scored review, the assets and decoders the code needs, the page run in headless Chromium with the
+frame measured object by object, and safe, undoable edits. Everything runs locally; nothing leaves the machine
+(`three_compare` fetches another three release from npm, only when you ask for one).
+
+## New in 0.4: it reads the frame
+
+<p align="center">
+  <img src="docs/assets/look-annotated.jpg" alt="A house, a red car and a small robot on grass, each with a numbered box and its share of the frame: 2 House 31%, 3 Car 4.6%, 4 Robot 0.8%" width="860"><br>
+  <sub>Real output of <code>threesmith look --annotate</code> on three models Threesmith built. The boxes come from the pixels each object really shows.</sub>
+</p>
+
+- **See the frame as numbers.** `three_look` renders with and without each object: how much of the frame it shows,
+  where, cut by the edge, hidden behind what, too dark. Claims such as `"car visible >= 5%"` pass or fail.
+- **Tune it live, keep it in code.** `three_tune` changes a light, a colour or the camera in the running page, then
+  writes each value where your code sets it, as one undoable step.
+- **Animation, TSL and motion.** `three_animation` says why a clip does not play and finds feet that sink into the
+  floor; `three_tsl` catches `uv().x * 8` and `if` on a node; `three_capture` records frames on a virtual clock.
+- **Prove the whole change.** `three_impact` follows the diff to the pages and tests that run it; in CI the receipt
+  says what changed between two three releases and why.
+- **And:** `three_model_code` (the module or R3F component for a `.glb`), `three_dream` (learns from past sessions on
+  your machine), `three_session` with `cdp` (your own Chrome, the real GPU). See the [changelog](CHANGELOG.md).
 
 ## Without and with
 
@@ -46,11 +65,16 @@ release from npm, only when you ask for one).
 | loads a model | `/models/Car.glb` that is a 404 on Linux, Draco without a decoder | `three_assets` resolves every path like the server does; `three_decoders` wires the decoders from the installed three |
 | says "it works" | never opened the page | `three_check` opens it headless: errors with causes, blank frames, a screenshot, baselines |
 | gets a black screen | guesses: more light? move the camera? | `three_inspect` reads the live scene and says why each object is not visible |
+| says "it looks right" | cannot see the picture it made | `three_look` measures each object's share of the frame, place, cut and hidden parts; claims pass or fail |
+| tweaks the look | guesses a number, edits, reloads, guesses again | `three_tune` changes it live in the running page, then writes the value where the code sets it |
+| animates a model | a T-pose, a clip that never plays, feet in the floor | `three_animation` says why, poses the model at any time and sweeps a clip for the lowest point |
+| writes TSL | `uv().x * 8` and `if` on a node, as if it were GLSL | `three_tsl` finds them, and shows the node graph and the shader three generated in the page |
 | fixes a bug | cannot show it was there, or that it is gone | `three_play` runs steps and judges claims frame by frame; `three_scenario` keeps it as a regression test |
 | makes it fast | changes things and hopes | `three_perf` counts draw calls, triangles and programs against a budget and the last run; `three_leaks` names what is never disposed |
 | upgrades three | merges the "bump three" PR blind | `three_compare` runs your page on both releases and says what changed (console, scene, draw calls, light per object), each change with the migration note that explains it |
 | ships it | builds once, deploys, sees a 404 | `three_build` builds, finds two copies of three, missing assets and sub-path URLs, then opens the built page |
 | needs a 3D model | needs Blender or a placeholder cube | `three_model_build` makes a clean `.glb` from one of 110 kinds, then shows it as text views and lints it |
+| finishes a change | checks the file it touched, not the pages that run it | `three_impact` names what the change touches, which pages and tests run it, and the checks that prove it |
 | does not know the project | reads twenty files | `three_scan` and `three_doctor` give the map and the order to fix things in one call |
 
 <p align="center">
@@ -123,57 +147,76 @@ the doctor, fix in its order) and `threesmith-<skill>` for each skill (`debug`, 
 
 ## The 44 tools
 
-<details open>
-<summary>All MCP tools (most are also CLI commands)</summary>
+**core** · read files, answer, fix
 
-| Set | Tool | What it does |
-| --- | --- | --- |
-| core | `three_doctor` | Start here when something is broken: versions and imports, why the scene shows nothing, assets that will not load, removed APIs, colour, performance and cleanup, grouped by cause, most urgent first, with what `three_fix` does and numbered next steps |
-| core | `three_scan` | Map the project: bundler and framework, three vs `@types/three` vs package.json, the libraries around it, pages and import maps, every file that uses three with what it creates and where its loop is, renderer settings, assets |
-| core | `three_api` | Exact API of a class, member or constant in the installed three: signature, deprecation, import path; did-you-mean for unknown names |
-| core | `three_search` | Find classes, constants and members by part of a name |
-| core | `three_review` | Scored review (0-100) with 104 rules pinned to the installed release; `code` + `file` for unsaved code, `only_new` in a fix loop, `files` to focus |
-| core | `three_types` | The project's own `tsc --noEmit`, with each three.js type error answered from the installed release (the member that exists, the real import path) |
-| core | `three_fix` | The renames that mean exactly the same, dry run first, undoable |
-| core | `three_tsl` | TSL from the files and in the page. `op: outline`: every `Fn` (with its layout, or inline), the uniforms, the node slots each material sets (`colorNode`, `positionNode`, ...), compute kernels, the renderer, and the TSL findings of the review: JavaScript operators on nodes (`uv().x * 8` is NaN; use `.mul()`), JavaScript `if`/`?:` on node conditions (always taken; use `If()`/`select()`), `assign()` outside `Fn()`, import paths, renamed names. `op: graph`: the node graph each material really has in the running page, slot by slot, as a tree with ops, names, uniform values and types. `op: shader`: the WGSL or GLSL that WebGPURenderer generated for an object, `find` jumps to a uniform or variable |
-| core | `three_impact` | The whole change before it is run: the changed files (git `HEAD`, another `base`, or a list), what each change touches in the scene (the whole picture: colour space, tone mapping, pixel ratio, shadows, environment; lights, camera, materials, shaders, assets, the loop, disposal, input, post-processing, the three version, the build), the files and pages that run it through the import graph (`?raw` shaders and asset paths included), the scenarios and baselines that cover those pages, and the numbered checks that prove it; `run: true` reviews the changed files and runs those scenarios |
-| core | `three_migrate` | Plan a three.js upgrade (r120 to r188): the breaking changes per release that apply to this code with file:line, a TO DO list with the replacement checked against the installed API, and what will look different; `webgpu: true` adds a WebGPU readiness report with a TSL draft per `ShaderMaterial` and `onBeforeCompile`; `write: true` makes the exact rewrites (the `three_fix` renames plus the migration's own) as one undoable step; `from` read from CDN URLs, package files or git history |
-| core | `three_explain` | Cause and fix of a console, build or test message (41 kinds), with the right import path for the installed release |
-| core | `three_lessons` | 103 lessons from real three.js and react-three-fiber projects (symptom, cause, fix, test) by error message, words, rule or topic |
-| core | `three_lesson_add` | Keep a lesson learned here, scrubbed of names, paths and code; it comes back under the same error |
-| core | `three_rules` | Every review rule with its category, release gating and fix |
-| core | `three_feedback` | Mark a finding as a false alarm (hidden from then on) or right |
-| core | `three_dream` | Look back at what agents ran into on this machine and get numbered proposals with their evidence: API names agents keep guessing become project hints (the session start and `three_api` show them), messages nothing explained become draft lessons, misleading or duplicate lessons are retired or merged, noisy rules and undone tools get a note; nothing changes until you apply a number, hints are undoable |
-| core | `three_undo` | Undo the last Threesmith writes, newest first |
-| core | `three_version` | Which three release is installed |
-| run | `three_check` | Headless Chromium (software WebGL 2): console and page errors with causes, shader errors at your file and line, failed requests, no context, lost context, blank frames, screenshot, baselines with a diff, interaction steps |
-| run | `three_inspect` | The live scene graph, camera, draw calls, GPU memory growth, and why each object is not visible |
-| run | `three_look` | The frame as text, measured with the scene's own renderer by rendering with and without each object: mean luma, near-black and near-white share, background share, and per object (named objects, or the meshes in them) the share of the frame it really shows, its place (top left .. centre .. bottom right), whether the frame edge cuts it, how much of it is hidden and by which object; verdicts (nothing visible, too dark, blown out, tiny, mostly hidden) and `expect` claims (`"car visible >= 5%"`, `"car centered"`, `"car not cut"`, `"car not hidden"`, `"frame not dark"`) on the same numbers. `annotate: true` also returns the frame with a numbered box and the name of each object, the same numbers as the text. For agents that cannot see pictures, and as numbers for those that can; also `three_page` op `look` |
-| run | `three_capture` | Frames of the page exactly 1/fps apart on the deterministic clock (smooth and repeatable even on a slow software renderer), after optional steps: a contact sheet of the motion in one picture, the change per frame (a scene that does not move, a frame that pops), the PNG frames in `.threesmith/capture/<name>/`, and an `.mp4` with ffmpeg (`video: true`) or the ffmpeg command |
-| run | `three_play` | Steps (click, press, hold, drag, wheel, frames, eval, until), watched values per frame and step, claims judged at the end, any moment or every frame; `seed` (+ `fixed_dt`) pauses the clock and seeds `Math.random`, so every run gives the same frames, values and pixels (also on `three_check` and scenarios) |
-| run | `three_scenario` | Keep a passing play run as a regression test in `.threesmith/scenarios/`; `ci` runs them and writes JUnit |
-| run | `three_perf` | Draw calls, triangles, programs, geometries, textures (exact) and frame-time percentiles with the slowest frames and their cause, against a budget and the last run; the cost per object (triangles, calls, instances, material groups) and the meshes that share one geometry and material, which one `InstancedMesh` would draw in one call |
-| run | `three_device` | The page as on a phone, tablet or low-end laptop (or your own `.json` profile): its pixel ratio, touch and a CPU slow-down, with the WebGL texture and renderbuffer limits clamped; textures uploaded over the limit, textures three had to resize, texture memory against the profile budget, an uncapped pixel ratio, no viewport meta, and frame times; `lose_context: true` loses and restores the WebGL context and checks the scene comes back. Profiles are presets to test against, not real devices |
-| run | `three_leaks` | Repeat a cycle of steps with garbage collection and report what grows per cycle, down to the GPU resources never disposed, by type |
-| run | `three_compare` | The same page on two three.js releases (installed and `with`: `r186`, `next`, `previous`, `latest` or a folder; from npm into `$THREESMITH_HOME/three`, `node_modules` untouched), both with the deterministic clock, compared by meaning: new console errors and warnings, objects lost, hidden or resized, `renderer.info` deltas, changed pixels and the mean luminance per object on screen. Each change names the migration entry that explains it ("expected: r188 AmbientLight ... specular"); one with no entry is a probable regression. `bisect: "r160..r188"` (or a list of releases or folders) halves to the first release where the page changes, breaks (`until: break`) or a claim fails (`expect`, as in `three_play`). The page must load three through an import map, `node_modules/three`, a CDN `three@x` URL or a copied build file |
-| live | `three_session` | Keep a headless page open between calls (start, status, stop), or attach to your own running Chrome with `cdp` (its real GPU, extensions and state): the tab is found by its URL and reloaded once to install the hooks, and every live tool (`three_page`, `three_tune`, `three_animation`, look) then works on it; stop only disconnects |
-| live | `three_tune` | Tune the scene in the live page and keep the result in the code: `op: set` changes a value with no reload (an object by name, or `camera`, `renderer`, `scene`, `fog`; `intensity`, `color`, `position`, `fov`, `toneMappingExposure`, `material.roughness`, ...; the projection and the material are updated for you), `list` and `reset` show and undo the tweaks, `save` writes them where the code sets them (an assignment, a `set()` call, a constructor argument such as `DirectionalLight(color, intensity)` or `PerspectiveCamera(fov, ...)`, a material option; one new line when the code never sets the value), dry run first, one undoable step with `write: true` |
-| live | `three_animation` | Animation from the file and in the live page: `op: clips` lists every clip of a `.glb` (length, properties and nodes it moves, channels without a node, skins, bones, morph targets); `mixers` lists every AnimationMixer with its actions and says what is wrong (no clip played, `mixer.update` never called or with delta 0, weight or speed 0, tracks that drive no node, a skinned model in its bind pose); `play` (fade, loop, speed), `pose` (the model at a time) and `sweep` (the lowest point and node positions per step of a clip: feet that sink into the ground or float) |
-| live | `three_page` | Drive that page without reloading: eval JS against the live scene, steps, frames, until, screenshot, inspect, look, `textures` (every texture with slot, size, colour space and GPU memory, and the mistakes: a colour map read as linear, a data map read as sRGB, too big), `diff` (what changed in the scene since the last diff: added, removed, moved, hidden, another material), reload, new errors after every answer |
-| build | `three_assets` | Every asset path resolved like the dev server and a static host: missing files, wrong capitals, decoder folders, glTF decoders the code never sets up, huge textures, unused files |
-| build | `three_decoders` | Wire Draco, KTX2 and meshopt with the decoder files of the installed three: which model needs which decoder, how the code points each loader at its files, served files checked by hash against the installed three, a CDN transcoder of another release; `write: true` copies the files to `public/` (or next to the page), adds the loader setup after `new GLTFLoader()` (or `useGLTF.setDecoderPath` for R3F) and pins CDN paths, as one undoable step |
-| build | `three_gltf` | `op: validate`: the Khronos glTF-Validator report of a `.glb`/`.gltf` (errors and warnings with their JSON pointer); `op: optimize`: gltf-transform dedup, prune and weld, optional Draco or meshopt compression and simplification, with the measured size and triangles before and after and the output validated; `write: true` saves it as one undoable step. Optional packages, see Limits |
-| build | `three_build` | Run the build, check the output (copies of three, missing assets, sub-path URLs, decoders) and open the built page headless |
-| model | `three_model_brief` | One page before you build a model: the nearest ready-made kind, parts, real size, rules, the order of tools |
-| model | `three_model_identify` | What a thing is (English or Dutch): parts, pivots, typical size, variants, usual mistakes |
-| model | `three_model_spec` | The JSON model spec, an example, and the 110 ready-made kinds |
-| model | `three_model_build` | Build a clean, deterministic `.glb` from a kind or a spec, and lint it |
-| model | `three_model_view` | A `.glb` as text: front, side and top views, parts with sizes, parts that do not touch |
-| model | `three_model_lint` | Score a `.glb` for the web (geometry, materials, triangles, draw calls, texture memory, loading), and against what it should be |
-| model | `three_model_code` | The code that loads a `.glb` right for the installed three: an ES module (or TypeScript with the part and clip names as types) that sets up the decoders the file needs, loads it and returns its parts by their name in the file, its materials, one action per animation and `dispose()`; or a React Three Fiber component like gltfjsx (`style: r3f`) with the node tree as JSX, or one `<primitive>` of a SkeletonUtils clone when the file needs it, with `useAnimations` and `useGLTF.preload`. The URL comes from the file's place under `public/`; the code is reviewed before it is shown |
-| model | `three_model_inspect` | What is in a `.glb` and which loaders and decoders three.js needs, with the setup code, checked against the project's code |
+| Tool | What it does |
+| --- | --- |
+| `three_doctor` | Start here: what is wrong, grouped by cause, most urgent first, with numbered next steps |
+| `three_scan` | The project map: bundler, framework, three versions, pages, import maps, renderer settings, assets |
+| `three_api` | The exact API in the installed three: signature, deprecation, import path, did-you-mean |
+| `three_search` | Classes, constants and members by part of a name |
+| `three_review` | Score 0-100 from 104 rules pinned to the installed release; `only_new` for fix loops, `code` for unsaved code |
+| `three_types` | The project's own `tsc --noEmit`, each three.js type error answered from the installed release |
+| `three_fix` | The renames that mean exactly the same, dry run first, undoable |
+| `three_migrate` | Upgrade plan per release (r120 to r188) with file:line, what will look different, a WebGPU readiness report and undoable rewrites |
+| `three_impact` | What a change touches in the scene, the pages and tests that run it through the import graph, and the checks that prove it |
+| `three_tsl` | TSL: Fn, uniforms and node slots with their mistakes (`uv().x * 8`, `if` on a node); the node graph and generated shader from the page |
+| `three_explain` | Cause and fix of a console, build or test message (41 kinds) |
+| `three_lessons` | 103 lessons from real three.js and R3F projects by error, words, rule or topic |
+| `three_lesson_add` | Keep a lesson learned here, scrubbed of names, paths and code |
+| `three_rules` | Every review rule with its category, release gating and fix |
+| `three_feedback` | Mark a finding as a false alarm (hidden from then on) or right |
+| `three_dream` | Learns from past sessions on this machine: project hints, draft lessons, noisy rules, each with its evidence; applied only when you say so |
+| `three_undo` | Undo the last Threesmith writes, newest first |
+| `three_version` | Which three release is installed |
 
-</details>
+**run** · open the page headless
+
+| Tool | What it does |
+| --- | --- |
+| `three_check` | The page in headless Chromium: errors with causes, shader errors at your line, failed requests, blank frames, screenshot, baselines |
+| `three_inspect` | The live scene graph, draw calls, GPU memory, and why each object is not visible |
+| `three_look` | The frame as numbers per object: share, place, cut, hidden by what, too dark; claims, and an annotated screenshot |
+| `three_capture` | Frames 1/fps apart on a virtual clock: a contact sheet, still scenes and pops, an `.mp4` with ffmpeg |
+| `three_play` | Steps (click, press, drag, frames, until), watched values and claims judged frame by frame; `seed` makes runs repeatable |
+| `three_scenario` | Keep a passing play run as a regression test; `ci` runs them and writes JUnit |
+| `three_perf` | Draw calls, triangles, programs and frame times against a budget and the last run, the cost per object, instancing candidates |
+| `three_device` | The page as on a phone, tablet or low-end laptop: texture limits, memory budget, pixel ratio, context loss |
+| `three_leaks` | Repeat a cycle and report what grows, down to GPU resources never disposed |
+| `three_compare` | The same page on two three releases, each change with the migration note that explains it; `bisect` finds the release |
+
+**live** · a page kept running
+
+| Tool | What it does |
+| --- | --- |
+| `three_session` | A page kept open between calls, headless or your own Chrome (`cdp`) with the real GPU |
+| `three_page` | Drive it without reloading: eval, steps, screenshot, inspect, look, `textures` (colour-space and size mistakes), `diff` |
+| `three_tune` | Change a value live (light, colour, camera, exposure, material), then save it where the code sets it, undoable |
+| `three_animation` | Clips of a `.glb`; live mixers and why a clip does not play; play, pose and sweep for feet in the floor |
+
+**build** · assets and the deployed output
+
+| Tool | What it does |
+| --- | --- |
+| `three_assets` | Every asset path resolved like the dev server and the host: missing files, wrong capitals, decoders, huge textures |
+| `three_decoders` | Draco, KTX2 and meshopt wired with the decoder files of the installed three, undoable |
+| `three_gltf` | Khronos validation, and gltf-transform optimisation with before-and-after numbers (optional packages) |
+| `three_build` | Run the build, check the output (copies of three, assets, sub-path URLs) and open the built page |
+
+**model** · 3D models without Blender
+
+| Tool | What it does |
+| --- | --- |
+| `three_model_brief` | One page before you build a model: nearest kind, parts, real size, rules, order of tools |
+| `three_model_identify` | What a thing is (English or Dutch): parts, pivots, typical size, usual mistakes |
+| `three_model_spec` | The JSON model spec, an example, and the 110 ready-made kinds |
+| `three_model_build` | A clean, deterministic `.glb` from a kind or a spec, linted |
+| `three_model_view` | A `.glb` as text: front, side and top views, parts with sizes, parts that do not touch |
+| `three_model_lint` | Score a `.glb` for the web, and against what it should be |
+| `three_model_inspect` | What is in a `.glb` and which loaders and decoders it needs, with the setup code |
+| `three_model_code` | The code that loads a `.glb`: an ES module or a React Three Fiber component with its parts, materials and animations |
+
+Every tool explains itself in full to the agent (its MCP description); `threesmith <command> --help` does the same in the shell.
 
 CLI: `threesmith doctor | scan | api | search | review | types | fix | impact | migrate | tsl | rules | dream | undo | lessons | assets | decoders | gltf | check |
 inspect | look | capture | play | scenario | perf | device | leaks | compare | build | model <inspect|needs|code|view|lint|identify|brief|spec|kinds|recipes|build>
