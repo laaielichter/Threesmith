@@ -43,6 +43,9 @@ Done since (unreleased, each has tests):
   findings; three review rules for JavaScript operators and conditions on nodes and `assign()` outside `Fn()`
   (quiet on three's own addons and the 244 official WebGPU examples); six TSL runtime messages explained; the node
   graph and the generated shader read from the running page.
+- [x] Live tuning (`three_tune`): change light, material, camera, exposure and transform values in the live page with
+  no reload, then write them where the code sets them (assignment, `set()`, constructor argument, material option,
+  or a new line), dry run first, undoable.
 
 Next:
 

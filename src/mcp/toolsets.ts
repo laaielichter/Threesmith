@@ -25,7 +25,7 @@ export const TOOLSETS = {
     "three_version",
   ],
   run: ["three_check", "three_inspect", "three_look", "three_play", "three_scenario", "three_perf", "three_device", "three_leaks", "three_compare"],
-  live: ["three_session", "three_page"],
+  live: ["three_session", "three_page", "three_tune"],
   build: ["three_assets", "three_decoders", "three_gltf", "three_build"],
   model: ["three_model_brief", "three_model_identify", "three_model_spec", "three_model_build", "three_model_view", "three_model_lint", "three_model_inspect"],
 } as const satisfies Record<string, readonly string[]>;
@@ -71,6 +71,7 @@ export function readOnlyRefusal(tool: string, args: Record<string, unknown>): st
   if (DRY_RUN_TOOLS.has(tool) && args["write"] === true) return no("with write: true") + " Leave write out to see the changes.";
   if ((tool === "three_check" || tool === "three_play") && (args["baseline"] !== undefined || args["update_baseline"] === true)) return no("with a baseline (it writes the picture into the project)");
   if (tool === "three_scenario" && args["op"] === "save") return no("op save");
+  if (tool === "three_tune" && args["op"] === "save" && args["write"] === true) return no("op save with write: true") + " Leave write out to see the changes.";
   return undefined;
 }
 
