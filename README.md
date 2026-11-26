@@ -103,10 +103,10 @@ the doctor, fix in its order) and `threesmith-<skill>` for each skill (`debug`, 
 
 - **Two profiles.** `--tier cheap` (the default) gives short, capped output and numbered step-by-step instructions, so
   small models follow the right order; `--tier premium` gives full detail for large models.
-- **Tool sets.** `--tools core` loads 16 tools; add `run`, `live`, `build`, `model` when you need them, or name single
+- **Tool sets.** `--tools core` loads 17 tools; add `run`, `live`, `build`, `model` when you need them, or name single
   tools. A tool list the client pays for in every turn stays small. The server instructions only ever name tools
   that are loaded.
-- **Lean mode.** `--lean` offers two tools instead of 37: `three` runs any tool by name
+- **Lean mode.** `--lean` offers two tools instead of 38: `three` runs any tool by name
   (`{"tool": "review", "args": {"only_new": true}}`) and `three_help` gives a tool's parameters when they are needed.
   Same tools, same results, same read-only refusals; the tool list drops from about 16,900 to about 2,000 tokens
   (estimated at 4 characters per token; `threesmith mcp --stats` prints the numbers for your options).
@@ -121,7 +121,7 @@ the doctor, fix in its order) and `threesmith-<skill>` for each skill (`debug`, 
   with `three_lesson_add` come back under the same error. `three_dream` looks back at past sessions and proposes
   project hints and lesson changes, each with its evidence. Only hashes, counters and scrubbed text, on this machine.
 
-## The 37 tools
+## The 38 tools
 
 <details open>
 <summary>All MCP tools (most are also CLI commands)</summary>
@@ -135,6 +135,7 @@ the doctor, fix in its order) and `threesmith-<skill>` for each skill (`debug`, 
 | core | `three_review` | Scored review (0-100) with 101 rules pinned to the installed release; `code` + `file` for unsaved code, `only_new` in a fix loop, `files` to focus |
 | core | `three_types` | The project's own `tsc --noEmit`, with each three.js type error answered from the installed release (the member that exists, the real import path) |
 | core | `three_fix` | The renames that mean exactly the same, dry run first, undoable |
+| core | `three_impact` | The whole change before it is run: the changed files (git `HEAD`, another `base`, or a list), what each change touches in the scene (the whole picture: colour space, tone mapping, pixel ratio, shadows, environment; lights, camera, materials, shaders, assets, the loop, disposal, input, post-processing, the three version, the build), the files and pages that run it through the import graph (`?raw` shaders and asset paths included), the scenarios and baselines that cover those pages, and the numbered checks that prove it; `run: true` reviews the changed files and runs those scenarios |
 | core | `three_migrate` | Plan a three.js upgrade (r120 to r188): the breaking changes per release that apply to this code with file:line, a TO DO list with the replacement checked against the installed API, and what will look different; `webgpu: true` adds a WebGPU readiness report with a TSL draft per `ShaderMaterial` and `onBeforeCompile`; `write: true` makes the exact rewrites (the `three_fix` renames plus the migration's own) as one undoable step; `from` read from CDN URLs, package files or git history |
 | core | `three_explain` | Cause and fix of a console, build or test message (35 kinds), with the right import path for the installed release |
 | core | `three_lessons` | 103 lessons from real three.js and react-three-fiber projects (symptom, cause, fix, test) by error message, words, rule or topic |
@@ -168,7 +169,7 @@ the doctor, fix in its order) and `threesmith-<skill>` for each skill (`debug`, 
 
 </details>
 
-CLI: `threesmith doctor | scan | api | search | review | types | fix | migrate | rules | dream | undo | lessons | assets | decoders | gltf | check |
+CLI: `threesmith doctor | scan | api | search | review | types | fix | impact | migrate | rules | dream | undo | lessons | assets | decoders | gltf | check |
 inspect | play | scenario | perf | device | leaks | compare | build | model <inspect|needs|view|lint|identify|brief|spec|kinds|recipes|build>
 | explain | ci | hook | mcp`. `threesmith <command> --help` lists the options.
 

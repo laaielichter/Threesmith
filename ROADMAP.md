@@ -34,6 +34,8 @@ Done since (unreleased, each has tests):
 - [x] Dreaming (`three_dream`, `threesmith dream`): counters kept while agents work (API names that were not there,
   messages nothing explained, undone writes) become numbered proposals with evidence: project hints, draft lessons,
   lessons to retire or merge, noisy rules. Applied only when approved; hints are undoable.
+- [x] The whole change (`three_impact`, `threesmith impact`): changed files to the scene areas they touch, the import
+  graph to the pages, scenarios and baselines that run them, and the checks that prove the change.
 
 Next:
 

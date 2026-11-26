@@ -63,6 +63,7 @@ import {
   viewModel,
 } from "../model/index.js";
 import { VERSION } from "../version.js";
+import { formatImpact, impact } from "../impact/impact.js";
 import { applyDream, apiHintFor, dream, formatApply, formatDream, markDreamed } from "../dream/dream.js";
 import { recordApiMiss, recordUnexplained } from "../dream/signals.js";
 import { renderInstructions, type Tier } from "./instructions.js";
@@ -394,6 +395,43 @@ export function createServer(options: ServerOptions = {}): McpServer {
         if (!hit) return failure(`No finding${rule ? ` [${rule}]` : ""} at ${rel}:${line} in the current review. Run three_review and pass the file and line it printed.`);
         const c = recordFeedback(hit, verdict);
         return text(`${verdict === "wrong" ? "Hidden from now on" : "Counted as right"}: ${formatFinding(hit, false)}\nrule ${c.rule}: marked wrong ${c.wrong}x, right ${c.right}x on this machine.`);
+      }),
+  );
+
+  tool(
+    "three_impact",
+    {
+      title: "What this change touches, and how to prove it",
+      description:
+        "Before you call a change done: the changed files (against git HEAD, another ref with `base`, or a `files` list), what each change touches in a three.js scene (the whole picture: colour space, tone mapping, pixel ratio, shadows, environment; lights, camera, materials, shaders, assets, the loop, disposal, input, post-processing, the three version, the build), the files that run the changed code through the import graph, the pages that end up running it, the kept scenarios and baselines that cover those pages, and the numbered checks that prove the change. `run: true` also reviews the changed files and runs the affected scenarios. Read-only.",
+      inputSchema: {
+        path: pathParam,
+        base: z.string().optional().describe("git ref to compare with (default HEAD: the uncommitted work, new files included)"),
+        files: z.array(z.string()).optional().describe("changed files (relative to the project) instead of git"),
+        run: z.boolean().optional().describe("also review the changed files and run the affected scenarios"),
+        detail: detailParam,
+      },
+      annotations: { ...READ, openWorldHint: true },
+    },
+    async ({ path, base, files, run, detail }) =>
+      guard(async () => {
+        const root = projectRootOf(where(path));
+        const r = impact(root, { ...(base ? { base } : {}), ...(files ? { files } : {}) });
+        const parts = [formatImpact(r, detail ?? profile.detail)];
+        let failed = false;
+        if (run && r.changed.length) {
+          const code = r.changed.filter((c) => c.status !== "deleted").map((c) => c.file);
+          const rv = review({ path: root });
+          const mine = rv.findings.filter((f) => code.includes(f.file));
+          failed ||= mine.some((f) => f.severity === "error");
+          parts.push("", `Review of the changed files: ${mine.length ? "" : "no findings."}`, ...mine.slice(0, profile.findings).map((f) => formatFinding(f, tier === "premium")));
+          for (const name of r.scenarios.slice(0, 10)) {
+            const rs = await runScenarios(root, { name });
+            failed ||= rs.some((x) => !x.ok);
+            parts.push("", formatScenarios(rs, { brief: tier === "cheap" }));
+          }
+        }
+        return text(parts.join("\n"), failed);
       }),
   );
 
