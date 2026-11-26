@@ -93,6 +93,10 @@ Run the agent from the project folder, or pass `--project <path>`. Needs Node.js
 project. The browser tools need `playwright-core` and a Chromium (`npx playwright-core install chromium`);
 `threesmith doctor --env` shows what is missing.
 
+Clients without the plugin still get its workflows: the server offers the prompts `threesmith-doctor` (start with
+the doctor, fix in its order) and `threesmith-<skill>` for each skill (`debug`, `review`, `perf`, `ship`, `model`,
+`upgrade`, `learn`), and every skill as a resource (`threesmith://skills/<name>`, Markdown).
+
 ### Made for agents: cheap calls, exact answers
 
 - **Two profiles.** `--tier cheap` (the default) gives short, capped output and numbered step-by-step instructions, so
