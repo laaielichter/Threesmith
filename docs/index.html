@@ -180,6 +180,7 @@ screenshot: ./examples/agent-mistakes/.threesmith/last.png<!--/out--></pre></div
       <tr><td>loads a model</td><td class="no"><code>/models/Robot.glb</code>: works on a Mac, 404 on the server</td><td><code>three_assets</code> resolves every path like the host does; names missing Draco, meshopt and KTX2 setup</td></tr>
       <tr><td>says "it works"</td><td class="no">never opened the page</td><td><code>three_check</code>: errors with causes, blank frames, screenshots, baselines with a diff</td></tr>
       <tr><td>fixes a bug</td><td class="no">cannot show it was there, or that it is gone</td><td><code>three_play</code> judges claims frame by frame; <code>three_scenario</code> keeps it as a regression test</td></tr>
+      <tr><td>upgrades three</td><td class="no">merges the "bump three" PR blind</td><td><code>three_compare</code>: the page on both releases, each change with the migration note that explains it</td></tr>
       <tr><td>makes it fast</td><td class="no">changes things and hopes</td><td><code>three_perf</code>: draw calls, triangles, programs against a budget; <code>three_leaks</code>: what is never disposed</td></tr>
       <tr><td>ships it</td><td class="no">builds, deploys, sees a 404</td><td><code>three_build</code>: copies of three, missing assets, sub-path URLs, then the built page headless</td></tr>
       <tr><td>needs a 3D model</td><td class="no">a placeholder cube</td><td><code>three_model_build</code>: a clean <code>.glb</code> from 110 kinds, shown as text views, linted</td></tr>
@@ -188,7 +189,7 @@ screenshot: ./examples/agent-mistakes/.threesmith/last.png<!--/out--></pre></div
 </div></section>
 
 <section id="tools"><div class="wrap">
-  <h2>35 MCP tools, one CLI</h2>
+  <h2>36 MCP tools, one CLI</h2>
   <p class="sub">Load the sets you need: <code>--tools core,run</code>. Most tools are also CLI commands (<code>threesmith &lt;command&gt; --help</code>).</p>
   <div class="tools">
     <div><h4>core</h4><ul>
@@ -211,6 +212,7 @@ screenshot: ./examples/agent-mistakes/.threesmith/last.png<!--/out--></pre></div
       <li><code>three_perf</code> draw calls, budgets</li>
       <li><code>three_device</code> phone and low-end profiles</li>
       <li><code>three_leaks</code> what grows per cycle</li>
+      <li><code>three_compare</code> your page on two three releases</li>
     </ul></div>
     <div><h4>live</h4><ul>
       <li><code>three_session</code> a page kept open</li>

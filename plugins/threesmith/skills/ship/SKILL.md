@@ -19,6 +19,8 @@ Make sure what works in the dev server also works where it is hosted ($ARGUMENTS
    (pass `webgpu: true`, or check on a machine where `threesmith doctor --env` finds an adapter).
 5. `three_device` with `profile: phone` and `lose_context: true`: no texture over the phone's limit, a capped pixel
    ratio, a viewport meta, and the scene back after the WebGL context is lost (phones do that to background tabs).
-6. In CI: the GitHub Action posts the review and the check as a receipt on every pull request.
+6. Bumping three before the deploy: `three_compare` with `with: next` (or the release in the bump): each change on the
+   page names the migration note that explains it; one with no note is a probable regression to look at first.
+7. In CI: the GitHub Action posts the review and the check as a receipt on every pull request.
 
 End with: the build result, the problems found and fixed, and the screenshot of the built page.

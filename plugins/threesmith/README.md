@@ -1,6 +1,6 @@
 # Threesmith plugin for Claude Code
 
-Adds the Threesmith MCP server (35 tools: `three_doctor`, `three_scan`, `three_api`, `three_review`, `three_check`,
+Adds the Threesmith MCP server (36 tools: `three_doctor`, `three_scan`, `three_api`, `three_review`, `three_check`,
 `three_inspect`, `three_play`, `three_assets`, `three_model_build` and more; see the repository README), and:
 
 - **Skills:** `threesmith` (when to use which tool), `debug`, `perf`, `review`, `upgrade`, `webgpu`, `assets`, `ship`, `model`, `learn`.
@@ -23,7 +23,7 @@ Install:
 ```
 
 **Settings** (asked when you enable the plugin): the project folder, protected paths, tool sets (`core`, `run`,
-`live`, `build`, `model`; empty means all 35), read-only, and lean (two tools, `three` and `three_help`, that run
+`live`, `build`, `model`; empty means all 36), read-only, and lean (two tools, `three` and `three_help`, that run
 and describe all the others, for a much smaller tool list). The server runs with `--tier premium` (full detail).
 
 `THREESMITH_HOOKS=0` turns the hooks off. Hooks fail open: if Threesmith cannot run, they say nothing.

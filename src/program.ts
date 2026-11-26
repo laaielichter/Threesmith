@@ -41,6 +41,7 @@ import { formatJunit, formatScenarios, loadScenarios, runScenarios, saveScenario
 import { formatPerf, perf } from "./check/perf.js";
 import { device, formatDevice, PROFILES } from "./check/device.js";
 import { formatLeaks, leaks } from "./check/leaks.js";
+import { compare, formatCompare } from "./compare/compare.js";
 import { buildCheck, formatBuild } from "./check/build.js";
 import {
   EXAMPLE_SPEC,
@@ -445,6 +446,36 @@ export function buildProgram(): Command {
       const budget = budgetFrom(o.budget) as { frameMs?: number; textureMb?: number } | undefined;
       const r = await device({ ...pageFrom(target, o as never), profile: o.profile, seconds: Number(o.seconds), ...(budget ? { budget } : {}), ...(o.loseContext ? { loseContext: true } : {}) });
       out(o.json ? JSON.stringify(r, null, 2) : formatDevice(r));
+      if (!r.ok) process.exitCode = 1;
+    });
+
+  pageOptions(
+    program
+      .command("compare")
+      .description("Run the page on two three.js releases (installed and --with) and compare by meaning, each change annotated with the migration note that explains it")
+      .argument("<target>", "folder with the page, or an http(s) URL"),
+  )
+    .requiredOption("--with <release>", "r186, 0.186.1, next, previous, latest, or a folder with a three package")
+    .option("--base <release>", "the release of the first run", "installed")
+    .option("--wait <ms>", "ms (frames under the clock) before the capture", "1500")
+    .option("--step <json...>", "steps before the capture (see play)")
+    .option("--seed <n>", "seed for Math.random (default 1)")
+    .option("--fixed-dt <ms>", "ms per frame (default 16.67)")
+    .option("--tolerance <ratio>", "share of changed pixels that counts as a change", "0.005")
+    .option("--json", "JSON output")
+    .action(async (target: string, o: { with: string; base: string; wait: string; step?: string[]; seed?: string; fixedDt?: string; tolerance: string; json?: boolean } & Record<string, string | boolean | undefined>) => {
+      const steps = stepsFrom(o.step);
+      const r = await compare({
+        ...pageFrom(target, o as never),
+        with: o.with,
+        base: o.base,
+        wait: Number(o.wait),
+        tolerance: Number(o.tolerance),
+        ...(steps ? { steps } : {}),
+        ...(o.seed !== undefined ? { seed: Number(o.seed) } : {}),
+        ...(o.fixedDt !== undefined ? { fixedDt: Number(o.fixedDt) } : {}),
+      });
+      out(o.json ? JSON.stringify(r, null, 2) : formatCompare(r));
       if (!r.ok) process.exitCode = 1;
     });
 

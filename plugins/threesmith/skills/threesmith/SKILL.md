@@ -27,7 +27,8 @@ and look at the page before you say it works.
 7. **Errors you do not understand:** `three_explain` with the message as printed, `three_lessons` with it as `error`.
    When a fix took more than one try, `three_lesson_add`.
 8. **Speed and memory:** `three_perf` before and after a change; `three_leaks` with the steps of one cycle.
-9. **Before deploying:** `three_build`.
+9. **Before deploying:** `three_build`. **Before a three upgrade:** `three_compare` with `with: next` (or the target
+   release): the page on both releases, every change with the migration note that explains it.
 10. **3D models:** `three_model_brief`, `three_model_build`, `three_model_view` (text views), `three_model_lint`.
 
 ## Rules of thumb

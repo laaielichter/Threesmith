@@ -35,7 +35,7 @@
     "tools": {
       "type": "string",
       "title": "Tool sets (optional)",
-      "description": "Which Threesmith tools Claude sees, comma separated: core, run, live, build, model, or tool names. Empty means all 35.",
+      "description": "Which Threesmith tools Claude sees, comma separated: core, run, live, build, model, or tool names. Empty means all 36.",
       "required": false
     },
     "read_only": {
