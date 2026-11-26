@@ -108,7 +108,7 @@ the doctor, fix in its order) and `threesmith-<skill>` for each skill (`debug`, 
   that are loaded.
 - **Lean mode.** `--lean` offers two tools instead of 44: `three` runs any tool by name
   (`{"tool": "review", "args": {"only_new": true}}`) and `three_help` gives a tool's parameters when they are needed.
-  Same tools, same results, same read-only refusals; the tool list drops from about 19,900 to about 2,400 tokens
+  Same tools, same results, same read-only refusals; the tool list drops from about 22,000 to about 2,600 tokens
   (estimated at 4 characters per token; `threesmith mcp --stats` prints the numbers for your options).
 - **Fix loops that cost less.** `three_review` with `only_new: true` shows new findings in full, the ones the agent
   already saw as one short line, and how many are fixed. `code` + `file` reviews code before it is saved.
