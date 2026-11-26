@@ -23,7 +23,7 @@ import { RULES } from "./review/rules.js";
 import { formatJournal, formatUndo, readJournal, undoJournal, writeFiles } from "./project/journal.js";
 import { applyFeedback, formatLearned } from "./learn/feedback.js";
 import { envFlag } from "./mcp/toolsets.js";
-import { migratePlan } from "./migrate/migrate.js";
+import { formatMigrateWrite, migrateWrite } from "./migrate/write.js";
 import { formatMigrate } from "./migrate/format.js";
 import { checkTypes, formatTypes } from "./types/types.js";
 import { toSarif } from "./review/sarif.js";
@@ -220,12 +220,15 @@ export function buildProgram(): Command {
     .option("--to <release>", "the release to move to, or installed", "installed")
     .option("--three <dir>", "path to a three package")
     .option("--files <paths...>", "only these files (relative to the project)")
+    .option("--write", "make the exact rewrites (three_fix renames and the migration's own), as one undoable step")
     .option("--full", "every place, the changes not found and the sources")
     .option("--json", "JSON output")
-    .action((path: string, o: { from: string; to: string; three?: string; files?: string[]; full?: boolean; json?: boolean }) => {
+    .action((path: string, o: { from: string; to: string; three?: string; files?: string[]; write?: boolean; full?: boolean; json?: boolean }) => {
       existingPath(path);
-      const plan = migratePlan({ path, from: o.from, to: o.to, ...(o.three ? { three: o.three } : {}), ...(o.files ? { files: o.files } : {}) });
-      out(o.json ? JSON.stringify(plan, null, 2) : formatMigrate(plan, { detail: o.full ? "full" : "brief" }));
+      const w = migrateWrite({ path, from: o.from, to: o.to, ...(o.three ? { three: o.three } : {}), ...(o.files ? { files: o.files } : {}) });
+      const id = o.write && w.total ? writeFiles(w.plan.root, "migrate", `migrate r${w.plan.from} -> r${w.plan.to}: ${w.total} rewrite(s)`, w.files.map((f) => ({ file: f.rootFile, data: f.data }))) : 0;
+      if (o.json) out(JSON.stringify({ ...w, files: w.files.map(({ data: _d, ...rest }) => rest), written: !!id, ...(id ? { journal: id } : {}) }, null, 2));
+      else out(o.write ? formatMigrateWrite(w, !!id, id || undefined) : `${formatMigrate(w.plan, { detail: o.full ? "full" : "brief" })}\n\n${formatMigrateWrite(w, false)}`);
     });
 
   program

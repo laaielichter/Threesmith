@@ -11,6 +11,13 @@
         "also": "\\bCapsuleGeometry\\b"
       },
       "todo": "Read geometry.parameters.height.",
+      "rewrite": [
+        {
+          "find": "\\.parameters\\.length\\b",
+          "replace": ".parameters.height",
+          "code": true
+        }
+      ],
       "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#175--176"
     },
     {

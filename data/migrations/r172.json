@@ -11,6 +11,13 @@
         "also": "three/(?:tsl|webgpu)"
       },
       "todo": "texture( map ).sample( uvNode ).",
+      "rewrite": [
+        {
+          "find": "(\\btexture\\s*\\([^()]*\\)\\s*)\\.uv(?=\\s*\\()",
+          "replace": "$1.sample",
+          "code": true
+        }
+      ],
       "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#171--172"
     },
     {
@@ -32,6 +39,23 @@
         "pattern": "\\b(?:materialAOMap|shadowWorldPosition|PostProcessingUtils)\\b"
       },
       "todo": "materialAO, shadowPositionWorld, RendererUtils.",
+      "rewrite": [
+        {
+          "find": "(?<![\\w$.])materialAOMap(?![\\w$])",
+          "replace": "materialAO",
+          "code": true
+        },
+        {
+          "find": "(?<![\\w$.])shadowWorldPosition(?![\\w$])",
+          "replace": "shadowPositionWorld",
+          "code": true
+        },
+        {
+          "find": "(?<![\\w$.])PostProcessingUtils(?![\\w$])",
+          "replace": "RendererUtils",
+          "code": true
+        }
+      ],
       "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#171--172"
     }
   ]

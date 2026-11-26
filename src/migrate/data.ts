@@ -22,6 +22,16 @@ export interface Detect {
   unless?: string;
 }
 
+/** An exact rewrite: the same meaning in the target release (checked in the guide or the source). */
+export interface Rewrite {
+  /** Regular expression (source), matched with the flags g and m on the code with comments blanked. */
+  find: string;
+  /** Replacement, with $1 for groups. */
+  replace: string;
+  /** Match outside string literals only (identifier renames must not touch messages or GLSL). */
+  code?: boolean;
+}
+
 export interface MigrationEntry {
   id: string;
   kind: MigrationKind;
@@ -33,6 +43,8 @@ export interface MigrationEntry {
   replacement?: string;
   /** For a deprecation: the release that removed the old API (verified in the source or the review rules). */
   removedIn?: number;
+  /** Exact rewrites `three_migrate write` makes. */
+  rewrite?: Rewrite[];
   /** The pull request, issue or migration guide section. */
   source: string;
 }
@@ -57,6 +69,14 @@ export function parseRelease(json: unknown, file: string): MigrationRelease {
     if (typeof e.title !== "string" || typeof e.todo !== "string" || typeof e.source !== "string" || !/^https:\/\//.test(e.source)) throw new Error(`${where}: needs title, todo and an https source`);
     const d = e.detect;
     if (!d || (!d.pattern && !d.rules?.length)) throw new Error(`${where}: detect needs a pattern or rules`);
+    for (const r of e.rewrite ?? []) {
+      try {
+        new RegExp(r.find, "gm");
+      } catch (err) {
+        throw new Error(`${where}: rewrite ${r.find} is not a valid regular expression: ${(err as Error).message}`);
+      }
+      if (typeof r.replace !== "string") throw new Error(`${where}: rewrite needs a replace text`);
+    }
     for (const k of ["pattern", "also", "unless"] as const) {
       if (d[k] === undefined) continue;
       try {

@@ -24,6 +24,13 @@
       },
       "todo": "Delete it and scale light intensities.",
       "removedIn": 165,
+      "rewrite": [
+        {
+          "find": "^[ \\t]*[\\w$.]+\\.useLegacyLights\\s*=\\s*false\\s*;?[ \\t]*\\r?\\n",
+          "replace": "",
+          "code": true
+        }
+      ],
       "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#154--155"
     },
     {

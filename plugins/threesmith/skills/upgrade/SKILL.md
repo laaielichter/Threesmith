@@ -13,7 +13,8 @@ Bring the project (or $ARGUMENTS) up to the installed three release.
    `@types/three`, import paths), and whether `three` and `three/webgpu` are mixed.
 2. `three_migrate` (pass `from` when it cannot tell, `to` for a release other than the installed one): the plan per
    release with file:line, the TO DO list, what `three_fix` renames and what will look different. Show the plan
-   before you change anything; work through the TO DO list oldest release first.
+   before you change anything. Then `three_migrate` with `write: true` makes the exact rewrites (the `three_fix`
+   renames plus the migration's own, one undoable step); work through the TO DO list oldest release first.
 3. `three_review` and count the `api` findings. This is the "before" picture; show it.
 4. `three_fix` without `write`, show what it will change, then with `write: true`. It only does renames that mean
    exactly the same thing.

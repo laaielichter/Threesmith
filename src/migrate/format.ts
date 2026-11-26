@@ -14,12 +14,12 @@ export function formatMigrate(p: MigratePlan, opts: { detail?: "brief" | "full" 
     return out.join("\n");
   }
   const kinds = Object.entries(p.counts).filter(([, n]) => n).map(([k, n]) => `${k} ${n}`).join(", ");
-  out.push(`${changes} change(s) in ${p.releases.length} release(s) apply to this code (${kinds}). ${p.todo.length} place(s) need hand work${p.fixable ? `, ${p.fixable} three_fix makes` : ""}.`);
+  out.push(`${changes} change(s) in ${p.releases.length} release(s) apply to this code (${kinds}). ${p.todo.length} place(s) need hand work${p.fixable ? `, ${p.fixable} write: true rewrites (three_fix renames included)` : ""}.`);
   out.push("", "Plan:");
   for (const r of p.releases) {
     for (const e of r.entries) {
       const first = e.where[0]!;
-      out.push(`  r${r.release} ${e.kind.padEnd(10)} [${e.id}] ${e.title}: ${e.where.length} place(s), first ${first.file}:${first.line}${e.fix ? " (three_fix)" : ""}`);
+      out.push(`  r${r.release} ${e.kind.padEnd(10)} [${e.id}] ${e.title}: ${e.where.length} place(s), first ${first.file}:${first.line}${e.fix ? " (write)" : ""}`);
     }
   }
   if (p.todo.length) {
@@ -34,7 +34,7 @@ export function formatMigrate(p: MigratePlan, opts: { detail?: "brief" | "full" 
     out.push("", "Will look different:");
     for (const a of p.appearance.slice(0, cap(12))) out.push(`  r${a.release} [${a.id}] ${a.title}: ${a.where.length} place(s), e.g. ${a.where[0]!.file}:${a.where[0]!.line}. ${a.todo}`);
   }
-  if (p.fixable) out.push("", "Next: three_fix (dry run, then write: true) for the renames; then the TO DO list, with three_api for every replacement; then three_review.");
+  if (p.fixable) out.push("", "Next: three_migrate with write: true for the exact rewrites (undoable); then the TO DO list, with three_api for every replacement; then three_review.");
   else out.push("", "Next: the TO DO list, with three_api for every replacement; then three_review.");
   if (full && p.notFound.length) {
     out.push("", `Not found in this code (${p.notFound.length}):`);

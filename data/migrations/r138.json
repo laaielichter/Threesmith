@@ -20,6 +20,18 @@
         "pattern": "\\bDataTexture(?:3D|2DArray)\\b"
       },
       "todo": "Rename them.",
+      "rewrite": [
+        {
+          "find": "\\bDataTexture3D\\b",
+          "replace": "Data3DTexture",
+          "code": true
+        },
+        {
+          "find": "\\bDataTexture2DArray\\b",
+          "replace": "DataArrayTexture",
+          "code": true
+        }
+      ],
       "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#137--138"
     },
     {

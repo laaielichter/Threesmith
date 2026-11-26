@@ -7,7 +7,11 @@
       "kind": "rename",
       "title": "encodings_fragment / output_fragment are colorspace_fragment / opaque_fragment",
       "detect": {
-        "pattern": "\\b(?:encodings_fragment|output_fragment)\\b"
+        "pattern": "\\b(?:encodings_fragment|output_fragment)\\b",
+        "rules": [
+          "shader-patch-target-missing",
+          "shader-include-unknown"
+        ]
       },
       "todo": "Rename the #include (three_fix does it).",
       "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#153--154"

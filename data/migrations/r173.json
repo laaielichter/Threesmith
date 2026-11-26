@@ -26,12 +26,24 @@
     {
       "id": "tsl-to-varying",
       "kind": "rename",
-      "title": "TSL varying() / vertexStage() are toVarying() / toVertexStage()",
+      "title": "TSL .varying() / .vertexStage() chaining is .toVarying() / .toVertexStage()",
       "detect": {
-        "pattern": "(?<![\\w$.])(?:varying|vertexStage)\\s*\\(",
+        "pattern": "\\.(?:varying|vertexStage)\\s*\\(",
         "also": "three/(?:tsl|webgpu)"
       },
-      "todo": "Rename the calls.",
+      "todo": "node.toVarying() and node.toVertexStage(); the functions varying( node ) and vertexStage( node ) stay.",
+      "rewrite": [
+        {
+          "find": "\\.varying(?=\\s*\\()",
+          "replace": ".toVarying",
+          "code": true
+        },
+        {
+          "find": "\\.vertexStage(?=\\s*\\()",
+          "replace": ".toVertexStage",
+          "code": true
+        }
+      ],
       "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#172--173"
     }
   ]

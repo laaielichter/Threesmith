@@ -10,6 +10,18 @@
         "pattern": "\\bColorManagement\\.(?:fromWorkingColorSpace|toWorkingColorSpace)\\s*\\("
       },
       "todo": "Rename the calls.",
+      "rewrite": [
+        {
+          "find": "\\bColorManagement\\.fromWorkingColorSpace(?=\\s*\\()",
+          "replace": "ColorManagement.workingToColorSpace",
+          "code": true
+        },
+        {
+          "find": "\\bColorManagement\\.toWorkingColorSpace(?=\\s*\\()",
+          "replace": "ColorManagement.colorSpaceToWorking",
+          "code": true
+        }
+      ],
       "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#176--177"
     },
     {

@@ -59,7 +59,7 @@ export function enabledTools(list?: string | readonly string[]): Set<string> {
 /** Tools a read-only server leaves out: they always change project files. */
 export const WRITE_ONLY_TOOLS: readonly string[] = ["three_undo", "three_build"];
 
-const DRY_RUN_TOOLS = new Set(["three_fix"]);
+const DRY_RUN_TOOLS = new Set(["three_fix", "three_migrate"]);
 
 /** Why a read-only server refuses this call, or undefined when it may run. Dry runs still work. */
 export function readOnlyRefusal(tool: string, args: Record<string, unknown>): string | undefined {

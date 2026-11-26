@@ -10,6 +10,28 @@
         "pattern": "\\b(?:Euler\\.DefaultOrder|Euler\\.RotationOrders|Object3D\\.Default(?:Up|MatrixAutoUpdate|MatrixWorldAutoUpdate))\\b"
       },
       "todo": "Euler.DEFAULT_ORDER, Object3D.DEFAULT_UP, DEFAULT_MATRIX_AUTO_UPDATE, DEFAULT_MATRIX_WORLD_AUTO_UPDATE.",
+      "rewrite": [
+        {
+          "find": "\\bEuler\\.DefaultOrder\\b",
+          "replace": "Euler.DEFAULT_ORDER",
+          "code": true
+        },
+        {
+          "find": "\\bObject3D\\.DefaultUp\\b",
+          "replace": "Object3D.DEFAULT_UP",
+          "code": true
+        },
+        {
+          "find": "\\bObject3D\\.DefaultMatrixAutoUpdate\\b",
+          "replace": "Object3D.DEFAULT_MATRIX_AUTO_UPDATE",
+          "code": true
+        },
+        {
+          "find": "\\bObject3D\\.DefaultMatrixWorldAutoUpdate\\b",
+          "replace": "Object3D.DEFAULT_MATRIX_WORLD_AUTO_UPDATE",
+          "code": true
+        }
+      ],
       "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#148--149"
     },
     {

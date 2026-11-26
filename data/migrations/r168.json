@@ -10,6 +10,13 @@
         "pattern": "\\bviewport(?:TopLeft|BottomLeft)\\b"
       },
       "todo": "viewportUV, and viewportUV.flipY() for the bottom-left origin.",
+      "rewrite": [
+        {
+          "find": "(?<![\\w$.])viewportTopLeft(?![\\w$])",
+          "replace": "viewportUV",
+          "code": true
+        }
+      ],
       "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#167--r168"
     },
     {

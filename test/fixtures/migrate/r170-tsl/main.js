@@ -1,5 +1,5 @@
 import * as THREE from 'three/webgpu';
-import { color, uniform, varying, positionLocal, sin, PI2, texture, uv } from 'three/tsl';
+import { color, uniform, positionLocal, sin, PI2, texture, uv } from 'three/tsl';
 
 const renderer = new THREE.WebGPURenderer({ colorBufferType: THREE.HalfFloatType });
 renderer.shadowMap.enabled = true;
@@ -10,7 +10,7 @@ document.body.appendChild(renderer.domElement);
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(60, 1, 0.1, 100);
 const time = uniform(0);
-const wave = varying(sin(positionLocal.x.mul(PI2).add(time)));
+const wave = sin(positionLocal.x.mul(PI2).add(time)).varying();
 const map = new THREE.TextureLoader().load('grid.png');
 
 const material = new THREE.MeshStandardNodeMaterial();

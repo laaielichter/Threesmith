@@ -35,7 +35,7 @@ interface Fix {
 }
 
 /** `text` with the contents of string literals blanked (same length), so identifier renames skip messages. */
-function codeOnly(text: string): string {
+export function codeOnly(text: string): string {
   const out = text.split("");
   for (let i = 0; i < text.length; i++) {
     const c = text[i];
