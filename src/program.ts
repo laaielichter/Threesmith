@@ -1,3 +1,5 @@
+import { applyDream, apiHintFor, dream, formatApply, formatDream, markDreamed } from "./dream/dream.js";
+import { recordApiMiss, recordUnexplained } from "./dream/signals.js";
 import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
 import { Command } from "commander";
@@ -141,7 +143,9 @@ export function buildProgram(): Command {
     .option("--json", "JSON output")
     .action((query: string, o: { path: string; three?: string; inherited?: boolean; full?: boolean; json?: boolean }) => {
       const r = lookup(indexFor(o.path, o.three), query, { ...(o.inherited ? { inherited: true } : {}), ...(o.full ? { full: true } : {}) });
-      out(o.json ? JSON.stringify(r) : r.text);
+      const hint = r.found ? undefined : apiHintFor(projectRootOf(o.path), query);
+      if (!r.found) recordApiMiss(query, r.suggestions ?? []);
+      out(o.json ? JSON.stringify(r) : hint ? `${r.text}\n${hint}` : r.text);
       if (!r.found) process.exitCode = 1;
     });
 
@@ -321,6 +325,7 @@ export function buildProgram(): Command {
         index = undefined;
       }
       const r = explain(text, index);
+      if (!r.length) recordUnexplained(text);
       out(o.json ? JSON.stringify(r, null, 2) : formatExplanations(r));
       if (!r.length) process.exitCode = 1;
     });
@@ -874,6 +879,30 @@ export function buildProgram(): Command {
       const root = projectRootOf(o.path);
       if (o.list) out(formatJournal(readJournal(root)));
       else out(formatUndo(undoJournal(root, { steps: positiveInt("--steps", o.steps), ...(o.force ? { force: true } : {}) })));
+    });
+
+  program
+    .command("dream")
+    .description("Look back at what agents ran into on this machine and propose project hints, lessons to write, lessons to retire or merge and noisy rules; apply only what you pick")
+    .argument("[path]", "project directory (same as --path)")
+    .option("-p, --path <dir>", "project directory", ".")
+    .option("--apply <list>", "apply proposals by number or key, comma separated (1,3 or api-hint:abc)")
+    .option("--all", "also show proposals applied or set aside before")
+    .option("--full", "every proposal, with its key")
+    .option("--json", "JSON output")
+    .action((dir: string | undefined, o: { path: string; apply?: string; all?: boolean; full?: boolean; json?: boolean }) => {
+      if (dir) o.path = dir;
+      const root = projectRootOf(o.path);
+      if (o.apply) {
+        const picks = o.apply.split(/[\s,]+/).filter(Boolean);
+        const r = applyDream(root, picks);
+        out(o.json ? JSON.stringify(r, null, 2) : formatApply(r));
+        if (r.unknown.length) process.exitCode = 1;
+        return;
+      }
+      const r = dream({ ...(o.all ? { all: true } : {}) });
+      markDreamed();
+      out(o.json ? JSON.stringify(r, null, 2) : formatDream(r, o.full ? "full" : "brief"));
     });
 
   program

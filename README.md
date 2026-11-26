@@ -83,7 +83,7 @@ brief of the project.
 
 | Client | How |
 | --- | --- |
-| **Claude Code** | `/plugin install threesmith@threesmith` after `/plugin marketplace add laaielichter/Threesmith` (MCP server, hooks incl. protected paths, 10 skills, 3 subagents, settings for tool sets and read-only) |
+| **Claude Code** | `/plugin install threesmith@threesmith` after `/plugin marketplace add laaielichter/Threesmith` (MCP server, hooks incl. protected paths, 11 skills, 3 subagents, settings for tool sets and read-only) |
 | **Claude Code, MCP only** | `claude mcp add threesmith -- npx -y threesmith mcp` |
 | **Codex** | `codex mcp add threesmith -- npx -y threesmith mcp --tier premium` |
 | **Cursor, VS Code** | the buttons at the top |
@@ -97,16 +97,16 @@ project. The browser tools need `playwright-core` and a Chromium (`npx playwrigh
 
 Clients without the plugin still get its workflows: the server offers the prompts `threesmith-doctor` (start with
 the doctor, fix in its order) and `threesmith-<skill>` for each skill (`debug`, `review`, `perf`, `ship`, `model`,
-`upgrade`, `webgpu`, `learn`), and every skill as a resource (`threesmith://skills/<name>`, Markdown).
+`upgrade`, `webgpu`, `learn`, `dream`), and every skill as a resource (`threesmith://skills/<name>`, Markdown).
 
 ### Made for agents: cheap calls, exact answers
 
 - **Two profiles.** `--tier cheap` (the default) gives short, capped output and numbered step-by-step instructions, so
   small models follow the right order; `--tier premium` gives full detail for large models.
-- **Tool sets.** `--tools core` loads 15 tools; add `run`, `live`, `build`, `model` when you need them, or name single
+- **Tool sets.** `--tools core` loads 16 tools; add `run`, `live`, `build`, `model` when you need them, or name single
   tools. A tool list the client pays for in every turn stays small. The server instructions only ever name tools
   that are loaded.
-- **Lean mode.** `--lean` offers two tools instead of 36: `three` runs any tool by name
+- **Lean mode.** `--lean` offers two tools instead of 37: `three` runs any tool by name
   (`{"tool": "review", "args": {"only_new": true}}`) and `three_help` gives a tool's parameters when they are needed.
   Same tools, same results, same read-only refusals; the tool list drops from about 16,900 to about 2,000 tokens
   (estimated at 4 characters per token; `threesmith mcp --stats` prints the numbers for your options).
@@ -118,9 +118,10 @@ the doctor, fix in its order) and `threesmith-<skill>` for each skill (`debug`, 
   file changed by hand since is left alone. `"protect"` in `threesmith.json` (or `THREESMITH_PROTECT`) names
   folders no write may touch. `--read-only` leaves out the tools that always write and refuses write options.
 - **It learns, locally.** A finding marked as a false alarm with `three_feedback` is hidden from then on; lessons kept
-  with `three_lesson_add` come back under the same error. Only hashes, counters and scrubbed text, on this machine.
+  with `three_lesson_add` come back under the same error. `three_dream` looks back at past sessions and proposes
+  project hints and lesson changes, each with its evidence. Only hashes, counters and scrubbed text, on this machine.
 
-## The 36 tools
+## The 37 tools
 
 <details open>
 <summary>All MCP tools (most are also CLI commands)</summary>
@@ -140,6 +141,7 @@ the doctor, fix in its order) and `threesmith-<skill>` for each skill (`debug`, 
 | core | `three_lesson_add` | Keep a lesson learned here, scrubbed of names, paths and code; it comes back under the same error |
 | core | `three_rules` | Every review rule with its category, release gating and fix |
 | core | `three_feedback` | Mark a finding as a false alarm (hidden from then on) or right |
+| core | `three_dream` | Look back at what agents ran into on this machine and get numbered proposals with their evidence: API names agents keep guessing become project hints (the session start and `three_api` show them), messages nothing explained become draft lessons, misleading or duplicate lessons are retired or merged, noisy rules and undone tools get a note; nothing changes until you apply a number, hints are undoable |
 | core | `three_undo` | Undo the last Threesmith writes, newest first |
 | core | `three_version` | Which three release is installed |
 | run | `three_check` | Headless Chromium (software WebGL 2): console and page errors with causes, shader errors at your file and line, failed requests, no context, lost context, blank frames, screenshot, baselines with a diff, interaction steps |
@@ -166,7 +168,7 @@ the doctor, fix in its order) and `threesmith-<skill>` for each skill (`debug`, 
 
 </details>
 
-CLI: `threesmith doctor | scan | api | search | review | types | fix | migrate | rules | undo | lessons | assets | decoders | gltf | check |
+CLI: `threesmith doctor | scan | api | search | review | types | fix | migrate | rules | dream | undo | lessons | assets | decoders | gltf | check |
 inspect | play | scenario | perf | device | leaks | compare | build | model <inspect|needs|view|lint|identify|brief|spec|kinds|recipes|build>
 | explain | ci | hook | mcp`. `threesmith <command> --help` lists the options.
 

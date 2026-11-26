@@ -1,3 +1,4 @@
+import { recordUnexplained } from "../dream/signals.js";
 import { readFileSync } from "node:fs";
 import { join, relative, resolve, sep } from "node:path";
 import type { Browser, CDPSession, Page } from "playwright-core";
@@ -104,6 +105,7 @@ export async function openPage(opts: PageOptions & { init?: string[] }): Promise
   const annotate = (issue: Issue, text: string): Issue => {
     const ex = explain(text, index);
     if (ex.length) issue.explanations = ex;
+    else if (issue.severity === "error") recordUnexplained(text);
     if (text.includes("\n")) issue.detail = text.slice(0, 4000);
     if (ex.some((e) => e.id === "shader-error")) {
       issue.shader = parseShaderErrors(text).map((e) => {

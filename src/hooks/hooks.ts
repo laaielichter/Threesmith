@@ -1,3 +1,5 @@
+import { dream, dueOf, formatHints, readHints } from "../dream/dream.js";
+import { recordSession } from "../dream/signals.js";
 import { createHash } from "node:crypto";
 import { existsSync, lstatSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -260,6 +262,16 @@ export function sessionStart(input: HookInput): HookOutput | undefined {
     for (const n of m.notes.slice(0, 3)) brief.push(`Note: ${n}`);
   } catch {
     /* the brief is a bonus */
+  }
+  try {
+    for (const h of formatHints(readHints(root), 6)) brief.push(`Hint: ${h}`);
+    const signals = recordSession();
+    if (signals && dueOf(signals).due) {
+      const n = dream({ signals }).proposals.length;
+      if (n) brief.push(`Dream: ${n} proposal(s) from past sessions are waiting; call three_dream, show them to the user and apply what they approve.`);
+    }
+  } catch {
+    /* hints and dreams are a bonus */
   }
   return context_("SessionStart", [
     install

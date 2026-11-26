@@ -31,6 +31,9 @@ Done since (unreleased, each has tests):
 - [x] Device profiles, clamped WebGL limits and context-loss recovery (`three_device`).
 - [x] The same page on two three releases, compared by meaning and explained by the migration notes, with bisect to
   the first release that changes it (`three_compare`).
+- [x] Dreaming (`three_dream`, `threesmith dream`): counters kept while agents work (API names that were not there,
+  messages nothing explained, undone writes) become numbered proposals with evidence: project hints, draft lessons,
+  lessons to retire or merge, noisy rules. Applied only when approved; hints are undoable.
 
 Next:
 
@@ -39,4 +42,3 @@ Next:
 - [ ] Run the benchmark with real agents (N >= 10 per arm) and publish outputs and results.
 - [ ] More rules from the migration guide as three releases (each verified in the source).
 - [ ] Best-effort WebGPU runs on runners with a usable adapter; GPU-based baselines.
-- [ ] Lessons gaps: list the errors seen here that no rule or lesson explains yet.

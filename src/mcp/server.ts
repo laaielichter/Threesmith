@@ -63,6 +63,8 @@ import {
   viewModel,
 } from "../model/index.js";
 import { VERSION } from "../version.js";
+import { applyDream, apiHintFor, dream, formatApply, formatDream, markDreamed } from "../dream/dream.js";
+import { recordApiMiss, recordUnexplained } from "../dream/signals.js";
 import { renderInstructions, type Tier } from "./instructions.js";
 import { CheckOutput, DoctorOutput, ReviewOutput, checkData, doctorData, reviewData } from "./structured.js";
 import { ALL_TOOLS, WRITE_ONLY_TOOLS, enabledTools, readOnlyRefusal } from "./toolsets.js";
@@ -197,7 +199,10 @@ export function createServer(options: ServerOptions = {}): McpServer {
     async ({ query, inherited, full, path, three }) =>
       guard(() => {
         const r = lookup(indexFor(where(path), three), query, { ...(inherited ? { inherited } : {}), ...(full || tier === "premium" ? { full: full ?? false } : {}) });
-        return text(r.text, !r.found);
+        if (r.found) return text(r.text);
+        recordApiMiss(query, r.suggestions ?? []);
+        const hint = apiHintFor(projectRootOf(where(path)), query);
+        return text(hint ? `${r.text}\n${hint}` : r.text, true);
       }),
   );
 
@@ -389,6 +394,33 @@ export function createServer(options: ServerOptions = {}): McpServer {
         if (!hit) return failure(`No finding${rule ? ` [${rule}]` : ""} at ${rel}:${line} in the current review. Run three_review and pass the file and line it printed.`);
         const c = recordFeedback(hit, verdict);
         return text(`${verdict === "wrong" ? "Hidden from now on" : "Counted as right"}: ${formatFinding(hit, false)}\nrule ${c.rule}: marked wrong ${c.wrong}x, right ${c.right}x on this machine.`);
+      }),
+  );
+
+  tool(
+    "three_dream",
+    {
+      title: "Learn from past sessions on this machine",
+      description:
+        "Look back at what agents ran into here and get numbered proposals, each with its evidence: API names agents keep guessing (a project hint that the session start and three_api show), messages nothing explained (a draft lesson to finish with three_lesson_add), local lessons that misled or say the same thing (retire, merge), review rules that are often false alarms here, and tools whose writes keep being undone. No model, no network; only counters on this machine. Show the list to the user and pass `apply` with the numbers they approve: hints go through the journal (three_undo), lesson removals change the local lessons file.",
+      inputSchema: {
+        path: pathParam,
+        apply: z.array(z.union([z.number().int().min(1), z.string()])).optional().describe("proposal numbers of the last list, or their keys, to apply"),
+        all: z.boolean().optional().describe("also show proposals applied or set aside before"),
+        detail: detailParam,
+      },
+      annotations: WRITES,
+    },
+    async ({ path, apply, all, detail }) =>
+      guard(() => {
+        const root = projectRootOf(where(path));
+        if (apply?.length) {
+          const r = applyDream(root, apply);
+          return text(formatApply(r), r.unknown.length > 0 && !r.applied.length);
+        }
+        const r = dream({ ...(all ? { all } : {}) });
+        markDreamed();
+        return text(formatDream(r, detail ?? profile.detail));
       }),
   );
 
@@ -1210,6 +1242,7 @@ export function createServer(options: ServerOptions = {}): McpServer {
         }
         const r = explain(message, index);
         const hints = lessonHintsForMessages([message]);
+        if (!r.length && !hints.length) recordUnexplained(message);
         const body = r.length || !hints.length ? formatExplanations(r) : "No known pattern for this message.";
         return text(hints.length ? `${body}\n${hints.join("\n")}` : body);
       }),

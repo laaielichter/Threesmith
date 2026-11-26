@@ -18,6 +18,7 @@ export const TOOLSETS = {
     "three_lesson_add",
     "three_rules",
     "three_feedback",
+    "three_dream",
     "three_undo",
     "three_version",
   ],

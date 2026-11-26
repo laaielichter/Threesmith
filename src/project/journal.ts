@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { closeSync, existsSync, fstatSync, mkdirSync, openSync, readdirSync, readFileSync, readSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join, relative, resolve, sep } from "node:path";
+import { recordUndone } from "../dream/signals.js";
 import { assertWritable } from "./protect.js";
 
 /**
@@ -216,6 +217,8 @@ export function undoJournal(root: string, opts: { steps?: number; force?: boolea
     rmSync(dir, { recursive: true, force: true });
     res.undone.push({ id, tool: entry.tool, summary: entry.summary, restored, removed });
   }
+  // dream counts undone writes per tool; its own hints are left out (undoing a hint is not a bad write)
+  recordUndone(res.undone.filter((u) => u.tool !== "three_dream" && u.tool !== "dream"));
   return res;
 }
 
