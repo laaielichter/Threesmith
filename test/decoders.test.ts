@@ -144,6 +144,26 @@ export function Model() {
     expect(plan.copies.map((c) => c.to)).toContain("public/basis/basis_transcoder.wasm");
   });
 
+  it("sets KTX2 up after await renderer.init() with WebGPURenderer, and leaves it as hand work without it", async () => {
+    const main = (init: boolean) => `import * as THREE from 'three/webgpu';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+const loader = new GLTFLoader();
+const $renderer = new THREE.WebGPURenderer();
+${init ? "await $renderer.init();\n" : ""}const gltf = await loader.loadAsync('./box.glb');
+`;
+    const glb = await boxGlb({ ktx2: true });
+    for (const init of [true, false]) {
+      const dir = project({ "package.json": "{}", "index.html": `<script type="module" src="./main.js"></script>`, "main.js": main(init) });
+      writeFileSync(join(dir, "box.glb"), glb);
+      const plan = planDecoders({ path: dir, three: THREE_DIR });
+      if (init) expect(plan.patches[0]!.data).toContain("await $renderer.init();\nloader.setKTX2Loader(new KTX2Loader().setTranscoderPath('./basis/').detectSupport($renderer));\nconst gltf");
+      else {
+        expect(plan.patches).toEqual([]);
+        expect(plan.todo[0]!.message).toContain("await $renderer.init() first");
+      }
+    }
+  });
+
   it("finds the end of a chained statement", () => {
     const t = "const a = new X()\n  .b(1)\n  .c(');');\nnext();";
     expect(t.slice(0, statementEnd(t, 10))).toBe("const a = new X()\n  .b(1)\n  .c(');');");

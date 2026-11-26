@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { dirname, join, relative, resolve, sep } from "node:path";
 import { findThree } from "../api/install.js";
+import { esc } from "../review/parse.js";
 import { collect, lineOf, type SourceFile } from "../review/source.js";
 import { gltfExtensionInfo, publicDirOf } from "../scan/assets.js";
 import { projectRootOf } from "../scan/scan.js";
@@ -313,7 +314,7 @@ export function planDecoders(opts: DecoderOptions): DecoderPlan {
     const webgpu = m[2] === "WebGPURenderer";
     let end = statementEnd(f.text, m.index + m[0].length - 1);
     if (webgpu) {
-      const init = new RegExp(String.raw`await\s+${name.replace(/\$/g, "\\$")}\.init\s*\(\s*\)`).exec(f.text);
+      const init = new RegExp(String.raw`await\s+${esc(name)}\.init\s*\(\s*\)`).exec(f.text);
       if (!init) return { name, end: -1, webgpu };
       end = statementEnd(f.text, init.index + init[0].length);
     }
