@@ -47,8 +47,10 @@ node dist/cli.js --help
   through the journal). `src/model/index.ts` is the API the CLI and MCP use.
 - `src/mcp/`: `server.ts` registers tools with `tool(...)` (never `server.registerTool`); every tool is in one set in
   `toolsets.ts` (`--tools`, `--read-only`), `instructions.ts` holds the cheap and premium instructions (filtered by the
-  enabled tools), `structured.ts` the output schemas. `lean.ts` is `--lean` (`three` runs any tool by name, `three_help` describes it) and
-  `stats.ts` the `--stats` token estimate. README, skills and agents may only name tools that exist;
+  enabled tools), `structured.ts` the output schemas. `lean.ts` is `--lean` (`three` runs any tool by name, `three_help`
+  describes it), `stats.ts` the `--stats` token estimate, `prompts.ts` the MCP prompts and the skills as resources
+  (read from `plugins/threesmith/skills`, which the package, the `.mcpb` and the Docker image ship). README, skills
+  and agents may only name tools that exist;
   `test/manifests.test.ts` checks it.
 - `src/check/`: `check.ts` is the headless run (Playwright, SwiftShader WebGL, console/page/request errors, blank
   detection, baselines), `png.ts` and `diff.ts` the pixel work, `server.ts` the static server, `browser.ts` flags and

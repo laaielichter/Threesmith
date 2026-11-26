@@ -60,6 +60,7 @@ import { renderInstructions, type Tier } from "./instructions.js";
 import { CheckOutput, DoctorOutput, ReviewOutput, checkData, doctorData, reviewData } from "./structured.js";
 import { ALL_TOOLS, WRITE_ONLY_TOOLS, enabledTools, readOnlyRefusal } from "./toolsets.js";
 import { LEAN_NOTE, catalogue, checkArgs, findTool, help, unknownTool, type LeanTool } from "./lean.js";
+import { doctorPrompt, fillSkill, loadSkills } from "./prompts.js";
 
 export type { Tier } from "./instructions.js";
 
@@ -1077,6 +1078,37 @@ export function createServer(options: ServerOptions = {}): McpServer {
         const answer = help(leanTools, input);
         return answer.ok ? text(answer.text) : failure(answer.text);
       }) as never,
+    );
+  }
+
+  // Prompts and resources: the plugin's skills for clients without the plugin (see prompts.ts).
+  if (enabled.has("three_doctor")) {
+    server.registerPrompt(
+      "threesmith-doctor",
+      {
+        title: "Threesmith: what is wrong, fixed in order",
+        description: "Start with three_doctor, then fix the three.js problems in the order it gives, with a review after every change.",
+        argsSchema: { path: z.string().optional().describe("project folder or file (default: the project)"), symptom: z.string().optional().describe("what the user sees, e.g. a black screen") },
+      },
+      ({ path, symptom }) => ({ messages: [{ role: "user", content: { type: "text", text: doctorPrompt(path, symptom) } }] }),
+    );
+  }
+  for (const skill of loadSkills()) {
+    server.registerResource(
+      `skill-${skill.name}`,
+      `threesmith://skills/${skill.name}`,
+      { title: `Threesmith skill: ${skill.name}`, description: skill.description, mimeType: "text/markdown" },
+      async (uri) => ({ contents: [{ uri: uri.href, mimeType: "text/markdown", text: skill.body }] }),
+    );
+    if (skill.name === "threesmith") continue; // the general guide: a resource, not a task
+    server.registerPrompt(
+      `threesmith-${skill.name}`,
+      {
+        title: `Threesmith: ${skill.name}`,
+        description: skill.description,
+        argsSchema: { arguments: z.string().optional().describe(skill.hint ?? "what to work on (optional)") },
+      },
+      ({ arguments: words }) => ({ messages: [{ role: "user", content: { type: "text", text: fillSkill(skill, words) } }] }),
     );
   }
 
