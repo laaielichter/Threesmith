@@ -59,6 +59,7 @@ import { VERSION } from "../version.js";
 import { renderInstructions, type Tier } from "./instructions.js";
 import { CheckOutput, DoctorOutput, ReviewOutput, checkData, doctorData, reviewData } from "./structured.js";
 import { ALL_TOOLS, WRITE_ONLY_TOOLS, enabledTools, readOnlyRefusal } from "./toolsets.js";
+import { LEAN_NOTE, catalogue, checkArgs, findTool, help, unknownTool, type LeanTool } from "./lean.js";
 
 export type { Tier } from "./instructions.js";
 
@@ -71,6 +72,11 @@ export interface ServerOptions {
   tools?: string | readonly string[];
   /** Leave out the tools that always write, and refuse the write options of the others. */
   readOnly?: boolean;
+  /**
+   * Offer two tools instead of all of them: `three` runs any tool by name and `three_help` gives a tool's parameters.
+   * The tools and their results are the same; the tool list the client pays for on every turn is a fraction.
+   */
+  lean?: boolean;
 }
 
 interface Profile {
@@ -113,10 +119,12 @@ export function createServer(options: ServerOptions = {}): McpServer {
 
   const enabled = enabledTools(options.tools);
   if (options.readOnly) for (const n of WRITE_ONLY_TOOLS) enabled.delete(n);
-  const server = new McpServer({ name: "threesmith", title: "Threesmith", version: VERSION }, { instructions: renderInstructions(tier, enabled, options.readOnly === true) });
+  const server = new McpServer({ name: "threesmith", title: "Threesmith", version: VERSION }, { instructions: `${options.lean ? `${LEAN_NOTE}\n` : ""}${renderInstructions(tier, enabled, options.readOnly === true)}` });
 
   // Registers a tool only when its set is enabled; a read-only server refuses the options that write.
   const register = server.registerTool.bind(server);
+  // Lean mode keeps the tools here instead of in the tool list; `three` runs them.
+  const leanTools = new Map<string, LeanTool>();
   const tool = ((name: string, config: never, cb: (args: Record<string, unknown>, extra: unknown) => unknown) => {
     if (!ALL_TOOLS.includes(name)) throw new Error(`${name} is in no tool set (src/mcp/toolsets.ts)`);
     if (!enabled.has(name)) return undefined;
@@ -125,6 +133,11 @@ export function createServer(options: ServerOptions = {}): McpServer {
       if (why) return failure(why);
       return cb(args, extra);
     };
+    if (options.lean) {
+      const c = config as { title?: string; description?: string; inputSchema?: Record<string, z.ZodType> };
+      leanTools.set(name, { name, title: c.title ?? name, description: c.description ?? "", shape: c.inputSchema ?? {}, run: run as never });
+      return undefined;
+    }
     return register(name, config, run as never);
   }) as typeof server.registerTool;
 
@@ -1027,6 +1040,45 @@ export function createServer(options: ServerOptions = {}): McpServer {
         return text(`three r${i.release} (${i.version}) at ${i.root}`);
       }),
   );
+
+  if (options.lean) {
+    register(
+      "three",
+      {
+        title: "Run a Threesmith tool",
+        description: `Run one of Threesmith's three.js tools by name: {"tool": "review", "args": {"only_new": true}}. The tools, by set, as name (what it is for):\n${catalogue(leanTools)}\nRead a tool's parameters first with three_help {"tool": name}; a call with a wrong or unknown argument answers with the parameters. Results are the tool's own.`,
+        inputSchema: {
+          tool: z.string().describe("the tool to run, e.g. review, check, api, doctor (with or without three_)"),
+          args: z.union([z.record(z.string(), z.unknown()), z.string()]).optional().describe("the tool's arguments as an object (a JSON string also works), as three_help lists them"),
+        },
+        annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
+      },
+      (async ({ tool: name, args }: { tool: string; args?: Record<string, unknown> | string }, extra: unknown) => {
+        const found = findTool(leanTools, name);
+        if (!found) return failure(unknownTool(leanTools, name));
+        const checked = checkArgs(found, args);
+        if (!checked.ok) return failure(checked.message);
+        return found.run(checked.args, extra);
+      }) as never,
+    );
+    register(
+      "three_help",
+      {
+        title: "Threesmith tools and their parameters",
+        description:
+          'What a Threesmith tool does and takes. {"tool": "review"}: its description and parameters, to read before the first call. {"query": "black screen"}: the tools that match the words, the best one in full. No arguments: every tool, by set. Read-only.',
+        inputSchema: {
+          tool: z.string().optional().describe("a tool name, e.g. review or three_review"),
+          query: z.string().optional().describe("words for what you want to do"),
+        },
+        annotations: READ,
+      },
+      (async (input: { tool?: string; query?: string }) => {
+        const answer = help(leanTools, input);
+        return answer.ok ? text(answer.text) : failure(answer.text);
+      }) as never,
+    );
+  }
 
   return server;
 }

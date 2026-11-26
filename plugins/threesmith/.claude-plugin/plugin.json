@@ -44,6 +44,13 @@
       "description": "Leave out the tools that always write and refuse write options on the others (dry runs still work).",
       "required": false,
       "default": false
+    },
+    "lean": {
+      "type": "boolean",
+      "title": "Lean tool list",
+      "description": "Offer two tools instead of all: three runs any Threesmith tool by name and three_help gives its parameters. Same tools and results, a much smaller tool list.",
+      "required": false,
+      "default": false
     }
   }
 }

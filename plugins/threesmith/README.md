@@ -22,7 +22,8 @@ Install:
 ```
 
 **Settings** (asked when you enable the plugin): the project folder, protected paths, tool sets (`core`, `run`,
-`live`, `build`, `model`; empty means all 31) and read-only. The server runs with `--tier premium` (full detail).
+`live`, `build`, `model`; empty means all 31), read-only, and lean (two tools, `three` and `three_help`, that run
+and describe all the others, for a much smaller tool list). The server runs with `--tier premium` (full detail).
 
 `THREESMITH_HOOKS=0` turns the hooks off. Hooks fail open: if Threesmith cannot run, they say nothing.
 The plugin runs `npx threesmith@<version>`, so the package must be on npm (see the repository README).

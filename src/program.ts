@@ -751,14 +751,22 @@ export function buildProgram(): Command {
     .option("--tier <tier>", "cheap: short output and step-by-step guidance (default); premium: full detail (THREESMITH_TIER)")
     .option("--tools <list>", "tool sets or tool names to offer: core, run, build, model, all, or three_check ... (THREESMITH_TOOLS)")
     .option("--read-only", "leave out tools that always write and refuse write options (THREESMITH_READ_ONLY=1)")
-    .action(async (o: { project?: string; tier?: string; tools?: string; readOnly?: boolean }) => {
+    .option("--lean", "offer two tools, three (runs any tool by name) and three_help, instead of the full list (THREESMITH_LEAN=1)")
+    .option("--stats", "print what the tool list costs (about, in tokens), full and lean, and exit")
+    .action(async (o: { project?: string; tier?: string; tools?: string; readOnly?: boolean; lean?: boolean; stats?: boolean }) => {
       const project = o.project ?? process.env["THREESMITH_PROJECT"];
       if (project && !project.startsWith("${")) process.chdir(project);
       const tier = o.tier ?? process.env["THREESMITH_TIER"] ?? "cheap";
       if (tier !== "cheap" && tier !== "premium") throw new Error(`--tier must be cheap or premium, got "${tier}"`);
       const tools = o.tools ?? process.env["THREESMITH_TOOLS"];
+      const options = { tier: tier as "cheap" | "premium", ...(tools && !tools.startsWith("${") ? { tools } : {}), readOnly: o.readOnly === true || envFlag(process.env["THREESMITH_READ_ONLY"]), lean: o.lean === true || envFlag(process.env["THREESMITH_LEAN"]) };
+      if (o.stats) {
+        const { toolListCost } = await import("./mcp/stats.js");
+        out(await toolListCost(options));
+        return;
+      }
       const { serveStdio } = await import("./mcp/server.js");
-      await serveStdio({ tier, ...(tools && !tools.startsWith("${") ? { tools } : {}), readOnly: o.readOnly === true || envFlag(process.env["THREESMITH_READ_ONLY"]) });
+      await serveStdio(options);
     });
 
   return program;

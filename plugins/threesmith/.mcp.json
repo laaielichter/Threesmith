@@ -13,7 +13,8 @@
         "THREESMITH_PROJECT": "${user_config.project}",
         "THREESMITH_PROTECT": "${user_config.protect}",
         "THREESMITH_TOOLS": "${user_config.tools}",
-        "THREESMITH_READ_ONLY": "${user_config.read_only}"
+        "THREESMITH_READ_ONLY": "${user_config.read_only}",
+        "THREESMITH_LEAN": "${user_config.lean}"
       }
     }
   }
