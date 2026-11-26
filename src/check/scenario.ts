@@ -25,6 +25,9 @@ export interface Scenario {
   height?: number;
   wait?: number;
   sampleMs?: number;
+  /** Deterministic clock (see clock.ts): seed for Math.random and ms per frame. */
+  seed?: number;
+  fixedDt?: number;
   steps: PlayStep[];
   watch: string[];
   /** Claims as text: "$('p').position.y > 1 @ end", "any: ...", "always: ...". */
@@ -90,7 +93,7 @@ export function parseScenario(json: unknown, fallbackName: string): Scenario {
     const v = text(k);
     if (v !== undefined) out[k] = v;
   }
-  for (const k of ["width", "height", "wait", "sampleMs"] as const) {
+  for (const k of ["width", "height", "wait", "sampleMs", "seed", "fixedDt"] as const) {
     const v = num(k);
     if (v !== undefined) out[k] = v;
   }
@@ -110,6 +113,8 @@ export function scenarioJson(s: Scenario): Record<string, unknown> {
     ...(s.height ? { height: s.height } : {}),
     ...(s.wait !== undefined ? { wait: s.wait } : {}),
     ...(s.sampleMs !== undefined ? { sampleMs: s.sampleMs } : {}),
+    ...(s.seed !== undefined ? { seed: s.seed } : {}),
+    ...(s.fixedDt !== undefined ? { fixedDt: s.fixedDt } : {}),
     steps: s.steps,
     ...(s.watch.length ? { watch: s.watch } : {}),
     expect: s.expect,
@@ -135,6 +140,8 @@ export function scenarioFromPlay(projectDir: string, name: string, opts: PlayOpt
     ...(opts.height ? { height: opts.height } : {}),
     ...(opts.wait !== undefined ? { wait: opts.wait } : {}),
     ...(opts.sampleMs !== undefined ? { sampleMs: opts.sampleMs } : {}),
+    ...(opts.seed !== undefined ? { seed: opts.seed } : {}),
+    ...(opts.fixedDt !== undefined ? { fixedDt: opts.fixedDt } : {}),
     steps: opts.steps ?? [],
     watch: opts.watch ?? [],
     expect: (opts.expect ?? []).map((c) => (typeof c === "string" ? c.trim() : claimText(c))),
@@ -159,6 +166,8 @@ export function scenarioPlayOptions(projectDir: string, s: Scenario): PlayOption
     ...(s.height ? { height: s.height } : {}),
     ...(s.wait !== undefined ? { wait: s.wait } : {}),
     ...(s.sampleMs !== undefined ? { sampleMs: s.sampleMs } : {}),
+    ...(s.seed !== undefined ? { seed: s.seed } : {}),
+    ...(s.fixedDt !== undefined ? { fixedDt: s.fixedDt } : {}),
     ...(s.ignore ? { ignore: s.ignore } : {}),
     stateDir: join(project, ".threesmith"),
     steps: s.steps,

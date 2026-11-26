@@ -1,6 +1,7 @@
 import { join, relative, resolve, sep } from "node:path";
 import type { Browser, CDPSession, Page } from "playwright-core";
 import { findChromium, loadPlaywright, WEBGL_ARGS, WEBGPU_ARGS } from "./browser.js";
+import { clockInit, clockSettings, markVirtual } from "./clock.js";
 import { serveStatic, type StaticServer } from "./server.js";
 import { indexFor } from "../core.js";
 import type { ApiIndex } from "../api/index-builder.js";
@@ -24,6 +25,10 @@ export interface PageOptions {
   stateDir?: string;
   /** Console warnings and failed requests that are not a problem. Substring match. */
   ignore?: string[];
+  /** Deterministic clock: seed for Math.random. Setting seed or fixedDt pauses the clock (see clock.ts). */
+  seed?: number;
+  /** Deterministic clock: milliseconds per frame (default 1000/60 when seed is set). */
+  fixedDt?: number;
 }
 
 export interface OpenedPage {
@@ -49,6 +54,7 @@ export interface OpenedPage {
  * page and request errors (with explanations and shader lines mapped to the project), and opens the page.
  */
 export async function openPage(opts: PageOptions & { init?: string[] }): Promise<OpenedPage> {
+  const clock = clockSettings(opts);
   const pw = await loadPlaywright();
   const isUrl = /^https?:\/\//.test(opts.target);
   const folder = isUrl ? process.cwd() : resolve(opts.target);
@@ -72,6 +78,11 @@ export async function openPage(opts: PageOptions & { init?: string[] }): Promise
   }
   const url = isUrl ? opts.target : `${server?.url}/${entryPath}`;
   const page = await browser.newPage({ viewport: { width: opts.width ?? 800, height: opts.height ?? 600 }, deviceScaleFactor: 1 });
+  // The clock goes first, so the frame counters of the other init scripts count its frames.
+  if (clock) {
+    await page.addInitScript(clockInit(clock));
+    markVirtual(page, clock.fixedDt);
+  }
   for (const script of opts.init ?? []) await page.addInitScript(script);
   let index: ApiIndex | undefined;
   try {

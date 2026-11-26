@@ -144,6 +144,9 @@ export function createServer(options: ServerOptions = {}): McpServer {
 
   const pathParam = z.string().optional().describe("Project folder, or a file or folder in it (relative to the server's folder; default: the project).");
   const threeParam = z.string().optional().describe("Path to a three package folder, when it is not in node_modules above the project.");
+  const seedParam = z.number().int().min(0).max(2 ** 31).optional().describe("deterministic clock: seed for Math.random; the clock is paused and moves one fixed frame at a time, so every run gives the same frames and pixels");
+  const dtParam = z.number().min(1).max(1000).optional().describe("deterministic clock: ms per frame (default 16.67); waits become frames");
+  const clockOpts = (a: { seed?: number | undefined; fixed_dt?: number | undefined }) => ({ ...(a.seed !== undefined ? { seed: a.seed } : {}), ...(a.fixed_dt !== undefined ? { fixedDt: a.fixed_dt } : {}) });
   const detailParam = z.enum(["brief", "full"]).optional().describe(`brief (capped, short) or full (everything); default ${profile.detail}`);
 
   tool(
@@ -424,6 +427,8 @@ export function createServer(options: ServerOptions = {}): McpServer {
         steps: stepSchema,
         ignore: z.array(z.string()).optional().describe("console messages containing this text are ignored"),
         screenshot: z.boolean().optional().describe("return the screenshot image (default true)"),
+        seed: seedParam,
+        fixed_dt: dtParam,
       },
       outputSchema: CheckOutput,
       annotations: { ...WRITES, openWorldHint: true },
@@ -444,6 +449,7 @@ export function createServer(options: ServerOptions = {}): McpServer {
           ...(a.inspect ? { inspect: true } : {}),
           ...(a.steps ? { steps: parseSteps(JSON.stringify(a.steps)) } : {}),
           ...(a.ignore ? { ignore: a.ignore } : {}),
+          ...clockOpts(a),
         });
         const extra: Content[] = [];
         if (r.screenshot && a.screenshot !== false) extra.push({ type: "image", data: readFileSync(r.screenshot).toString("base64"), mimeType: "image/png" });
@@ -537,6 +543,8 @@ export function createServer(options: ServerOptions = {}): McpServer {
         expect: claimParam,
         sample_ms: z.number().int().min(16).max(5000).optional(),
         screenshot: z.boolean().optional(),
+        seed: seedParam,
+        fixed_dt: dtParam,
       },
       annotations: { ...WRITES, openWorldHint: true },
     },
@@ -549,6 +557,7 @@ export function createServer(options: ServerOptions = {}): McpServer {
           ...(a.watch ? { watch: a.watch } : {}),
           ...(a.expect ? { expect: a.expect } : {}),
           ...(a.sample_ms ? { sampleMs: a.sample_ms } : {}),
+          ...clockOpts(a),
         });
         const content: Content[] = [{ type: "text", text: formatPlay(r) }];
         if (r.screenshot && a.screenshot !== false && tier === "premium") content.push({ type: "image", data: readFileSync(r.screenshot).toString("base64"), mimeType: "image/png" });
@@ -576,6 +585,8 @@ export function createServer(options: ServerOptions = {}): McpServer {
         steps: playStep,
         watch: z.array(z.string()).optional(),
         expect: claimParam,
+        seed: seedParam,
+        fixed_dt: dtParam,
       },
       annotations: { ...WRITES, openWorldHint: true },
     },
@@ -598,6 +609,7 @@ export function createServer(options: ServerOptions = {}): McpServer {
           ...(a.steps ? { steps: parsePlaySteps(a.steps) } : {}),
           ...(a.watch ? { watch: a.watch } : {}),
           expect: a.expect,
+          ...clockOpts(a),
         };
         const r = await saveScenario(project, a.name, opts, { write: journalWriter("three_scenario", `save scenario ${a.name}`), ...(a.overwrite ? { overwrite: true } : {}) });
         return text(r.saved ? `saved ${r.file}: it passed (${r.result.claims.length} claim(s)). threesmith ci runs it.` : `not saved: ${r.reason}\n${formatPlay(r.result)}`, !r.saved);

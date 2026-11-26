@@ -39,7 +39,7 @@ node dist/cli.js --help
 - `src/learn/feedback.ts`: false-alarm feedback (hashes and counters only) in `$THREESMITH_HOME`.
 - `src/project/journal.ts`: every write Threesmith makes to a project goes through `writeFiles`/`JournalWriter`
   (undo, protected paths from `protect.ts`). Never `writeFileSync` into a project from a tool.
-- `src/check/`: besides `check.ts`: `page.ts` opens a page, `steps.ts` runs steps, `runtime.ts` is the in-page code
+- `src/check/`: besides `check.ts`: `page.ts` opens a page, `steps.ts` runs steps, `clock.ts` the deterministic clock (`seed`, `fixed_dt`), `runtime.ts` is the in-page code
   (`window.__threesmith`, frame recorder, dispose tracker), `play.ts`, `scenario.ts`, `perf.ts`, `leaks.ts`, `build.ts`.
 - `src/session/session.ts`: the live page kept between calls (`three_session`, `three_page`).
 - `src/model/`, `src/archetype/`, `src/build/` with `data/archetypes/` and `data/recipes/`: glTF inspect, text views,
