@@ -37,6 +37,20 @@ have installed**, a scored review, the assets and decoders the code needs, the p
 frame measured object by object, and safe, undoable edits. Everything runs locally; nothing leaves the machine
 (`three_compare` fetches another three release from npm, only when you ask for one).
 
+## New in 0.5: a library of 1000 models
+
+<p align="center">
+  <img src="docs/assets/library-mix.jpg" alt="A grid of library models rendered by three.js: chairs, tables, benches, trees, rocks, crates, houses, cars and props" width="860"><br>
+  <sub>Library models built by <code>threesmith model build &lt;id&gt;</code> and rendered by three.js. <a href="https://laaielichter.github.io/Threesmith/library.html">See all 1000</a>.</sub>
+</p>
+
+- **1000 ready-made base models** in seven groups: furniture, street, storage, nature, buildings, vehicles and props.
+  `three_model_library` searches them in English or Dutch ("oak chair", "eiken stoel").
+- **Build by id, change by parameter.** `three_model_build` with `kind: "furniture/dining-chair-oak-ladder"`, or
+  `model build <id> --param seatHeight=0.5`. Or print the spec and make it your own.
+- **Every one checked:** a clean `.glb` that passes the model lint and the check against what it is, at its defaults
+  and at the ends of its parameters. The list as text: [LIBRARY.md](LIBRARY.md).
+
 ## New in 0.4: it reads the frame
 
 <p align="center">
