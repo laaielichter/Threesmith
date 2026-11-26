@@ -25,7 +25,8 @@ and look at the page before you say it works.
    `three_check` on the page (a folder with `index.html` or the dev server URL) and look at the screenshot, or
    `three_look` for the frame as text (what is in view, how much, cut, hidden, too dark). Black, empty or wrong:
    `three_inspect` says why per object. To get a look right, `three_tune` the values in a live page and save them
-   into the code.
+   into the code. Motion: `three_capture` (frames, contact sheet, pops); animation: `three_animation`. On the real
+   GPU: `three_session` with `cdp` attaches to the user's own Chrome.
 6. **Proving behaviour:** `three_play` with `steps`, `watch` and `expect`; keep a passing run with `three_scenario`
    op save. For a state that is slow to reach, `three_session` once and `three_page` to drive it.
 7. **Errors you do not understand:** `three_explain` with the message as printed, `three_lessons` with it as `error`.
@@ -38,7 +39,8 @@ and look at the page before you say it works.
 10. **TSL and node materials:** `three_tsl` before you edit (Fn, uniforms, node slots, the JavaScript-operator and
    `if` mistakes); op graph and op shader in the page when a node material looks wrong.
 11. **Past sessions:** when the session start says a dream is due, `three_dream`, and apply what the user approves.
-12. **3D models:** `three_model_brief`, `three_model_build`, `three_model_view` (text views), `three_model_lint`.
+12. **Loading a model in code:** `three_model_code` writes the module or R3F component for a `.glb`.
+13. **3D models:** `three_model_brief`, `three_model_build`, `three_model_view` (text views), `three_model_lint`.
 
 ## Rules of thumb
 
