@@ -48,6 +48,8 @@ Done since (unreleased, each has tests):
   or a new line), dry run first, undoable.
 - [x] Code for a model (`three_model_code`, `threesmith model code`): the ES module or React Three Fiber component
   that loads a `.glb` with its decoders, named parts, materials and animation actions, checked in a real page.
+- [x] Animation (`three_animation`): clips of a file; every live AnimationMixer with what is wrong; play, pose and
+  sweep a clip for the lowest point and node positions per step.
 
 Next:
 
