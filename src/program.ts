@@ -42,6 +42,7 @@ import { formatPerf, perf } from "./check/perf.js";
 import { device, formatDevice, PROFILES } from "./check/device.js";
 import { formatLeaks, leaks } from "./check/leaks.js";
 import { compare, formatCompare } from "./compare/compare.js";
+import { bisect, formatBisect } from "./compare/bisect.js";
 import { buildCheck, formatBuild } from "./check/build.js";
 import {
   EXAMPLE_SPEC,
@@ -455,7 +456,10 @@ export function buildProgram(): Command {
       .description("Run the page on two three.js releases (installed and --with) and compare by meaning, each change annotated with the migration note that explains it")
       .argument("<target>", "folder with the page, or an http(s) URL"),
   )
-    .requiredOption("--with <release>", "r186, 0.186.1, next, previous, latest, or a folder with a three package")
+    .option("--with <release>", "r186, 0.186.1, next, previous, latest, or a folder with a three package")
+    .option("--bisect <range>", "r160..r188, or a comma list of releases or folders: the first release where the page changes, breaks, or a claim fails")
+    .option("--until <what>", "with --bisect: change (default) or break (new errors, lost objects)")
+    .option("--expect <claim...>", "with --bisect: claims as in play; bad = a claim fails")
     .option("--base <release>", "the release of the first run", "installed")
     .option("--wait <ms>", "ms (frames under the clock) before the capture", "1500")
     .option("--step <json...>", "steps before the capture (see play)")
@@ -463,18 +467,25 @@ export function buildProgram(): Command {
     .option("--fixed-dt <ms>", "ms per frame (default 16.67)")
     .option("--tolerance <ratio>", "share of changed pixels that counts as a change", "0.005")
     .option("--json", "JSON output")
-    .action(async (target: string, o: { with: string; base: string; wait: string; step?: string[]; seed?: string; fixedDt?: string; tolerance: string; json?: boolean } & Record<string, string | boolean | undefined>) => {
+    .action(async (target: string, o: { with?: string; bisect?: string; until?: string; expect?: string[]; base: string; wait: string; step?: string[]; seed?: string; fixedDt?: string; tolerance: string; json?: boolean } & Record<string, string | boolean | undefined>) => {
       const steps = stepsFrom(o.step);
-      const r = await compare({
+      const shared = {
         ...pageFrom(target, o as never),
-        with: o.with,
-        base: o.base,
         wait: Number(o.wait),
         tolerance: Number(o.tolerance),
         ...(steps ? { steps } : {}),
         ...(o.seed !== undefined ? { seed: Number(o.seed) } : {}),
         ...(o.fixedDt !== undefined ? { fixedDt: Number(o.fixedDt) } : {}),
-      });
+      };
+      if (o.bisect) {
+        if (o.until && o.until !== "change" && o.until !== "break") throw new Error(`--until must be change or break, got "${o.until}"`);
+        const b = await bisect({ ...shared, range: o.bisect, ...(o.until ? { until: o.until as "change" | "break" } : {}), ...(o.expect?.length ? { expect: o.expect } : {}) });
+        out(o.json ? JSON.stringify(b, null, 2) : formatBisect(b));
+        if (!b.ok) process.exitCode = 1;
+        return;
+      }
+      if (!o.with) throw new Error("compare needs --with <release> (or --bisect <range>)");
+      const r = await compare({ ...shared, with: o.with, base: o.base });
       out(o.json ? JSON.stringify(r, null, 2) : formatCompare(r));
       if (!r.ok) process.exitCode = 1;
     });

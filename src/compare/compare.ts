@@ -181,7 +181,7 @@ export function luminance(img: Image, box?: [number, number, number, number]): n
 export const normalizeMessage = (m: string): string => m.replace(/https?:\/\/127\.0\.0\.1:\d+/g, "").replace(/\s+/g, " ").trim().slice(0, 300);
 
 /** Opens the page with one release swapped in and captures it. */
-export async function capture(opts: CompareOptions, release: Release, shotPath: string): Promise<{ capture: Capture; image?: Image; url: string }> {
+export async function capture(opts: Omit<CompareOptions, "with">, release: Release, shotPath: string): Promise<{ capture: Capture; image?: Image; url: string }> {
   const seeded = opts.seed === undefined && opts.fixedDt === undefined ? { seed: 1 } : {};
   const o = await openRunPage({ ...opts, ...seeded, swapThree: release.dir });
   const cap: Capture = { version: release.version, release: release.release, source: release.source, revision: null, swapped: [], loaded: o.loaded, info: null, objects: [], objectCount: 0, warnings: [], errors: [] };

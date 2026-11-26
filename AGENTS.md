@@ -61,7 +61,8 @@ node dist/cli.js --help
   `PageOptions` serves it in the page; nothing in the project's node_modules changes. `compare.ts` is `three_compare`:
   two captures with the deterministic clock (picture, `renderer.info`, the scene with world and screen boxes,
   console), `compareCaptures` (pure) diffs them by meaning, and `annotator` explains each change with the migration
-  entries between the releases (the ones `three_migrate` finds in the code first). `test/run-helpers.ts`
+  entries between the releases (the ones `three_migrate` finds in the code first).
+  `bisect.ts` halves over a range of releases to the first that changes, breaks or fails claims. `test/run-helpers.ts`
   `fakeRelease` makes a patched copy of the installed three as another release, so the tests need no network.
 - `src/session/session.ts`: the live page kept between calls (`three_session`, `three_page`).
 - `src/model/`, `src/archetype/`, `src/build/` with `data/archetypes/` and `data/recipes/`: glTF inspect, text views,

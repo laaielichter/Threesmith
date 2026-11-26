@@ -20,6 +20,9 @@ step answers from the project, from the installed three or from the running page
 4. **Reproduce in a live page** when the state is hard to reach: `three_session` op start once, then `three_page`
    op steps to get there, op eval to read values (`$('player').position`, `renderer.info.render`), op until to wait
    for the moment it goes wrong. After an edit, op reload.
+   **It broke after a three upgrade:** `three_compare` with `bisect` over the releases in between (`r182..r187`)
+   finds the first release where the page changes (or, with `expect` claims, where the behaviour breaks) and names
+   the migration note that explains it.
 5. **Name the cause in one sentence** in three.js terms (which object, which property, which frame) before you change
    anything. Check every API on the path with `three_api`: removed names, wrong import paths and changed defaults are
    the usual cause.

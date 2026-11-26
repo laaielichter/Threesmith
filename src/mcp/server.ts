@@ -38,6 +38,7 @@ import { formatPerf, perf, type PerfBudget } from "../check/perf.js";
 import { device, formatDevice, PROFILES as DEVICE_PROFILES } from "../check/device.js";
 import { formatLeaks, leaks, type LeakBudget } from "../check/leaks.js";
 import { compare, formatCompare } from "../compare/compare.js";
+import { bisect, formatBisect } from "../compare/bisect.js";
 import { buildCheck, formatBuild } from "../check/build.js";
 import {
   EXAMPLE_SPEC,
@@ -780,10 +781,13 @@ export function createServer(options: ServerOptions = {}): McpServer {
     {
       title: "Run the page on two three.js releases and compare",
       description:
-        "Run the same page headless on two three.js releases (the installed one and `with`: r186, 0.186.1, next, previous, latest, or a folder with a three package; a release from npm is fetched once into $THREESMITH_HOME/three, nothing in node_modules changes) with the deterministic clock, and compare by meaning: new and gone console errors and warnings, objects lost, hidden or resized in the scene graph, renderer.info (calls, triangles, programs, textures), and the pixels with the mean luminance per object box on screen. Each change is annotated with the migration entry of the releases in between that explains it (\"expected: r188 AmbientLight ... specular\"), the ones this code uses first; a change no entry explains is flagged as a probable regression. Works when the page loads three through an import map, node_modules/three, a CDN three@x URL or a copied build file (not a bundled build).",
+        "Run the same page headless on two three.js releases (the installed one and `with`: r186, 0.186.1, next, previous, latest, or a folder with a three package; a release from npm is fetched once into $THREESMITH_HOME/three, nothing in node_modules changes) with the deterministic clock, and compare by meaning: new and gone console errors and warnings, objects lost, hidden or resized in the scene graph, renderer.info (calls, triangles, programs, textures), and the pixels with the mean luminance per object box on screen. Each change is annotated with the migration entry of the releases in between that explains it (\"expected: r188 AmbientLight ... specular\"), the ones this code uses first; a change no entry explains is flagged as a probable regression. With `bisect` (\"r160..r188\", or a comma list of releases or folders) it halves over the releases, one per release number, to the first one where the page changes against the first release (until: break counts only new errors and lost objects; `expect` claims as in three_play make it the first release where a claim fails), and explains that release's difference. Works when the page loads three through an import map, node_modules/three, a CDN three@x URL or a copied build file (not a bundled build).",
       inputSchema: {
         ...pageParams,
-        with: z.string().describe("the release to compare with: r186, 0.186.1, next, previous, latest, or a folder with a three package"),
+        with: z.string().optional().describe("the release to compare with: r186, 0.186.1, next, previous, latest, or a folder with a three package (needed without bisect)"),
+        bisect: z.string().optional().describe("a range, r160..r188, or a comma list of releases or folders: the first release where the page changes, breaks, or a claim fails"),
+        until: z.enum(["change", "break"]).optional().describe("with bisect: what counts as bad without expect (default change)"),
+        expect: z.array(z.string()).optional().describe("with bisect: claims as in three_play (\"window.x === 1 @ end\"); bad = a claim fails"),
         base: z.string().optional().describe("the release of the first run (default installed)"),
         wait: z.number().int().min(0).max(30000).optional().describe("ms (frames under the clock) before the capture, default 1500"),
         steps: playStep,
@@ -795,10 +799,24 @@ export function createServer(options: ServerOptions = {}): McpServer {
     },
     async (a) =>
       guard(async () => {
+        const spec = (s: string) => (/[\\/]/.test(s) ? where(s) : s);
+        const shared = {
+          ...pageOpts(a),
+          ...(a.wait !== undefined ? { wait: a.wait } : {}),
+          ...(a.steps ? { steps: parsePlaySteps(a.steps) } : {}),
+          ...(a.seed !== undefined ? { seed: a.seed } : {}),
+          ...(a.fixed_dt !== undefined ? { fixedDt: a.fixed_dt } : {}),
+          ...(a.tolerance !== undefined ? { tolerance: a.tolerance } : {}),
+        };
+        if (a.bisect) {
+          const b = await bisect({ ...shared, range: a.bisect.split(",").map((x) => (x.includes("..") ? x : spec(x.trim()))).join(","), ...(a.until ? { until: a.until } : {}), ...(a.expect?.length ? { expect: a.expect } : {}) });
+          return text(formatBisect(b), !b.ok);
+        }
+        if (!a.with) throw new Error("three_compare needs `with` (the release to compare with), or `bisect` (a range)");
         const r = await compare({
           ...pageOpts(a),
-          with: /[\\/]/.test(a.with) ? where(a.with) : a.with,
-          ...(a.base ? { base: /[\\/]/.test(a.base) ? where(a.base) : a.base } : {}),
+          with: spec(a.with),
+          ...(a.base ? { base: spec(a.base) } : {}),
           ...(a.wait !== undefined ? { wait: a.wait } : {}),
           ...(a.steps ? { steps: parsePlaySteps(a.steps) } : {}),
           ...(a.seed !== undefined ? { seed: a.seed } : {}),
