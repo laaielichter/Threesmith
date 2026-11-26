@@ -8,7 +8,19 @@
 /** Runs before any page script. Keeps the scenes and renderers three announces. */
 export const INSPECT_INIT = `(() => {
   const w = window;
-  const ts = (w.__tsScene = { scenes: [], renderers: [], last: null, renders: 0 });
+  const ts = (w.__tsScene = { scenes: [], renderers: [], last: null, renders: 0, mixers: [] });
+  // AnimationMixer keeps no global list: its constructor assigns _bindingsByRootAndName, so a setter on
+  // Object.prototype sees every mixer once, makes the property a plain one again, and keeps a WeakRef (three_animation)
+  try {
+    Object.defineProperty(Object.prototype, '_bindingsByRootAndName', {
+      configurable: true,
+      get() { return undefined; },
+      set(v) {
+        Object.defineProperty(this, '_bindingsByRootAndName', { value: v, writable: true, configurable: true, enumerable: true });
+        if (typeof this.clipAction === 'function' && typeof this.update === 'function') ts.mixers.push(new WeakRef(this));
+      },
+    });
+  } catch (e) { /* a frozen prototype: no mixer list */ }
   if (typeof w.__THREE_DEVTOOLS__ === 'undefined') w.__THREE_DEVTOOLS__ = new EventTarget();
   w.__THREE_DEVTOOLS__.addEventListener('observe', (e) => {
     const o = e.detail;
