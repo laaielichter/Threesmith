@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- **New tool `three_model_library` (`threesmith model library`), 45 tools now:** 1000 ready-made base models in seven categories (furniture, street, storage, nature, buildings, vehicles, props), ported from Godotwright with identical geometry, names and materials. Search in English or Dutch ("oak chair", "eiken stoel"), see an asset's parts and parameters, print its spec, or build it by id with `three_model_build` / `model build <id> --param name=value`. Every asset passes the model lint and its archetype check at its defaults and at the ends of its parameter ranges; the catalogue is in LIBRARY.md. `model brief` names matching library assets. Builder: `ellipsoid` gets `cuts` (broken stone), new textures (granite, grain, fabric, leather, painted, plastic, brushed, rust) and 26 new archetypes.
 - **Look:** an object is now the whole thing a person would name: a loaded model with named parts counts as one (the first named object from the top of the scene that does not hold everything drawn), so a frame with a house, a car and a robot reports three objects, not two hundred parts.
 - **Site and README:** a "New in 0.4" section with a real annotated frame, the new tools in the tables, a shorter tool list per set, and a FAQ on using your own browser and GPU.
 

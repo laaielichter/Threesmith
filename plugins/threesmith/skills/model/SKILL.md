@@ -12,7 +12,8 @@ metres, a model's front is +Z.
 1. `three_model_brief` with the name: what the thing is, the nearest ready-made kind, its parts, its real size and the
    order of tools.
 2. `three_model_identify` when you need the parts, pivots (wheels, doors, rotors) and size in detail.
-3. Build: `three_model_build` with a `kind` (see `three_model_spec` for the list) or your own spec. It writes a clean
+3. Build: `three_model_build` with a `kind` (see `three_model_spec` for the list), a library id (search the 1000
+   base models with `three_model_library`, for example "red bench" or "eiken stoel") or your own spec. It writes a clean
    .glb (a node per part, UVs, normals) into the project, undoable with `three_undo`.
 4. Look at it: `three_model_view` draws front, side and top views as text and names parts that do not touch. You
    cannot see pictures; this is how you check the shape.

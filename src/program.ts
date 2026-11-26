@@ -1,3 +1,5 @@
+import { formatAsset, formatAssetList, formatOverview } from "./library/format.js";
+import { getAsset, libraryOverview, loadAssetLibrary, searchAssets } from "./library/library.js";
 import { capture, formatCapture } from "./check/capture.js";
 import { formatModelCode, modelCode } from "./model/code.js";
 import { publicDirOf } from "./scan/assets.js";
@@ -585,7 +587,7 @@ export function buildProgram(): Command {
       if (!r.ok) process.exitCode = 1;
     });
 
-  const model = program.command("model").description("3D models for three.js without Blender: inspect, view, lint, identify, brief, spec, kinds, recipes, build");
+  const model = program.command("model").description("3D models for three.js without Blender: inspect, view, lint, identify, brief, spec, kinds, recipes, library, build");
   model
     .command("code")
     .description("Code that loads a .glb with the decoders it needs and hands back its parts, materials and animations: an ES module, or a React Three Fiber component (--r3f)")
@@ -682,9 +684,37 @@ export function buildProgram(): Command {
     .argument("[kind]")
     .action((kind?: string) => out(kind ? JSON.stringify(recipeSpec(kind), null, 1) : formatRecipes()));
   model
+    .command("library")
+    .description("The asset library: 1000 ready-made base models (furniture, street, storage, nature, buildings, vehicles, props), each a spec with parameters that builds clean and that you can copy and change")
+    .argument("[query...]", 'an asset id (furniture/dining-chair-oak-ladder) to show it, or words to search for ("oak chair", "rode bank", "pine tree"); nothing for the overview')
+    .option("--category <name>", "only this category")
+    .option("--family <id>", "only this family, e.g. dining-chair")
+    .option("--archetype <id>", "only assets of this archetype (or below it), e.g. prop.chair")
+    .option("--limit <n>", "show at most this many", "40")
+    .option("--spec", "with an asset id: print its full spec (JSON), to save and edit")
+    .option("--json", "JSON output")
+    .action((query: string[], o: { category?: string; family?: string; archetype?: string; limit: string; spec?: boolean; json?: boolean }) => {
+      const words = query.join(" ").trim();
+      const asset = words ? getAsset(words) : undefined;
+      if (asset) {
+        out(o.spec ? JSON.stringify(asset.spec, null, 2) : o.json ? JSON.stringify(asset, null, 2) : formatAsset(asset).trimEnd());
+        return;
+      }
+      if (o.spec) throw new Error(`--spec needs an asset id; "${words}" is not one (search with \`threesmith model library ${words || "<words>"}\`)`);
+      if (!words && !o.category && !o.family && !o.archetype) {
+        const overview = libraryOverview();
+        out(o.json ? JSON.stringify(overview, null, 2) : formatOverview(overview, loadAssetLibrary().size).trimEnd());
+        return;
+      }
+      const all = searchAssets({ ...(words ? { text: words } : {}), ...(o.category ? { category: o.category } : {}), ...(o.family ? { family: o.family } : {}), ...(o.archetype ? { archetype: o.archetype } : {}) });
+      const shown = all.slice(0, positiveInt("--limit", o.limit));
+      out(o.json ? JSON.stringify(shown.map(({ spec: _spec, ...rest }) => rest), null, 2) : formatAssetList(shown, all.length).trimEnd());
+      if (!all.length) process.exitCode = 1;
+    });
+  model
     .command("build")
     .description("Build a .glb from a kind or a spec file (undoable with threesmith undo)")
-    .argument("[kind]", "a ready-made kind")
+    .argument("[kind]", "a ready-made kind, or a library asset id (threesmith model library)")
     .requiredOption("-o, --out <file>", "the .glb to write")
     .option("--spec <file>", "a JSON model spec instead of a kind")
     .option("--param <k=v...>", "parameters, e.g. --param length=4.5 color=#c22")

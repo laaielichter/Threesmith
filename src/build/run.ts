@@ -66,7 +66,8 @@ export function buildModel(request: BuildRequest): BuildResult {
   const library = loadLibrary();
   if (built.archetype && !library.get(built.archetype)) throw new BuildError(`unknown archetype "${built.archetype}" (see \`model archetypes\`)`);
   const glb = new Uint8Array(buildGlb(built, { textures: request.textures !== false }));
-  const name = (request.name ?? request.kind ?? nameOf(request.spec) ?? "model").replace(/\.glb$/i, "");
+  // a library asset id is "<category>/<slug>": the file is named after the slug
+  const name = (request.name ?? request.kind?.split("/").pop() ?? nameOf(request.spec) ?? "model").replace(/\.glb$/i, "");
   const info = inspectModel(glb, `${name}.glb`);
   const report = lintModel(info, built.archetype ? { archetype: library.resolve(built.archetype) } : {});
   const size = info.bounds?.size.map((v) => v.toFixed(2)).join(" x ") ?? "?";

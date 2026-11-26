@@ -63,6 +63,8 @@ import {
   viewModel,
 } from "../model/index.js";
 import { VERSION } from "../version.js";
+import { formatAsset, formatAssetList, formatOverview } from "../library/format.js";
+import { getAsset, libraryOverview, loadAssetLibrary, searchAssets } from "../library/library.js";
 import { capture, formatCapture } from "../check/capture.js";
 import { formatModelCode, modelCode } from "../model/code.js";
 import { publicDirOf } from "../scan/assets.js";
@@ -1137,7 +1139,7 @@ export function createServer(options: ServerOptions = {}): McpServer {
     {
       title: "Build a .glb from a kind or a spec",
       description:
-        "Make a clean .glb without Blender: a ready-made `kind` (car, tree, house, boat, aircraft, terrain, ... see three_model_spec) with `params`, or your own `spec`. Deterministic (the same request gives the same bytes), a node per part with UVs and normals, unique node names as GLTFLoader shows them. Writes `out` in the project (undoable with three_undo) and returns the size, triangles and the lint. Look at it with three_model_view afterwards.",
+        "Make a clean .glb without Blender: a ready-made `kind` (car, tree, house, boat, aircraft, terrain, ... see three_model_spec) or one of the 1000 library assets by id (furniture/dining-chair-oak-ladder, see three_model_library) with `params`, or your own `spec`. Deterministic (the same request gives the same bytes), a node per part with UVs and normals, unique node names as GLTFLoader shows them. Writes `out` in the project (undoable with three_undo) and returns the size, triangles and the lint. Look at it with three_model_view afterwards.",
       inputSchema: {
         kind: z.string().optional(),
         spec: z.unknown().optional().describe("a full model spec (JSON object)"),
@@ -1220,6 +1222,37 @@ export function createServer(options: ServerOptions = {}): McpServer {
         const info = inspectModel(resolve(root, file));
         const problems = checkModelSetup(modelNeeds(info), collect(root).files.filter((f) => f.usesThree || /GLTFLoader|useGLTF/.test(f.text)).map((f) => f.text));
         return text(`${formatModelInfo(info, detail ?? profile.detail)}\n${formatModelNeeds(modelNeeds(info))}${problems.length ? `\n${formatSetupProblems(problems)}` : ""}`, problems.length > 0);
+      }),
+  );
+
+  tool(
+    "three_model_library",
+    {
+      title: "Asset library: a thousand ready-made base models",
+      description:
+        "Search the asset library: 1000 ready-made base recipes (furniture, street furniture, storage and industrial props, nature, buildings, vehicles, props), each a model spec with parameters that builds a clean, lint-checked .glb. With nothing: an overview per category and family. With `query` (English or Dutch words, e.g. 'oak chair', 'rode bank', 'pine tree') and/or filters: matching assets, one line each. With `id` (e.g. furniture/dining-chair-oak-ladder): what it is, its parameters, materials and parts; with `spec: true` the full spec JSON to copy, change and pass to three_model_build as `spec`. Build one as is with three_model_build `kind: <id>` and `params`. Start here before writing a spec from scratch. Read-only.",
+      inputSchema: {
+        query: z.string().optional().describe("words to search for, English or Dutch"),
+        id: z.string().optional().describe("an asset id to show, e.g. furniture/dining-chair-oak-ladder"),
+        category: z.string().optional().describe("only this category: furniture, street, storage, nature, buildings, vehicles or props"),
+        family: z.string().optional().describe("only this family, e.g. dining-chair"),
+        archetype: z.string().optional().describe("only assets of this archetype or below it, e.g. prop.chair"),
+        limit: z.number().int().min(1).max(200).optional().describe("at most this many results (default 30)"),
+        spec: z.boolean().optional().describe("with `id`: return the full spec JSON"),
+      },
+      annotations: READ,
+    },
+    async ({ query, id, category, family, archetype, limit, spec }) =>
+      guard(() => {
+        if (id !== undefined) {
+          const asset = getAsset(id);
+          if (!asset) return failure(`no library asset "${id}"; search with \`query\` (ids look like furniture/dining-chair-oak-ladder)`);
+          return text(spec ? `${JSON.stringify(asset.spec, null, 2)}\n` : formatAsset(asset));
+        }
+        if (spec) return failure("`spec: true` needs an `id`");
+        if (!query && !category && !family && !archetype) return text(formatOverview(libraryOverview(), loadAssetLibrary().size));
+        const all = searchAssets({ ...(query ? { text: query } : {}), ...(category ? { category } : {}), ...(family ? { family } : {}), ...(archetype ? { archetype } : {}) });
+        return text(formatAssetList(all.slice(0, limit ?? 30), all.length));
       }),
   );
 

@@ -1,3 +1,4 @@
+import { getAsset } from "../../library/library.js";
 import type { BuildScene } from "../glb.js";
 import { BuildError, resolveParams, type ParamDef, type Params } from "../params.js";
 import { buildSpec } from "../spec.js";
@@ -29,12 +30,21 @@ const isBuiltin = (kind: string): boolean => Object.hasOwn(GENERATORS, kind);
 
 export function generatorFor(kind: string): Generator {
   const g = isBuiltin(kind) ? GENERATORS[kind] : undefined;
-  if (!g) throw new BuildError(`unknown model kind "${kind}" (known: ${allKinds().map((k) => k.kind).join(", ")})`);
+  if (!g) {
+    const known = allKinds().map((k) => k.kind);
+    const near = known.filter((k) => k.includes(kind) || kind.includes(k)).slice(0, 5);
+    throw new BuildError(
+      `unknown model kind "${kind}"${near.length ? `; did you mean ${near.join(", ")}?` : ""} (${known.length} kinds: threesmith model kinds; or one of the 1000 library assets such as furniture/dining-chair-oak-ladder: threesmith model library)`,
+    );
+  }
   return g;
 }
 
 /** Resolves and checks the parameters, then builds the scene. */
 export function buildKind(kind: string, input: Record<string, unknown> = {}): BuildScene {
+  // A library asset ("furniture/dining-chair-oak-ladder"): see `model library`.
+  const asset = kind.includes("/") ? getAsset(kind) : undefined;
+  if (asset) return buildSpec(asset.spec, input);
   const recipe = loadRecipes().get(kind);
   if (recipe && !isBuiltin(kind)) return buildSpec(recipe.spec, input);
   const g = generatorFor(kind);
