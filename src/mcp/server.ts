@@ -1226,7 +1226,7 @@ export function createServer(options: ServerOptions = {}): McpServer {
     {
       title: "Keep a three.js page running between calls",
       description:
-        "Start a headless page that stays open between tool calls (op start), so a scene that takes long to load or a state that is hard to reach is loaded once; three_page then looks at it and drives it. op status lists the open pages, op stop closes one. It stops by itself after 10 minutes without calls. Several pages can run side by side under different names (default main).",
+        "Start a headless page that stays open between tool calls (op start), or attach to your own running Chrome with cdp (its real GPU and state; every live tool then works on it), so a scene that takes long to load or a state that is hard to reach is loaded once; three_page then looks at it and drives it. op status lists the open pages, op stop closes one. It stops by itself after 10 minutes without calls. Several pages can run side by side under different names (default main).",
       inputSchema: {
         op: z.enum(["start", "stop", "status"]),
         name: z.string().optional().describe("name of the page (default main)"),
@@ -1237,6 +1237,9 @@ export function createServer(options: ServerOptions = {}): McpServer {
         height: z.number().int().optional(),
         wait: z.number().int().min(0).max(30000).optional().describe("ms to let the scene run after load (default 1500)"),
         webgpu: z.boolean().optional(),
+        cdp: z.string().optional().describe("attach to your own running Chrome instead (real GPU, extensions, sign-ins): its DevTools endpoint, e.g. http://127.0.0.1:9222 (start Chrome with --remote-debugging-port=9222 and a separate --user-data-dir)"),
+        match: z.string().optional().describe("with cdp: part of the URL of the tab to attach to (default: target); that tab is reloaded once to install the hooks"),
+        project: z.string().optional().describe("project folder of a page served by a dev server or attached (for three_tune op save)"),
       },
       annotations: { ...WRITES, openWorldHint: true },
     },
@@ -1245,24 +1248,27 @@ export function createServer(options: ServerOptions = {}): McpServer {
         const name = a.name ?? "main";
         if (a.op === "status") {
           const list = listSessions();
-          return text(list.length ? list.map((s) => `${s.name}: ${s.url} (${s.minutes} min)`).join("\n") : "No live pages. Start one with op start.");
+          return text(list.length ? list.map((s) => `${s.name}: ${s.url} (${s.minutes} min${s.attached ? ", attached to your browser" : ""})`).join("\n") : "No live pages. Start one with op start.");
         }
         if (a.op === "stop") return text((await stopSession(name)) ? `stopped ${name}` : `no live page named ${name}`);
-        if (!a.target) return failure("op start needs target (a folder with index.html or a dev server URL).");
+        if (!a.target && !(a.cdp && a.match)) return failure("op start needs target (a folder with index.html or a dev server URL), or cdp with match.");
         const r = await startSession(
           {
-            target: /^https?:/.test(a.target) ? a.target : where(a.target),
+            target: a.cdp ? (a.target ?? "") : /^https?:/.test(a.target!) ? a.target! : where(a.target!),
             ...(a.entry ? { entry: a.entry } : {}),
             ...(a.root ? { root: where(a.root) } : {}),
             ...(a.width ? { width: a.width } : {}),
             ...(a.height ? { height: a.height } : {}),
             ...(a.wait !== undefined ? { wait: a.wait } : {}),
             ...(a.webgpu ? { webgpu: true } : {}),
+            ...(a.cdp ? { cdp: a.cdp } : {}),
+            ...(a.match ? { match: a.match } : {}),
+            ...(a.project ? { project: where(a.project) } : {}),
           },
           name,
         );
         const lines = [
-          `${r.replaced ? "restarted" : "started"} ${r.name}: ${r.url}, three ${r.threeRevision ? `r${r.threeRevision}` : "not seen"}, ${r.canvases} canvas, ${r.frames} render call(s), ${r.objects} object(s) in the scene`,
+          `${r.attached ? `attached ${r.name} to your browser${r.reloaded ? " (the tab was reloaded once to install the hooks)" : " (a new tab)"}` : r.replaced ? `restarted ${r.name}` : `started ${r.name}`}: ${r.url}, three ${r.threeRevision ? `r${r.threeRevision}` : "not seen"}, ${r.canvases} canvas, ${r.frames} render call(s), ${r.objects} object(s) in the scene`,
           "Next: three_page op eval (js with scene, camera, renderer, $('name')), op steps, op frames, op until, op screenshot, op inspect.",
         ];
         const errors = formatErrors(r.errors);
