@@ -1,6 +1,6 @@
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 import { afterAll } from "vitest";
 
 // Every test file gets its own temp root (os.tmpdir() reads TMPDIR on each call), removed when the file is done, so
@@ -11,6 +11,8 @@ process.env["TMPDIR"] = process.env["TMP"] = process.env["TEMP"] = root;
 
 // THREESMITH_HOME points at a temp folder, so tests never touch the real learning and lessons files
 process.env["THREESMITH_HOME"] = mkdtempSync(join(root, "home-"));
+// other three releases (three_compare) are fetched once into a cache that outlives the run, so reruns need no network
+process.env["THREESMITH_THREE_CACHE"] ??= resolve("node_modules/.cache/threesmith/three");
 delete process.env["THREESMITH_PROTECT"];
 delete process.env["THREESMITH_LEARN"];
 

@@ -54,6 +54,11 @@ node dist/cli.js --help
   (undo, protected paths from `protect.ts`). Never `writeFileSync` into a project from a tool.
 - `src/check/`: besides `check.ts`: `page.ts` opens a page, `steps.ts` runs steps, `clock.ts` the deterministic clock (`seed`, `fixed_dt`), `runtime.ts` is the in-page code
   (`window.__threesmith`, frame recorder, dispose tracker), `play.ts`, `scenario.ts`, `perf.ts`, `device.ts` (`three_device`: profiles, the clamped WebGL limits and texture upload record in the page), `leaks.ts`, `build.ts`.
+- `src/compare/releases.ts`: other three releases for `three_compare`: a spec (`r186`, `0.186.1`, `next`, `previous`,
+  `latest`, a folder) to a version, fetched once with `npm pack` into `$THREESMITH_HOME/three/<version>/`
+  (`THREESMITH_THREE_CACHE` moves it; the tests keep it in `node_modules/.cache/threesmith/three`). `swapPath` maps a
+  request (node_modules/three, a CDN `three@x`, a copied build file) into that package, and `swapThree` in
+  `PageOptions` serves it in the page; nothing in the project's node_modules changes.
 - `src/session/session.ts`: the live page kept between calls (`three_session`, `three_page`).
 - `src/model/`, `src/archetype/`, `src/build/` with `data/archetypes/` and `data/recipes/`: glTF inspect, text views,
   lint, loader needs (`needs.ts`), "what a thing is", and the `.glb` builder (pure: it returns bytes, the caller writes
