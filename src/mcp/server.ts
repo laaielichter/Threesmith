@@ -65,6 +65,7 @@ import {
 import { VERSION } from "../version.js";
 import { formatModelCode, modelCode } from "../model/code.js";
 import { publicDirOf } from "../scan/assets.js";
+import { fileAnimations, formatFileAnimations, formatMixers, formatSweep, mixers, playClip, sweep } from "../check/animation.js";
 import { clearTweaks, formatSave, formatSet, formatTweaks, planSave, projectOf, tuneReset, tuneSet, tweaksOf } from "../tune/tune.js";
 import { formatOutline, live, outline } from "../tsl/tsl.js";
 import { formatLook, look } from "../check/look.js";
@@ -1343,6 +1344,47 @@ export function createServer(options: ServerOptions = {}): McpServer {
         const id = plan.files.length ? writeFiles(root, "three_tune", `tune: ${plan.edits.length} value(s)`, plan.files) : 0;
         if (id) clearTweaks(name);
         return text(formatSave(plan, id), plan.missing.length > 0);
+      }),
+  );
+
+  tool(
+    "three_animation",
+    {
+      title: "Animation: clips in a file, mixers in the live page, play and sweep a clip",
+      description:
+        "Work on animation. op clips with file: every clip in a .glb with its length, the properties and nodes it moves, channels without a node, skins, bones and morph targets. On the page three_session keeps running: op mixers lists every AnimationMixer with its actions (running, weight, speed, time, loop), checks that its clock moves, and names what is wrong (no clip played, mixer.update never called or with delta 0, weight or speed 0, tracks that drive no node, a skinned model in its bind pose); op play plays a clip (fade, loop, speed) or stops all (no clip); op pose puts the model at time `at` and pauses there; op sweep steps through a clip and reports the model's lowest point and the world position of `nodes` per step, so feet that sink into the ground or float are found (ground: the floor height, default 0).",
+      inputSchema: {
+        op: z.enum(["clips", "mixers", "play", "pose", "sweep"]),
+        file: z.string().optional().describe("op clips: the .glb/.gltf (relative to path)"),
+        path: pathParam,
+        name: z.string().optional().describe("live page name (default main)"),
+        clip: z.string().optional().describe("clip name (play, pose, sweep); play without clip stops all"),
+        fade: z.number().min(0).max(10).optional().describe("play: seconds to cross-fade from the running clip"),
+        loop: z.enum(["repeat", "once", "pingpong"]).optional(),
+        speed: z.number().min(-10).max(10).optional(),
+        at: z.number().min(0).optional().describe("pose: seconds into the clip"),
+        steps: z.number().int().min(2).max(60).optional().describe("sweep: samples over the clip (default 12)"),
+        nodes: z.array(z.string()).optional().describe("pose, sweep: nodes to report the world position of (e.g. foot bones)"),
+        ground: z.number().optional().describe("sweep: floor height (default 0)"),
+      },
+      annotations: { ...WRITES, openWorldHint: true },
+    },
+    async (a) =>
+      guard(async () => {
+        const name = a.name ?? "main";
+        if (a.op === "clips") {
+          if (!a.file) return failure("op clips needs file (a .glb or .gltf).");
+          return text(formatFileAnimations(fileAnimations(resolve(projectRootOf(where(a.path)), a.file))));
+        }
+        if (a.op === "mixers") {
+          const r = await mixers(name);
+          return text(formatMixers(r), r.problems.length > 0);
+        }
+        if (a.op === "play") return text(await playClip(name, a.clip ?? null, { ...(a.fade !== undefined ? { fade: a.fade } : {}), ...(a.loop ? { loop: a.loop } : {}), ...(a.speed !== undefined ? { speed: a.speed } : {}) }));
+        if (!a.clip) return failure(`op ${a.op} needs clip.`);
+        if (a.op === "pose" && a.at === undefined) return failure("op pose needs at (seconds into the clip).");
+        const s = await sweep(name, a.clip, { ...(a.op === "pose" ? { at: a.at! } : a.steps ? { steps: a.steps } : {}), ...(a.nodes ? { nodes: a.nodes } : {}), ...(a.ground !== undefined ? { ground: a.ground } : {}) });
+        return text(formatSweep(s), s.problems.length > 0);
       }),
   );
 
