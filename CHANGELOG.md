@@ -1,7 +1,9 @@
 # Changelog
 
-## Unreleased
+## 0.4.0
 
+- **CI and the Action:** `ci --compare <release>` (input `compare`) runs the check page on another three release too and puts each change, with the migration note that explains it, in the receipt; a page that breaks fails it. `ci --impact <ref>` (input `impact`) adds what the change touches and the checks that prove it.
+- **Live page:** `three_page` op `textures` (every texture with slot, size, colour space and GPU memory, and the colour-space and size mistakes) and op `diff` (what changed in the scene since the last diff).
 - **Session:** `three_session` op start with `cdp` (`http://127.0.0.1:9222`) attaches to your own running Chrome: the real GPU, extensions and state. The tab is found by its URL and reloaded once to install the hooks; every live tool works on it; stop only disconnects.
 - **New tool `three_capture` (`threesmith capture`), 44 tools now:** frames exactly 1/fps apart on the deterministic clock, a contact sheet, the change per frame (still scenes, pops), the PNG frames and an `.mp4` with ffmpeg.
 - **New tool `three_animation`, 43 tools now:** the clips of a `.glb`; every live AnimationMixer with what is wrong (no clip played, `update` never called or with delta 0, weight or speed 0, tracks that drive no node, bind pose); play, pose and sweep a clip for the lowest point and node positions per step.
