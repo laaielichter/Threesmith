@@ -47,6 +47,9 @@ node dist/cli.js --help
   loader at its files, the served files hashed against the installed three's `examples/jsm/libs`, and the plan: the
   copies and the code patch (pure; the caller writes through the journal). `test/gltf-helpers.ts` makes the
   compressed test models with gltf-transform (dev dependencies only), so no binary fixtures are committed.
+- `src/gltf/gltf.ts`: `three_gltf`. `validate` with `gltf-validator`, `optimize` with `@gltf-transform/*`; both are
+  optional packages loaded on use (`loadOptional`), and a missing one is a clear answer, never a crash. Pure: the
+  caller writes the output through the journal. gltf-transform's logger is silenced (the MCP server owns stdout).
 - `src/project/journal.ts`: every write Threesmith makes to a project goes through `writeFiles`/`JournalWriter`
   (undo, protected paths from `protect.ts`). Never `writeFileSync` into a project from a tool.
 - `src/check/`: besides `check.ts`: `page.ts` opens a page, `steps.ts` runs steps, `clock.ts` the deterministic clock (`seed`, `fixed_dt`), `runtime.ts` is the in-page code

@@ -19,6 +19,7 @@ import { formatTriage, triage } from "./doctor/triage.js";
 import { formatProjectMap, projectRootOf, scanProject } from "./scan/scan.js";
 import { checkAssets, formatAssets } from "./scan/assets.js";
 import { decoderWrites, decodersBroken, formatDecoders, planDecoders } from "./decoders/decoders.js";
+import { formatOptimize, formatValidation, optimizeGltf, validateGltf } from "./gltf/gltf.js";
 import { collect } from "./review/source.js";
 import { RULES } from "./review/rules.js";
 import { formatJournal, formatUndo, readJournal, undoJournal, writeFiles } from "./project/journal.js";
@@ -64,7 +65,7 @@ import {
   viewModel,
 } from "./model/index.js";
 import { formatCompact } from "./review/compact.js";
-import { join, relative } from "node:path";
+import { join, relative, resolve } from "node:path";
 import { statSync } from "node:fs";
 
 const ascii = useAscii();
@@ -752,6 +753,37 @@ export function buildProgram(): Command {
       if (o.json) out(JSON.stringify({ ...plan, patches: plan.patches.map(({ data: _d, ...rest }) => rest), written: !!id, ...(id ? { journal: id } : {}) }, null, 2));
       else out(formatDecoders(plan, id ? { written: true, journal: id } : {}));
       if (!id && decodersBroken(plan)) process.exitCode = 1;
+    });
+
+  program
+    .command("gltf")
+    .description("Validate a .glb/.gltf with the Khronos glTF-Validator, or optimise it with gltf-transform (optional packages)")
+    .argument("<op>", "validate or optimize")
+    .argument("<file>", ".glb or .gltf")
+    .option("--draco", "optimize: Draco geometry compression")
+    .option("--meshopt", "optimize: meshopt compression")
+    .option("--simplify <ratio>", "optimize: keep about this share of the triangles (0-1)")
+    .option("-o, --out <file>", "optimize: output file (default <name>.optimized.glb)")
+    .option("--write", "optimize: save the output, as one undoable step")
+    .option("--json", "JSON output")
+    .action(async (op: string, file: string, o: { draco?: boolean; meshopt?: boolean; simplify?: string; out?: string; write?: boolean; json?: boolean }) => {
+      existingPath(file);
+      if (op === "validate") {
+        const r = await validateGltf(file);
+        out(o.json ? JSON.stringify(r, null, 2) : formatValidation(r, { limit: 50 }));
+        if (r.errors) process.exitCode = 1;
+        return;
+      }
+      if (op !== "optimize") throw new Error(`gltf: the operation must be validate or optimize (got "${op}")`);
+      if (o.draco && o.meshopt) throw new Error("--draco and --meshopt cannot be combined");
+      const simplify = o.simplify === undefined ? undefined : Number(o.simplify);
+      if (simplify !== undefined && !(simplify > 0 && simplify < 1)) throw new Error(`--simplify must be a number between 0 and 1 (got "${o.simplify}")`);
+      const r = await optimizeGltf(file, { compress: o.draco ? "draco" : o.meshopt ? "meshopt" : "none", ...(simplify !== undefined ? { simplify } : {}), ...(o.out ? { out: o.out } : {}) });
+      const root = projectRootOf(file);
+      const id = o.write ? writeFiles(root, "gltf", `optimize ${relative(root, resolve(file))} -> ${relative(root, r.out)}`, [{ file: relative(root, r.out), data: r.data }]) : 0;
+      if (o.json) out(JSON.stringify({ ...r, data: undefined, written: !!id, ...(id ? { journal: id } : {}) }, null, 2));
+      else out(formatOptimize(r, { root, ...(id ? { written: true, journal: id } : {}) }));
+      if (r.validation?.errors) process.exitCode = 1;
     });
 
   program

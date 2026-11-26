@@ -11,6 +11,8 @@ Work on $ARGUMENTS (or the project).
 1. `three_assets`: every path in the code resolved like the dev server and a static host (public/ served at /, the
    page's folder). Fix missing files and wrong capitals first: a 404 reaches GLTFLoader as an HTML page.
 2. `three_model_inspect` on a new model: which extensions it uses and which loaders and decoders three.js needs.
+   `three_gltf` with `op: validate` when it misbehaves (the Khronos validator names the broken part); with
+   `op: optimize` (`compress: draco` or `meshopt`) to make it smaller, then step 3 for the decoder it adds.
 3. `three_decoders` (dry run): per decoder, which models need it, how the code points the loader at its files (three's
    own folder, a local folder, a CDN) and whether the served files hash-match the installed three. A KTX2 transcoder
    from another three release is an error: KTX2Loader's worker must match `basis_transcoder.js`.

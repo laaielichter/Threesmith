@@ -117,3 +117,60 @@ export async function importMapProject(main = MAIN): Promise<string> {
   return dir;
 }
 
+
+/** A UV sphere with `segments` rings and sectors (about segments^2 * 2 triangles), plus an unused material and a duplicate one. */
+export async function sphereGlb(segments = 64): Promise<Uint8Array> {
+  const doc = new Document();
+  const buffer = doc.createBuffer();
+  const pos: number[] = [];
+  const nor: number[] = [];
+  const idx: number[] = [];
+  for (let y = 0; y <= segments; y++) {
+    const v = y / segments;
+    for (let x = 0; x <= segments; x++) {
+      const u = x / segments;
+      const px = -Math.cos(u * Math.PI * 2) * Math.sin(v * Math.PI);
+      const py = Math.cos(v * Math.PI);
+      const pz = Math.sin(u * Math.PI * 2) * Math.sin(v * Math.PI);
+      pos.push(px, py, pz);
+      nor.push(px, py, pz);
+    }
+  }
+  const row = segments + 1;
+  for (let y = 0; y < segments; y++) {
+    for (let x = 0; x < segments; x++) {
+      const a = y * row + x;
+      if (y !== 0) idx.push(a, a + row, a + 1);
+      if (y !== segments - 1) idx.push(a + 1, a + row, a + row + 1);
+    }
+  }
+  const material = doc.createMaterial("red").setBaseColorFactor([0.8, 0.2, 0.1, 1]).setRoughnessFactor(0.6);
+  doc.createMaterial("unused").setBaseColorFactor([0, 1, 0, 1]);
+  const prim = doc
+    .createPrimitive()
+    .setAttribute("POSITION", doc.createAccessor().setType("VEC3").setArray(new Float32Array(pos)).setBuffer(buffer))
+    .setAttribute("NORMAL", doc.createAccessor().setType("VEC3").setArray(new Float32Array(nor)).setBuffer(buffer))
+    .setIndices(doc.createAccessor().setType("SCALAR").setArray(new Uint32Array(idx)).setBuffer(buffer))
+    .setMaterial(material);
+  doc.createScene("scene").addChild(doc.createNode("sphere").setMesh(doc.createMesh("sphere").addPrimitive(prim)));
+  return new NodeIO().writeBinary(doc);
+}
+
+/** Rewrites the JSON chunk of a .glb (to make a broken file on purpose). */
+export function patchGlbJson(glb: Uint8Array, change: (json: Record<string, unknown>) => void): Uint8Array {
+  const buf = Buffer.from(glb);
+  const jsonLen = buf.readUInt32LE(12);
+  const json = JSON.parse(buf.subarray(20, 20 + jsonLen).toString("utf8")) as Record<string, unknown>;
+  change(json);
+  let text = JSON.stringify(json);
+  while (Buffer.byteLength(text) % 4) text += " ";
+  const jsonBuf = Buffer.from(text);
+  const rest = buf.subarray(20 + jsonLen);
+  const head = Buffer.alloc(20);
+  head.writeUInt32LE(0x46546c67, 0);
+  head.writeUInt32LE(2, 4);
+  head.writeUInt32LE(20 + jsonBuf.length + rest.length, 8);
+  head.writeUInt32LE(jsonBuf.length, 12);
+  head.writeUInt32LE(0x4e4f534a, 16);
+  return new Uint8Array(Buffer.concat([head, jsonBuf, rest]));
+}

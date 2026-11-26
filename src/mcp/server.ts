@@ -20,6 +20,7 @@ import { formatTriage, triage } from "../doctor/triage.js";
 import { formatProjectMap, projectRootOf, scanProject } from "../scan/scan.js";
 import { checkAssets, formatAssets } from "../scan/assets.js";
 import { decoderWrites, decodersBroken, formatDecoders, planDecoders } from "../decoders/decoders.js";
+import { formatOptimize, formatValidation, optimizeGltf, validateGltf } from "../gltf/gltf.js";
 import { collect } from "../review/source.js";
 import { formatJournal, formatUndo, readJournal, undoJournal, writeFiles } from "../project/journal.js";
 import { checkTypes, formatTypes } from "../types/types.js";
@@ -444,6 +445,39 @@ export function createServer(options: ServerOptions = {}): McpServer {
         if (!write || !files.length) return text(formatDecoders(plan), decodersBroken(plan) && !write);
         const id = writeFiles(plan.root, "three_decoders", `decoders: ${plan.copies.length} file(s) copied, ${plan.patches.length} file(s) patched`, files);
         return text(formatDecoders(plan, { written: true, journal: id }));
+      }),
+  );
+
+  tool(
+    "three_gltf",
+    {
+      title: "Validate or optimise a glTF model",
+      description:
+        "op validate: the Khronos glTF-Validator report of a .glb/.gltf (errors, warnings, the JSON pointer of each). op optimize: gltf-transform dedup, prune and weld, with optional Draco or meshopt compression and meshoptimizer simplification; reports the measured size and triangles before and after and validates the output. A dry run unless write: true, which saves the new file (default <name>.optimized.glb; the input stays) as one undoable step. gltf-validator and @gltf-transform/* (with draco3dgltf, meshoptimizer) are optional packages: when one is missing the answer says what to install.",
+      inputSchema: {
+        op: z.enum(["validate", "optimize"]),
+        file: z.string().describe(".glb or .gltf, relative to path"),
+        compress: z.enum(["none", "draco", "meshopt"]).optional().describe("optimize: geometry compression (default none)"),
+        simplify: z.number().gt(0).lt(1).optional().describe("optimize: keep about this share of the triangles, e.g. 0.5"),
+        out: z.string().optional().describe("optimize: output file, relative to path (default <name>.optimized.glb)"),
+        write: z.boolean().optional().describe("optimize: save the output; default false only reports"),
+        path: pathParam,
+      },
+      annotations: WRITES,
+    },
+    async ({ op, file, compress, simplify, out, write, path }) =>
+      guard(async () => {
+        const base = where(path);
+        const root = projectRootOf(base);
+        const full = resolve(statSync(base).isDirectory() ? base : dirname(base), file);
+        if (op === "validate") {
+          const r = await validateGltf(full);
+          return text(formatValidation({ ...r, file: relative(root, full) || file }, { limit: tier === "cheap" ? 15 : 60 }), r.errors > 0);
+        }
+        const r = await optimizeGltf(full, { ...(compress ? { compress } : {}), ...(simplify !== undefined ? { simplify } : {}), ...(out ? { out: resolve(root, out) } : {}) });
+        if (!write) return text(formatOptimize(r, { root }));
+        const id = writeFiles(root, "three_gltf", `optimize ${relative(root, full)} -> ${relative(root, r.out)}`, [{ file: relative(root, r.out), data: r.data }]);
+        return text(formatOptimize(r, { root, written: true, journal: id }));
       }),
   );
 

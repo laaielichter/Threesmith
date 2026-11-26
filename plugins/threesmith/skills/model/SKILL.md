@@ -19,5 +19,6 @@ metres, a model's front is +Z.
 5. `three_model_lint` scores it (and with `archetype` checks it is what it should be). Fix every error, build again.
 6. For a model from elsewhere: `three_model_inspect` lists what is in it (size, triangles, materials, textures,
    animations) and which loaders and decoders three.js needs (DRACOLoader, MeshoptDecoder, KTX2Loader).
-   `three_assets` checks the code sets them up; `three_decoders` with `write: true` sets them up.
+   `three_assets` checks the code sets them up; `three_decoders` with `write: true` sets them up. `three_gltf`
+   validates it (Khronos glTF-Validator) and optimises it (dedup, prune, Draco or meshopt, simplify).
 7. Load it with GLTFLoader (`loadAsync`, then add `gltf.scene`), and `three_check` the page.
