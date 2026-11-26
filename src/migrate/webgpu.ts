@@ -1,3 +1,4 @@
+import { esc } from "../review/parse.js";
 import { lineOf, type SourceFile } from "../review/source.js";
 import { cleanGlsl, declarations, GLSL_TYPES, mainBody, statements, translate, type Scope } from "./glsl.js";
 
@@ -328,7 +329,7 @@ function uniformValue(expr: string, fileText: string): string | undefined {
 export function onBeforeCompileDraft(f: SourceFile, at: number, target: string, fnBody: string): TslDraft {
   const todo: string[] = [];
   const used = new Set<string>(["Fn"]);
-  const decl = new RegExp(String.raw`\b${target.replace(/[.$]/g, "\\$&")}\s*=\s*new\s+${NS}(Mesh\w+Material)\s*\(`).exec(f.text);
+  const decl = new RegExp(String.raw`\b${esc(target)}\s*=\s*new\s+${NS}(Mesh\w+Material)\s*\(`).exec(f.text);
   const baseType = decl?.[1] ?? "MeshStandardMaterial";
   const nodeType = baseType.replace(/Material$/, "NodeMaterial");
   if (!decl) todo.push(`the type of ${target} was not found in this file: the draft assumes MeshStandardMaterial`);
