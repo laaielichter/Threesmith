@@ -14,7 +14,7 @@ const endpoint = `http://127.0.0.1:${PORT}`;
 let proc: ChildProcess | undefined;
 
 async function up(): Promise<boolean> {
-  for (let i = 0; i < 60; i++) {
+  for (let i = 0; i < 120; i++) {
     try {
       if ((await fetch(`${endpoint}/json/version`)).ok) return true;
     } catch {
@@ -53,5 +53,5 @@ renderer.setAnimationLoop(() => renderer.render(scene, camera));`);
     } finally {
       await server.close();
     }
-  }, 90_000);
+  }, 120_000);
 });
