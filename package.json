@@ -1,6 +1,6 @@
 {
   "name": "threesmith",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "mcpName": "io.github.laaielichter/threesmith",
   "description": "MCP server and CLI that makes coding agents better at three.js: the API of your installed three version, a scored review pinned to it (104 rules incl. shaders and R3F), upgrade plans per release and the page compared on two three releases, asset and decoder checks, the page run headless with the live scene read back, play with claims, perf, device and leak checks, build checks, and 3D models built without Blender.",
   "license": "MIT",
@@ -33,7 +33,8 @@
     "build:mcpb": "node scripts/build-mcpb.mjs",
     "plugin:local": "node scripts/plugin-local.mjs",
     "build:site": "npm run build && node scripts/build-site.mjs",
-    "build:library": "npm run build && node scripts/build-library.mjs"
+    "build:library": "npm run build && node scripts/build-library.mjs",
+    "site:library": "npm run build && node scripts/library-sheets.mjs && node scripts/library-page.mjs"
   },
   "keywords": [
     "threejs",

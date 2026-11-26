@@ -167,6 +167,13 @@ describe.skipIf(!existsSync("dist/cli.js"))("the library in the built cli", () =
 });
 
 describe("the catalogue", () => {
+  it("the site page docs/library.html shows every asset with its picture (regenerate with: npm run site:library)", () => {
+    const html = readFileSync(new URL("../../docs/library.html", import.meta.url), "utf8");
+    expect(html).toContain(`${library.size} base models`);
+    for (const id of library.keys()) expect(html, id).toContain(`data-id="${id}"`);
+    for (const c of libraryOverview()) for (const f of c.families) expect(existsSync(new URL(`../../docs/library/${c.category}--${f.family}.jpg`, import.meta.url)), f.family).toBe(true);
+  });
+
   it("LIBRARY.md lists every asset and is up to date (regenerate with: npm run build:library)", () => {
     const text = readFileSync(new URL("../../LIBRARY.md", import.meta.url), "utf8");
     expect(text).toBe(catalogMarkdown());
