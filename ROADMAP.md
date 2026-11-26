@@ -46,6 +46,8 @@ Done since (unreleased, each has tests):
 - [x] Live tuning (`three_tune`): change light, material, camera, exposure and transform values in the live page with
   no reload, then write them where the code sets them (assignment, `set()`, constructor argument, material option,
   or a new line), dry run first, undoable.
+- [x] Code for a model (`three_model_code`, `threesmith model code`): the ES module or React Three Fiber component
+  that loads a `.glb` with its decoders, named parts, materials and animation actions, checked in a real page.
 
 Next:
 

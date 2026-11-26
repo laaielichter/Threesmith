@@ -21,4 +21,5 @@ metres, a model's front is +Z.
    animations) and which loaders and decoders three.js needs (DRACOLoader, MeshoptDecoder, KTX2Loader).
    `three_assets` checks the code sets them up; `three_decoders` with `write: true` sets them up. `three_gltf`
    validates it (Khronos glTF-Validator) and optimises it (dedup, prune, Draco or meshopt, simplify).
-7. Load it with GLTFLoader (`loadAsync`, then add `gltf.scene`), and `three_check` the page.
+7. Load it with the code `three_model_code` writes (a module, or `style: r3f` for a React Three Fiber component):
+   the decoders, its parts by name, its materials and animation actions; then `three_check` the page.
