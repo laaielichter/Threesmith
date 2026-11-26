@@ -31,7 +31,7 @@ export interface MigrateWrite {
   skipped: { id: string; release: number }[];
 }
 
-const SKIP_FILE = /\.min\.|\.d\.ts$/;
+const skipFile = (path: string) => path.includes(".min.") || path.endsWith(".d.ts");
 
 /** Applies one entry's rewrites to a file's text; returns the new text and how many places changed. */
 export function applyRewrites(text: string, rewrites: { find: string; replace: string; code?: boolean }[]): { text: string; count: number } {
@@ -71,7 +71,7 @@ export function migrateWrite(opts: MigrateOptions): MigrateWrite {
   const entries = migrations().flatMap((r) => r.entries.filter((e) => e.rewrite?.length && crosses(e, r.release, plan.from, plan.to)).map((e) => ({ e, release: r.release })));
 
   for (const f of collect(opts.path).files) {
-    if (SKIP_FILE.test(f.path) || (wanted && !wanted.has(f.path)) || !(f.usesThree || /\.html?$/.test(f.path))) continue;
+    if (skipFile(f.path) || (wanted && !wanted.has(f.path)) || !(f.usesThree || /\.html?$/.test(f.path))) continue;
     const cur = texts.get(f.path) ?? { text: f.raw, count: 0, changes: new Set<string>() };
     for (const { e, release } of entries) {
       const blanked = stripComments(cur.text);
