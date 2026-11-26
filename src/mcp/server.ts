@@ -19,6 +19,7 @@ import { applyFeedback, formatLearned, recordFeedback } from "../learn/feedback.
 import { formatTriage, triage } from "../doctor/triage.js";
 import { formatProjectMap, projectRootOf, scanProject } from "../scan/scan.js";
 import { checkAssets, formatAssets } from "../scan/assets.js";
+import { decoderWrites, decodersBroken, formatDecoders, planDecoders } from "../decoders/decoders.js";
 import { collect } from "../review/source.js";
 import { formatJournal, formatUndo, readJournal, undoJournal, writeFiles } from "../project/journal.js";
 import { checkTypes, formatTypes } from "../types/types.js";
@@ -417,6 +418,32 @@ export function createServer(options: ServerOptions = {}): McpServer {
         const root = projectRootOf(where(path));
         const r = checkAssets(root, collect(root).files);
         return text(formatAssets(r, { limit: limit ?? (tier === "cheap" ? 20 : 100) }), r.problems.some((p) => p.severity === "error"));
+      }),
+  );
+
+  tool(
+    "three_decoders",
+    {
+      title: "Wire up Draco, KTX2 and meshopt decoders",
+      description:
+        "What this project needs to load Draco, KTX2 (Basis) and meshopt glTF files, wired with the decoder files of the INSTALLED three (examples/jsm/libs), so they match the loaders: which models need which decoder (extensionsUsed/Required), how the code points each loader at its files (three's folder, a local folder, a CDN), whether the served files hash-match the installed three, and a CDN transcoder of another three release. write: true copies the files into the served folder (public/ with a bundler, else next to the page), adds the missing setup after `new GLTFLoader()` (setDRACOLoader / setKTX2Loader with detectSupport / setMeshoptDecoder, imports in the file's own style; drei: useGLTF.setDecoderPath) and pins CDN paths, as one undoable step. Default: a dry run.",
+      inputSchema: {
+        path: pathParam,
+        model: z.string().optional().describe("only this .glb/.gltf (default: every model in the project)"),
+        public_dir: z.string().optional().describe("the folder served at / (default: public/ when there is one or a bundler, else the page's folder)"),
+        framework: z.enum(["auto", "vanilla", "r3f"]).optional().describe("vanilla GLTFLoader or React Three Fiber (drei useGLTF); default auto"),
+        write: z.boolean().optional().describe("copy the files and patch the code as one undoable step; default false shows what it would do"),
+        three: threeParam,
+      },
+      annotations: WRITES,
+    },
+    async ({ path, model, public_dir, framework, write, three }) =>
+      guard(() => {
+        const plan = planDecoders({ path: where(path), ...(model ? { model } : {}), ...(public_dir ? { publicDir: public_dir } : {}), ...(framework ? { framework } : {}), ...(three ? { three } : {}) });
+        const files = decoderWrites(plan);
+        if (!write || !files.length) return text(formatDecoders(plan), decodersBroken(plan) && !write);
+        const id = writeFiles(plan.root, "three_decoders", `decoders: ${plan.copies.length} file(s) copied, ${plan.patches.length} file(s) patched`, files);
+        return text(formatDecoders(plan, { written: true, journal: id }));
       }),
   );
 

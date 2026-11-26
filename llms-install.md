@@ -60,7 +60,7 @@ workflows this way.
 
 ## What it writes and sends
 
-Most tools only read the project. Writes: `three_fix` and `three_migrate` with `write: true`, `three_model_build`, `three_scenario` op save
+Most tools only read the project. Writes: `three_fix`, `three_migrate` and `three_decoders` with `write: true`, `three_model_build`, `three_scenario` op save
 (each undoable with `three_undo`), and local state in `.threesmith/` (screenshots, baselines, perf history, the undo
 journal, review memory; the local part is git-ignored). `three_build` runs the project's own build script. Lessons and
 false-alarm feedback live in `~/.threesmith` (or `$THREESMITH_HOME`), scrubbed of names, paths and code. Nothing is

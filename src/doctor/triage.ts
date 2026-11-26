@@ -1,3 +1,4 @@
+import { decodersBroken, planDecoders } from "../decoders/decoders.js";
 import { FIXES } from "../review/fix.js";
 import { review, type ReviewResult } from "../review/review.js";
 import type { Finding, Severity } from "../review/types.js";
@@ -54,7 +55,10 @@ const BLANK = new Set([
   "controls-document",
   "decoder-not-attached",
   "ktx2-no-detect-support",
+  "decoder-setter-assigned",
 ]);
+/** Rules and asset problems three_decoders sets right. */
+const DECODER_RULES = new Set(["decoder-not-attached", "ktx2-no-detect-support", "decoder-setter-assigned", "ktx2-transcoder-version"]);
 const SETUP = new Set(["types-mismatch", "cdn-unpinned", "unknown-symbol", "examples-js", "three-src-import", "importmap-missing", "tsl-import-path", "addon-path-extension"]);
 
 const RANK: Record<Severity, number> = { error: 0, warn: 1, info: 2 };
@@ -144,6 +148,9 @@ export function triage(path: string, opts: { three?: string; disable?: string[] 
   const next: string[] = [];
   if (setupNotes.some((n) => /not installed/.test(n))) next.push("Run npm install, then call three_doctor again (api and review need node_modules/three).");
   if (r.findings.some((f) => FIXABLE.has(f.rule))) next.push("Call three_fix (dry run), then three_fix write: true for the mechanical renames.");
+  const compressed = map.assets.files.some((f) => (f.extensions ?? []).some((e) => /^(?:KHR_draco_mesh_compression|EXT_meshopt_compression|KHR_meshopt_compression|KHR_texture_basisu)$/.test(e)));
+  if (r.findings.some((f) => DECODER_RULES.has(f.rule)) || map.assets.problems.some((p) => p.kind === "decoder-folder" || p.kind === "decoder-setup") || (compressed && decodersBroken(planDecoders({ path: map.root, ...(opts.three ? { three: opts.three } : {}) }))))
+    next.push("Call three_decoders (dry run, then write: true): it copies the installed three's Draco/KTX2 decoder files to the served folder and sets them up on the GLTFLoader.");
   if (assetErrors.length) next.push("Fix the asset paths (three_assets lists every reference and where it was looked for).");
   if (blank.length) next.push("Fix the 'shows nothing' group first, then confirm with three_check (screenshot) or three_inspect (why objects are not visible).");
   const rest = r.findings.filter((f) => f.severity === "error" && !FIXABLE.has(f.rule)).length;

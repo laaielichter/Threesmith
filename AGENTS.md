@@ -43,6 +43,10 @@ node dist/cli.js --help
   translate becomes a TODO comment and a placeholder), `appearance.ts` the measured "will look different" notes, `write.ts` the exact rewrites (`rewrite` in the data, applied
   after the `three_fix` renames; pure, the caller writes through the journal), `format.ts` prints it. Every
   fixture in `test/fixtures/migrate/` has its expected plan in `test/migrate.test.ts`.
+- `src/decoders/decoders.ts`: `three_decoders`. Which models need Draco, KTX2 or meshopt, how the code points each
+  loader at its files, the served files hashed against the installed three's `examples/jsm/libs`, and the plan: the
+  copies and the code patch (pure; the caller writes through the journal). `test/gltf-helpers.ts` makes the
+  compressed test models with gltf-transform (dev dependencies only), so no binary fixtures are committed.
 - `src/project/journal.ts`: every write Threesmith makes to a project goes through `writeFiles`/`JournalWriter`
   (undo, protected paths from `protect.ts`). Never `writeFileSync` into a project from a tool.
 - `src/check/`: besides `check.ts`: `page.ts` opens a page, `steps.ts` runs steps, `clock.ts` the deterministic clock (`seed`, `fixed_dt`), `runtime.ts` is the in-page code

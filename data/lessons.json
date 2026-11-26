@@ -731,6 +731,45 @@
       ]
     },
     {
+      "id": "loading/ktx2-transcoder-version",
+      "topic": "loading",
+      "title": "The KTX2 transcoder must come from the same three release as KTX2Loader",
+      "symptom": "KTX2 textures stopped loading after a three upgrade, or the worker throws inside the Basis transcoder, while the same files load in the three.js examples.",
+      "cause": "KTX2Loader runs its own worker code against basis_transcoder.js and .wasm. A copy taken from another release, or a CDN path pinned to an old or unpinned three version, no longer matches the loader.",
+      "fix": "Serve basis_transcoder.js and basis_transcoder.wasm from node_modules/three/examples/jsm/libs/basis/ of the installed three, and copy them again on every upgrade; or pin the CDN path to the exact three version the page loads.",
+      "test": "Compare the served transcoder files with the ones in node_modules/three/examples/jsm/libs/basis/: they must be byte for byte the same.",
+      "tags": [
+        "ktx2",
+        "basis",
+        "transcoder",
+        "version",
+        "upgrade",
+        "cdn"
+      ],
+      "rules": [
+        "ktx2-transcoder-version"
+      ]
+    },
+    {
+      "id": "loading/decoder-setter-assigned",
+      "topic": "loading",
+      "title": "setKTX2Loader and setDRACOLoader are methods, not properties",
+      "symptom": "A compressed glTF still fails to load with a missing decoder error, although the code seems to set the decoder.",
+      "cause": "The code assigns the decoder to setKTX2Loader, setDRACOLoader or setMeshoptDecoder with an equals sign. That replaces the method on the loader instead of calling it, so the GLTFLoader never gets the decoder.",
+      "fix": "Call the method with the decoder as its argument instead of assigning to it.",
+      "test": "Log the decoder the GLTFLoader holds before the load: it must be the decoder object, not null.",
+      "tags": [
+        "ktx2",
+        "draco",
+        "meshopt",
+        "decoder",
+        "setter"
+      ],
+      "rules": [
+        "decoder-setter-assigned"
+      ]
+    },
+    {
       "id": "loading/file-protocol",
       "topic": "loading",
       "title": "Open the page through a local server, not as a file",

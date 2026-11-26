@@ -18,6 +18,7 @@ import { VERSION } from "./version.js";
 import { formatTriage, triage } from "./doctor/triage.js";
 import { formatProjectMap, projectRootOf, scanProject } from "./scan/scan.js";
 import { checkAssets, formatAssets } from "./scan/assets.js";
+import { decoderWrites, decodersBroken, formatDecoders, planDecoders } from "./decoders/decoders.js";
 import { collect } from "./review/source.js";
 import { RULES } from "./review/rules.js";
 import { formatJournal, formatUndo, readJournal, undoJournal, writeFiles } from "./project/journal.js";
@@ -730,6 +731,27 @@ export function buildProgram(): Command {
       const r = checkAssets(root, collect(root).files);
       out(o.json ? JSON.stringify(r, null, 2) : formatAssets(r, { limit }));
       if (r.problems.some((p) => p.severity === "error")) process.exitCode = 1;
+    });
+
+  program
+    .command("decoders")
+    .description("Wire Draco, KTX2 and meshopt with the decoder files of the installed three: what each model needs, served files checked by hash, the copies and the loader setup (--write)")
+    .argument("[path]", "project directory", ".")
+    .option("--model <file>", "only this .glb/.gltf")
+    .option("--public <dir>", "the folder served at / (default: public/ or the page's folder)")
+    .option("--framework <name>", "auto, vanilla or r3f", "auto")
+    .option("--three <dir>", "path to a three package")
+    .option("--write", "copy the decoder files and patch the code, as one undoable step")
+    .option("--json", "JSON output")
+    .action((path: string, o: { model?: string; public?: string; framework: string; three?: string; write?: boolean; json?: boolean }) => {
+      existingPath(path);
+      if (!["auto", "vanilla", "r3f"].includes(o.framework)) throw new Error(`--framework must be auto, vanilla or r3f (got "${o.framework}")`);
+      const plan = planDecoders({ path, ...(o.model ? { model: o.model } : {}), ...(o.public ? { publicDir: o.public } : {}), framework: o.framework as "auto", ...(o.three ? { three: o.three } : {}) });
+      const files = decoderWrites(plan);
+      const id = o.write && files.length ? writeFiles(plan.root, "decoders", `decoders: ${plan.copies.length} file(s) copied, ${plan.patches.length} file(s) patched`, files) : 0;
+      if (o.json) out(JSON.stringify({ ...plan, patches: plan.patches.map(({ data: _d, ...rest }) => rest), written: !!id, ...(id ? { journal: id } : {}) }, null, 2));
+      else out(formatDecoders(plan, id ? { written: true, journal: id } : {}));
+      if (!id && decodersBroken(plan)) process.exitCode = 1;
     });
 
   program

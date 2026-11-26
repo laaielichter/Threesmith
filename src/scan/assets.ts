@@ -124,6 +124,11 @@ export function imageSize(path: string): { width: number; height: number } | und
 
 /** The glTF extensions a .glb or .gltf uses (extensionsUsed), read from its JSON without loading buffers. */
 export function gltfExtensions(path: string): string[] | undefined {
+  return gltfExtensionInfo(path)?.used;
+}
+
+/** extensionsUsed and extensionsRequired of a .glb or .gltf, read from its JSON without loading buffers. */
+export function gltfExtensionInfo(path: string): { used: string[]; required: string[] } | undefined {
   try {
     let json: string;
     if (path.toLowerCase().endsWith(".glb")) {
@@ -136,8 +141,9 @@ export function gltfExtensions(path: string): string[] | undefined {
       if (statSync(path).size > 64 * 1024 * 1024) return undefined;
       json = readHead(path, statSync(path).size).toString("utf8");
     }
-    const data = JSON.parse(json) as { extensionsUsed?: unknown };
-    return Array.isArray(data.extensionsUsed) ? data.extensionsUsed.filter((x): x is string => typeof x === "string") : [];
+    const data = JSON.parse(json) as { extensionsUsed?: unknown; extensionsRequired?: unknown };
+    const strings = (v: unknown): string[] => (Array.isArray(v) ? v.filter((x): x is string => typeof x === "string") : []);
+    return { used: strings(data.extensionsUsed), required: strings(data.extensionsRequired) };
   } catch {
     return undefined;
   }
@@ -310,7 +316,7 @@ export function checkAssets(root: string, files: SourceFile[], opts: { allText?:
           file: f.path,
           line: lineOf(f.text, m.index ?? 0),
           message: `${kind === "draco" ? "DRACOLoader" : "KTX2Loader"} looks for its ${kind === "draco" ? "decoder" : "transcoder"} in "${path}", but ${want[0]} is not there: compressed models fail to load.`,
-          fix: `Copy node_modules/three/examples/jsm/libs/${kind === "draco" ? "draco/gltf/" : "basis/"} to ${pub ? `${pub}/${rel}` : rel}, or point it at a CDN (${kind === "draco" ? "https://www.gstatic.com/draco/versioned/decoders/1.5.7/" : "https://cdn.jsdelivr.net/npm/three@<version>/examples/jsm/libs/basis/"}).`,
+          fix: `Copy node_modules/three/examples/jsm/libs/${kind === "draco" ? "draco/gltf/" : "basis/"} to ${pub ? `${pub}/${rel}` : rel}, (three_decoders write: true does it, from the installed three), or point it at a CDN (${kind === "draco" ? "https://www.gstatic.com/draco/versioned/decoders/1.5.7/" : "https://cdn.jsdelivr.net/npm/three@<version>/examples/jsm/libs/basis/"}).`,
         });
       }
     }
@@ -356,7 +362,7 @@ export function checkAssets(root: string, files: SourceFile[], opts: { allText?:
             kind: "decoder-setup",
             file: a,
             message: `${a} uses ${e} (${need.what}), but no code sets that decoder up on the GLTFLoader: loading fails.`,
-            fix: need.fix,
+            fix: `${need.fix} (three_decoders write: true sets it up with the installed three's decoder files.)`,
           });
       }
       if (bytes > 20 * 1048576 && !(exts ?? []).some((e) => e in GLTF_NEEDS))

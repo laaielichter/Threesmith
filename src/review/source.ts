@@ -21,6 +21,8 @@ export interface SourceFile {
 const EXT = new Set([".js", ".mjs", ".cjs", ".ts", ".tsx", ".jsx", ".html", ".htm", ".vue", ".svelte"]);
 const SKIP_DIR = new Set(["node_modules", "dist", "build", ".git", ".next", ".nuxt", "coverage", "out", ".threesmith", ".svelte-kit", "vendor"]);
 const MAX_BYTES = 1_000_000;
+/** The Draco and Basis decoder builds copied from three (three_decoders): vendor code, not the project's. */
+const DECODER_FILE = /^(?:draco_(?:decoder|wasm_wrapper|encoder)|basis_transcoder)\.js$/;
 
 /** Blank out // and block comments, keeping string contents and line structure. */
 export function stripComments(src: string): string {
@@ -182,7 +184,7 @@ export function collect(root: string): Collected {
   };
   const addFile = (path: string, base: string): void => {
     const name = path.split(/[\\/]/).pop() ?? "";
-    if (!EXT.has(extname(path)) || name.includes(".min.") || name.endsWith(".d.ts")) return;
+    if (!EXT.has(extname(path)) || name.includes(".min.") || name.endsWith(".d.ts") || DECODER_FILE.test(name)) return;
     const text = readLimited(path);
     if (text === undefined) {
       skipped++;
