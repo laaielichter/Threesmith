@@ -1,3 +1,5 @@
+import { compare, type CompareResult } from "./compare/compare.js";
+import { formatImpact, impact, type ImpactResult } from "./impact/impact.js";
 import { check, formatBackend, type CheckOptions, type CheckResult } from "./check/check.js";
 import { formatMarkdown } from "./review/format.js";
 import { review, type ReviewResult } from "./review/review.js";
@@ -16,6 +18,14 @@ export interface CiOptions {
   disable?: string[];
   /** Run the scenarios in .threesmith/scenarios (default true when there are any). */
   scenarios?: boolean;
+  /**
+   * Also run the check page on another three release (three_compare): `previous`, `r186`, a folder. On a pull request
+   * that bumps three, the receipt then says what changed in the page and which migration note explains it; a page
+   * that breaks on one of the two fails the receipt.
+   */
+  compare?: string;
+  /** Also say what the change touches against this git ref (three_impact), e.g. origin/main. */
+  impact?: string;
 }
 
 export interface CiResult {
@@ -24,6 +34,8 @@ export interface CiResult {
   review: ReviewResult;
   check?: CheckResult;
   scenarios?: ScenarioResult[];
+  compare?: CompareResult;
+  impact?: ImpactResult;
   markdown: string;
 }
 
@@ -61,6 +73,27 @@ export async function ci(opts: CiOptions): Promise<CiResult> {
       reasons.push(`scenarios could not run: ${(e as Error).message}`);
     }
   }
+  let cmp: CompareResult | undefined;
+  if (opts.compare) {
+    if (!opts.check) reasons.push("compare needs check (the page to run on both releases)");
+    else {
+      try {
+        cmp = await compare({ ...opts.check, with: opts.compare, ...(opts.three ? { base: opts.three } : {}) });
+        if (cmp.verdict === "broken") reasons.push(`the page breaks on r${cmp.target.release ?? "?"} compared with r${cmp.base.release ?? "?"} (three_compare)`);
+      } catch (e) {
+        reasons.push(`compare could not run: ${(e as Error).message.split("\n")[0]}`);
+      }
+    }
+  }
+  let imp: ImpactResult | undefined;
+  let impError: string | undefined;
+  if (opts.impact) {
+    try {
+      imp = impact(projectRootOf(opts.path), { base: opts.impact });
+    } catch (e) {
+      impError = (e as Error).message;
+    }
+  }
   const ok = reasons.length === 0;
   const lines = [`## Threesmith receipt: ${ok ? "✅ pass" : "❌ fail"}`, ""];
   if (reasons.length) lines.push(...reasons.map((x) => `- ${x}`), "");
@@ -83,6 +116,22 @@ export async function ci(opts: CiOptions): Promise<CiResult> {
       for (const cl of s.claims.filter((x) => !x.ok)) lines.push(`  - ${cl.text.replace(/\\/g, "\\\\").replace(/\|/g, "\\|")}: ${cl.message}`);
     }
   }
+  if (opts.compare) {
+    lines.push("", `### Three release compare (${opts.compare})`);
+    if (!cmp) lines.push("The comparison could not run.");
+    else {
+      const VERDICT = { same: "nothing changed", explained: "every change is explained by a migration note", changed: "something changed that no migration note explains: a probable regression", broken: "the page breaks" } as const;
+      lines.push(`r${cmp.base.release} → r${cmp.target.release}: **${VERDICT[cmp.verdict]}**.`);
+      for (const ch of cmp.changes.slice(0, 15)) lines.push(`- ${ch.unexplained ? "▲" : "✔"} ${ch.message.replace(/\|/g, "\\|")}${ch.explainedBy.length ? ` — r${ch.explainedBy[0]!.release}: ${ch.explainedBy[0]!.title}` : ""}`);
+      if (cmp.changes.length > 15) lines.push(`- … ${cmp.changes.length - 15} more`);
+      for (const p of cmp.problems) lines.push(`- ✖ ${p}`);
+    }
+  }
+  if (opts.impact) {
+    lines.push("", `### What the change touches (against \`${opts.impact}\`)`);
+    if (!imp) lines.push(`Not worked out: ${impError}`);
+    else lines.push("```text", formatImpact(imp), "```");
+  }
   lines.push("", "<sub>Made by [Threesmith](https://github.com/laaielichter/Threesmith)</sub>");
-  return { ok, reasons, review: r, ...(c ? { check: c } : {}), ...(scenarios ? { scenarios } : {}), markdown: lines.join("\n") };
+  return { ok, reasons, review: r, ...(c ? { check: c } : {}), ...(scenarios ? { scenarios } : {}), ...(cmp ? { compare: cmp } : {}), ...(imp ? { impact: imp } : {}), markdown: lines.join("\n") };
 }

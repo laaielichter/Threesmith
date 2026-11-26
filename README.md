@@ -220,10 +220,12 @@ useful bug report.
     check: dist          # folder with the built index.html; omit to skip the browser
     baseline: home       # screenshot baseline in .threesmith/baselines/home.png
     comment: true        # post the receipt on the pull request
+    compare: previous    # on a three bump: the page on both releases, each change with its migration note
+    impact: origin/main  # what the change touches and the checks that prove it (checkout with fetch-depth: 0)
 ```
 
 The receipt (review, check, scenarios) appears in the job summary and optionally as a PR comment. Locally or in any
-CI: `threesmith ci --check dist --junit junit.xml --sarif threesmith.sarif`. Commit `.threesmith/baselines/` and
+CI: `threesmith ci --check dist --compare previous --impact origin/main --junit junit.xml --sarif threesmith.sarif`. Commit `.threesmith/baselines/` and
 `.threesmith/scenarios/`; the rest of `.threesmith/` is local state and ignored by its own `.gitignore`.
 
 ## Limits

@@ -56,7 +56,8 @@ Done since (unreleased, each has tests):
 Next:
 
 - [ ] Publish to npm and the MCP registry; add the Action to the marketplace.
-- [ ] Action input `compare: next`: a `three_compare` receipt on every three bump pull request.
+- [x] Action inputs `compare` and `impact` (`ci --compare`, `--impact`): the page on both releases with the migration
+  note per change, and what the change touches, in the pull request receipt.
 - [ ] Run the benchmark with real agents (N >= 10 per arm) and publish outputs and results.
 - [ ] More rules from the migration guide as three releases (each verified in the source).
 - [x] Attach to the user's own Chrome (`three_session` with `cdp`): the real GPU and state, every live tool on it.

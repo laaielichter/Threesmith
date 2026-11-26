@@ -29,6 +29,12 @@ inputs:
   wait:
     description: Milliseconds to let the scene run before the screenshot.
     default: "2000"
+  compare:
+    description: "Also run the check page on another three release and say what changed, each change with the migration note that explains it (previous, r186, latest, a folder). Use previous on a pull request that bumps three. Needs check."
+    default: ""
+  impact:
+    description: "Also say what the change touches and which checks prove it, against this git ref (for example origin/main; check out with fetch-depth: 0)."
+    default: ""
   comment:
     description: "Post the receipt as a comment on the pull request (needs permissions: pull-requests: write)."
     default: "false"
@@ -70,12 +76,16 @@ runs:
         BASELINE: ${{ inputs.baseline }}
         ROOT: ${{ inputs.root }}
         WAIT: ${{ inputs.wait }}
+        COMPARE: ${{ inputs.compare }}
+        IMPACT: ${{ inputs.impact }}
       run: |
         flags=(--fail-on "$FAIL_ON")
         if [ -n "$MIN_SCORE" ]; then flags+=(--min-score "$MIN_SCORE"); fi
         if [ -n "$CHECK" ]; then flags+=(--check "$CHECK" --entry "$ENTRY" --wait "$WAIT"); fi
         if [ -n "$ROOT" ]; then flags+=(--root "$ROOT"); fi
         if [ -n "$BASELINE" ]; then flags+=(--baseline "$BASELINE"); fi
+        if [ -n "$COMPARE" ]; then flags+=(--compare "$COMPARE"); fi
+        if [ -n "$IMPACT" ]; then flags+=(--impact "$IMPACT"); fi
         receipt="$RUNNER_TEMP/threesmith-receipt.md"
         set +e
         $THREESMITH ci "$PROJECT" "${flags[@]}" --out "$receipt" --summary "$GITHUB_STEP_SUMMARY"
