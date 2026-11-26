@@ -1,5 +1,6 @@
 import type { Page } from "playwright-core";
 import type { Step } from "./check.js";
+import { advance, framesFor, settle, virtualDt } from "./clock.js";
 
 /**
  * Steps for play, perf, leaks and scenarios: check's steps plus
@@ -78,6 +79,7 @@ const MAX_MS = 60_000;
 /** Waits n animation frames; resolves after `fallbackMs` per frame too, so a page without a loop does not hang. */
 export async function waitFrames(page: Page, n: number): Promise<void> {
   const count = Math.max(1, Math.min(Math.round(n), 10_000));
+  if (virtualDt(page) !== undefined) return advance(page, count);
   await page.evaluate(
     `new Promise((ok) => { let left = ${count}; const until = performance.now() + ${Math.min(count * 200, MAX_MS)};
       const next = () => { if (--left <= 0 || performance.now() > until) ok(); else go(); };
@@ -90,7 +92,7 @@ export async function waitFrames(page: Page, n: number): Promise<void> {
 export async function runStep(page: Page, step: PlayStep): Promise<unknown> {
   switch (step.type) {
     case "wait":
-      await page.waitForTimeout(Math.min(step.ms, MAX_MS));
+      await settle(page, Math.min(step.ms, MAX_MS));
       return undefined;
     case "click":
       if (step.selector) await page.click(step.selector, { timeout: 5000 });
@@ -117,7 +119,7 @@ export async function runStep(page: Page, step: PlayStep): Promise<unknown> {
     case "hold":
       await page.keyboard.down(step.key);
       try {
-        await page.waitForTimeout(Math.min(step.ms, MAX_MS));
+        await settle(page, Math.min(step.ms, MAX_MS));
       } finally {
         await page.keyboard.up(step.key);
       }
@@ -137,6 +139,8 @@ export async function runStep(page: Page, step: PlayStep): Promise<unknown> {
     }
     case "until": {
       const timeout = Math.min(step.timeout ?? 5000, MAX_MS);
+      const dt = virtualDt(page);
+      if (dt !== undefined) return untilVirtual(page, step.js, timeout, dt);
       const r = (await page.evaluate(
         ([js, ms]: [string, number]) =>
           new Promise<{ ok: boolean; last?: { v?: unknown; e?: string } }>((ok) => {
@@ -168,4 +172,26 @@ export async function runStep(page: Page, step: PlayStep): Promise<unknown> {
       return undefined;
     }
   }
+}
+
+/** `until` on a deterministic page: one frame at a time, the timeout in virtual time, so it ends on the same frame every run. */
+async function untilVirtual(page: Page, js: string, timeout: number, dt: number): Promise<undefined> {
+  const r = (await page.evaluate(
+    async ([code, frames]: [string, number]) => {
+      const g = globalThis as unknown as { __threesmith: PageRuntime; __tsClock: { advance(n: number): Promise<number> } };
+      const truthy = (x: { v?: unknown; e?: string }) => x.v !== undefined && x.v !== false && x.v !== null && x.v !== 0 && x.v !== "" && x.v !== "undefined";
+      let x = g.__threesmith.read(code);
+      for (let i = 0; i < frames && !truthy(x); i++) {
+        await g.__tsClock.advance(1);
+        x = g.__threesmith.read(code);
+      }
+      return truthy(x) ? { ok: true } : { ok: false, last: x };
+    },
+    [js, framesFor(timeout, dt)] as [string, number],
+  )) as { ok: boolean; last?: { v?: unknown; e?: string } };
+  if (!r.ok) {
+    const last = r.last?.e !== undefined ? `threw ${r.last.e}` : `last value ${JSON.stringify(r.last?.v)}`;
+    throw new Error(`still not true after ${timeout} ms of virtual time (${last})`);
+  }
+  return undefined;
 }

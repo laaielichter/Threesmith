@@ -11,6 +11,8 @@ Work on $ARGUMENTS (or what the user named). Never optimise without a number bef
 1. **Measure first.** `three_perf` on the page (with `steps` for what happens in it) gives draw calls, triangles,
    programs, geometries and textures (exact, the same on every GPU) and frame times (relative: headless Chromium draws
    in software, so compare runs, do not quote them as real fps). It keeps the last run and shows the change.
+   `three_perf` always runs in real time. A `seed` on `three_check`/`three_play` makes pictures and values
+   repeatable, but not frame times.
 2. **Let the review point.** `three_review` and read the `performance` category: allocations in the loop, geometry or
    materials made per frame, scene traversal per frame, uncapped pixel ratio, huge shadow maps, many meshes that
    should be instanced. `three_assets` names textures above 4096 and big uncompressed models.

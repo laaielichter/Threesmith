@@ -5,6 +5,7 @@ import { INIT } from "./check.js";
 import { INSPECT_INIT } from "./inspect.js";
 import { openPage, type OpenedPage, type PageOptions } from "./page.js";
 import { RUN_INIT } from "./runtime.js";
+import { settle } from "./clock.js";
 import { runStep, stepLabel, waitFrames, type PlayStep } from "./steps.js";
 import { formatIssues, safeName } from "./util.js";
 
@@ -287,7 +288,7 @@ export async function play(opts: PlayOptions): Promise<PlayResult> {
   const result: PlayResult = { ok: false, url: o.url, steps: [], watch: [], claims: [], issues: o.issues, stats: { ms: 0, frames: 0, threeRevision: null, scene: false } };
   try {
     if (!o.loaded) return finish(result, claims);
-    await o.page.waitForTimeout(opts.wait ?? 1000);
+    await settle(o.page, opts.wait ?? 1000);
     const cfg: SamplerConfig = { watch, claims: claims.map(({ js, at, subject }) => ({ js, at, ...(subject ? { subject } : {}) })), sampleMs: opts.sampleMs ?? 100 };
     await o.page.evaluate((c: SamplerConfig) => {
       (globalThis as unknown as { __tsPlayCfg: SamplerConfig }).__tsPlayCfg = c;

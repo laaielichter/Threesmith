@@ -31,6 +31,7 @@ import { formatLesson, formatLessonList } from "./lessons/format.js";
 import { recordLessonFeedback } from "./lessons/local.js";
 import type { PageOptions } from "./check/page.js";
 import { parsePlaySteps, type PlayStep } from "./check/steps.js";
+import { clockSettings } from "./check/clock.js";
 import { formatPlay, play, type PlayOptions } from "./check/play.js";
 import { formatJunit, formatScenarios, loadScenarios, runScenarios, saveScenario } from "./check/scenario.js";
 import { formatPerf, perf } from "./check/perf.js";
@@ -64,6 +65,13 @@ import { join, relative } from "node:path";
 import { statSync } from "node:fs";
 
 const ascii = useAscii();
+
+/** --seed and --fixed-dt as clock options, checked like the MCP tools check them (clockSettings throws on bad values). */
+function clockFrom(o: { seed?: string; fixedDt?: string }): { seed?: number; fixedDt?: number } {
+  const c = { ...(o.seed !== undefined ? { seed: Number(o.seed) } : {}), ...(o.fixedDt !== undefined ? { fixedDt: Number(o.fixedDt) } : {}) };
+  clockSettings(c);
+  return c;
+}
 
 function out(s: string): void {
   const text = ascii ? toAscii(s) : s;
@@ -218,8 +226,10 @@ export function buildProgram(): Command {
     .option("--inspect", "also read the live scene graph and say why objects are not visible (done anyway when the frame is blank)")
     .option("--steps <json|file>", 'steps before the screenshot, e.g. \'[{"type":"click","selector":"#start"},{"type":"drag","from":[100,100],"to":[300,120]}]\' (types: wait, click, press, drag, wheel, wait-for)')
     .option("--ignore <text...>", "console messages containing this text are ignored")
+    .option("--seed <n>", "deterministic clock: seed Math.random and pause time, so waits become fixed frames and every run draws the same pixels")
+    .option("--fixed-dt <ms>", "deterministic clock: ms per frame (default 16.67)")
     .option("--json", "JSON output")
-    .action(async (target: string, o: { entry: string; root?: string; wait: string; width: string; height: string; baseline?: string; updateBaseline?: boolean; tolerance: string; webgpu?: boolean; inspect?: boolean; steps?: string; ignore?: string[]; json?: boolean }) => {
+    .action(async (target: string, o: { entry: string; root?: string; wait: string; width: string; height: string; baseline?: string; updateBaseline?: boolean; tolerance: string; webgpu?: boolean; inspect?: boolean; steps?: string; ignore?: string[]; seed?: string; fixedDt?: string; json?: boolean }) => {
       const r = await check({
         ...(o.inspect ? { inspect: true } : {}),
         ...(o.steps ? { steps: parseSteps(o.steps.trim().startsWith("[") ? o.steps : readFileSync(o.steps, "utf8")) } : {}),
@@ -234,6 +244,7 @@ export function buildProgram(): Command {
         ...(o.updateBaseline ? { updateBaseline: true } : {}),
         ...(o.webgpu ? { webgpu: true } : {}),
         ...(o.ignore ? { ignore: o.ignore } : {}),
+        ...clockFrom(o),
       });
       out(o.json ? JSON.stringify(r, null, 2) : formatCheck(r));
       if (!r.ok) process.exitCode = 1;
@@ -324,12 +335,14 @@ export function buildProgram(): Command {
     .option("--watch <js...>", "expressions to follow, e.g. \"$('player').position.y\"")
     .option("--expect <claim...>", "claims, e.g. \"$('player').position.y > 1 @ end\", \"any: ...\", \"always: ...\"")
     .option("--wait <ms>", "ms before the first step", "1000")
+    .option("--seed <n>", "deterministic clock: seed Math.random and pause time, so every run gives the same frames and values")
+    .option("--fixed-dt <ms>", "deterministic clock: ms per frame (default 16.67)")
     .option("--save <name>", "keep the run as .threesmith/scenarios/<name>.json when it passes")
     .option("--overwrite", "replace a scenario with the same name")
     .option("--json", "JSON output")
     .action(async (target: string, o: { step?: string[]; watch?: string[]; expect?: string[]; wait: string; save?: string; overwrite?: boolean; json?: boolean } & Record<string, string | boolean | undefined>) => {
       const steps = stepsFrom(o.step);
-      const opts: PlayOptions = { ...pageFrom(target, o as never), wait: Number(o.wait), ...(steps ? { steps } : {}), ...(o.watch ? { watch: o.watch } : {}), ...(o.expect ? { expect: o.expect } : {}) };
+      const opts: PlayOptions = { ...pageFrom(target, o as never), wait: Number(o.wait), ...(steps ? { steps } : {}), ...(o.watch ? { watch: o.watch } : {}), ...(o.expect ? { expect: o.expect } : {}), ...clockFrom(o as { seed?: string; fixedDt?: string }) };
       if (o.save) {
         const project = projectRootOf(/^https?:/.test(target) ? "." : target);
         const r = await saveScenario(project, o.save, opts, {

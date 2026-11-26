@@ -26,7 +26,10 @@ step answers from the project, from the installed three or from the running page
 6. **Fix the cause, not the symptom.** No `if (!model) return` around a model that should be loaded: await the
    loader. No brighter lights to hide a colour space bug. `three_review` with `only_new: true` after the change.
 7. **Prove it.** The same `three_check`, `three_inspect` or `three_play` with `expect`, before and after. Keep a
-   `three_play` proof as a regression test with `three_scenario` op save.
+   `three_play` proof as a regression test with `three_scenario` op save. Pass a `seed` (and `fixed_dt` when the
+   frame length matters) when the scene animates or uses `Math.random`: the clock is paused and moves one fixed frame
+   at a time, so before and after are the same frames and a scenario does not flake. Loads still take real time:
+   wait for them with an `until` step.
 8. **Teach it back.** When the fix took more than one try, `three_lesson_add` (general words, the message as printed,
    no names or code).
 

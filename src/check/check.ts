@@ -5,6 +5,7 @@ import { decodePng, encodePng } from "./png.js";
 import type { Explanation } from "../explain/explain.js";
 import { openPage } from "./page.js";
 import { runStep } from "./steps.js";
+import { settle } from "./clock.js";
 import { formatIssues } from "./util.js";
 import { INSPECT_EVAL, INSPECT_INIT, MEMORY_EVAL, formatScene, type SceneReport } from "./inspect.js";
 
@@ -38,6 +39,10 @@ export interface CheckOptions {
   leakMs?: number;
   /** Console warnings that are not a problem. Substring match. */
   ignore?: string[];
+  /** Deterministic clock: seed for Math.random; pauses the clock so waits become frames (see clock.ts). */
+  seed?: number;
+  /** Deterministic clock: milliseconds per frame (default 1000/60). */
+  fixedDt?: number;
 }
 
 /** Things to do on the page before the screenshot, in order. */
@@ -192,7 +197,7 @@ export async function check(opts: CheckOptions): Promise<CheckResult> {
   };
   try {
     if (!opened.loaded) return result;
-    await page.waitForTimeout(opts.wait ?? 2000);
+    await settle(page, opts.wait ?? 2000);
     for (const [i, step] of (opts.steps ?? []).entries()) {
       try {
         await runStep(page, step);
@@ -200,7 +205,7 @@ export async function check(opts: CheckOptions): Promise<CheckResult> {
         issues.push({ kind: "step-failed", severity: "error", message: `step ${i + 1} (${step.type}) failed: ${(e as Error).message.split("\n")[0]}` });
         break;
       }
-      await page.waitForTimeout(100); // let the next frame draw
+      await settle(page, 100); // let the next frame draw
     }
     const stats = await page.evaluate(`(async () => {
       const w = window;
