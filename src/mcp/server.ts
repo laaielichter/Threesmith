@@ -63,6 +63,7 @@ import {
   viewModel,
 } from "../model/index.js";
 import { VERSION } from "../version.js";
+import { clearTweaks, formatSave, formatSet, formatTweaks, planSave, projectOf, tuneReset, tuneSet, tweaksOf } from "../tune/tune.js";
 import { formatOutline, live, outline } from "../tsl/tsl.js";
 import { formatLook, look } from "../check/look.js";
 import { formatImpact, impact } from "../impact/impact.js";
@@ -1265,6 +1266,42 @@ export function createServer(options: ServerOptions = {}): McpServer {
         const content: Content[] = [{ type: "text", text: errors ? `${r.text}\n${errors}` : r.text }];
         if (r.image) content.push({ type: "image", data: r.image.toString("base64"), mimeType: "image/png" });
         return { content, ...(r.ok ? {} : { isError: true }) };
+      }),
+  );
+
+  tool(
+    "three_tune",
+    {
+      title: "Tune values in the live page, then write them into the code",
+      description:
+        "Change values in the page three_session keeps running and see the result at once, without a reload, then keep them in the code. op set: object (a name from .name, or camera, renderer, scene, fog), prop (intensity, color, position, rotation, scale, fov, toneMappingExposure, material.roughness, material.color, ...), value (a number, true/false, a colour '#ff8800' or 0xff8800, or [x, y, z]); the camera's projection and the material are updated for you. op list shows the tweaks, op reset puts the old values back. op save finds where each value is set in the source (an assignment, a set() call, a constructor argument such as DirectionalLight(color, intensity) or PerspectiveCamera(fov, ...), a material option) and shows the change (dry run); write: true writes it as one undoable step, and a value the code never sets gets one new line after the object is made. Then three_page op reload and three_look.",
+      inputSchema: {
+        op: z.enum(["set", "list", "save", "reset"]),
+        name: z.string().optional().describe("live page name (default main)"),
+        object: z.string().optional().describe("object name, or camera, renderer, scene, fog"),
+        prop: z.string().optional().describe("property path: intensity, color, position, position.y, material.roughness, fov, toneMappingExposure"),
+        value: z.union([z.number(), z.boolean(), z.string(), z.array(z.number())]).optional(),
+        path: z.string().optional().describe("project folder for save (default: the folder the live page runs from)"),
+        write: z.boolean().optional().describe("save: write the changes (default: dry run)"),
+      },
+      annotations: { ...WRITES, openWorldHint: true },
+    },
+    async (a) =>
+      guard(async () => {
+        const name = a.name ?? "main";
+        if (a.op === "list") return text(formatTweaks(tweaksOf(name)));
+        if (a.op === "reset") return text(`put back ${await tuneReset(name)} value(s)`);
+        if (a.op === "set") {
+          if (!a.object || !a.prop || a.value === undefined) return failure("op set needs object, prop and value.");
+          const r = await tuneSet(name, a.object, a.prop, a.value);
+          return text(formatSet(r));
+        }
+        const root = projectRootOf(where(projectOf(name, a.path)));
+        const plan = planSave(root, tweaksOf(name));
+        if (!a.write) return text(formatSave(plan, undefined), plan.missing.length > 0 && !plan.edits.length);
+        const id = plan.files.length ? writeFiles(root, "three_tune", `tune: ${plan.edits.length} value(s)`, plan.files) : 0;
+        if (id) clearTweaks(name);
+        return text(formatSave(plan, id), plan.missing.length > 0);
       }),
   );
 

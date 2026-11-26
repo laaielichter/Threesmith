@@ -83,7 +83,7 @@ brief of the project.
 
 | Client | How |
 | --- | --- |
-| **Claude Code** | `/plugin install threesmith@threesmith` after `/plugin marketplace add laaielichter/Threesmith` (MCP server, hooks incl. protected paths, 11 skills, 3 subagents, settings for tool sets and read-only) |
+| **Claude Code** | `/plugin install threesmith@threesmith` after `/plugin marketplace add laaielichter/Threesmith` (MCP server, hooks incl. protected paths, 12 skills, 3 subagents, settings for tool sets and read-only) |
 | **Claude Code, MCP only** | `claude mcp add threesmith -- npx -y threesmith mcp` |
 | **Codex** | `codex mcp add threesmith -- npx -y threesmith mcp --tier premium` |
 | **Cursor, VS Code** | the buttons at the top |
@@ -97,7 +97,7 @@ project. The browser tools need `playwright-core` and a Chromium (`npx playwrigh
 
 Clients without the plugin still get its workflows: the server offers the prompts `threesmith-doctor` (start with
 the doctor, fix in its order) and `threesmith-<skill>` for each skill (`debug`, `review`, `perf`, `ship`, `model`,
-`upgrade`, `webgpu`, `learn`, `dream`), and every skill as a resource (`threesmith://skills/<name>`, Markdown).
+`upgrade`, `webgpu`, `learn`, `dream`, `tune`), and every skill as a resource (`threesmith://skills/<name>`, Markdown).
 
 ### Made for agents: cheap calls, exact answers
 
@@ -106,9 +106,9 @@ the doctor, fix in its order) and `threesmith-<skill>` for each skill (`debug`, 
 - **Tool sets.** `--tools core` loads 18 tools; add `run`, `live`, `build`, `model` when you need them, or name single
   tools. A tool list the client pays for in every turn stays small. The server instructions only ever name tools
   that are loaded.
-- **Lean mode.** `--lean` offers two tools instead of 40: `three` runs any tool by name
+- **Lean mode.** `--lean` offers two tools instead of 41: `three` runs any tool by name
   (`{"tool": "review", "args": {"only_new": true}}`) and `three_help` gives a tool's parameters when they are needed.
-  Same tools, same results, same read-only refusals; the tool list drops from about 16,900 to about 2,000 tokens
+  Same tools, same results, same read-only refusals; the tool list drops from about 19,900 to about 2,400 tokens
   (estimated at 4 characters per token; `threesmith mcp --stats` prints the numbers for your options).
 - **Fix loops that cost less.** `three_review` with `only_new: true` shows new findings in full, the ones the agent
   already saw as one short line, and how many are fixed. `code` + `file` reviews code before it is saved.
@@ -121,7 +121,7 @@ the doctor, fix in its order) and `threesmith-<skill>` for each skill (`debug`, 
   with `three_lesson_add` come back under the same error. `three_dream` looks back at past sessions and proposes
   project hints and lesson changes, each with its evidence. Only hashes, counters and scrubbed text, on this machine.
 
-## The 40 tools
+## The 41 tools
 
 <details open>
 <summary>All MCP tools (most are also CLI commands)</summary>
@@ -156,6 +156,7 @@ the doctor, fix in its order) and `threesmith-<skill>` for each skill (`debug`, 
 | run | `three_leaks` | Repeat a cycle of steps with garbage collection and report what grows per cycle, down to the GPU resources never disposed, by type |
 | run | `three_compare` | The same page on two three.js releases (installed and `with`: `r186`, `next`, `previous`, `latest` or a folder; from npm into `$THREESMITH_HOME/three`, `node_modules` untouched), both with the deterministic clock, compared by meaning: new console errors and warnings, objects lost, hidden or resized, `renderer.info` deltas, changed pixels and the mean luminance per object on screen. Each change names the migration entry that explains it ("expected: r188 AmbientLight ... specular"); one with no entry is a probable regression. `bisect: "r160..r188"` (or a list of releases or folders) halves to the first release where the page changes, breaks (`until: break`) or a claim fails (`expect`, as in `three_play`). The page must load three through an import map, `node_modules/three`, a CDN `three@x` URL or a copied build file |
 | live | `three_session` | Keep a headless page open between calls (start, status, stop) |
+| live | `three_tune` | Tune the scene in the live page and keep the result in the code: `op: set` changes a value with no reload (an object by name, or `camera`, `renderer`, `scene`, `fog`; `intensity`, `color`, `position`, `fov`, `toneMappingExposure`, `material.roughness`, ...; the projection and the material are updated for you), `list` and `reset` show and undo the tweaks, `save` writes them where the code sets them (an assignment, a `set()` call, a constructor argument such as `DirectionalLight(color, intensity)` or `PerspectiveCamera(fov, ...)`, a material option; one new line when the code never sets the value), dry run first, one undoable step with `write: true` |
 | live | `three_page` | Drive that page without reloading: eval JS against the live scene, steps, frames, until, screenshot, inspect, reload, new errors after every answer |
 | build | `three_assets` | Every asset path resolved like the dev server and a static host: missing files, wrong capitals, decoder folders, glTF decoders the code never sets up, huge textures, unused files |
 | build | `three_decoders` | Wire Draco, KTX2 and meshopt with the decoder files of the installed three: which model needs which decoder, how the code points each loader at its files, served files checked by hash against the installed three, a CDN transcoder of another release; `write: true` copies the files to `public/` (or next to the page), adds the loader setup after `new GLTFLoader()` (or `useGLTF.setDecoderPath` for R3F) and pins CDN paths, as one undoable step |

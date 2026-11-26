@@ -50,6 +50,8 @@ interface Session {
   started: number;
   timer?: NodeJS.Timeout;
   idleMs: number;
+  /** The page's folder on disk (not for a dev server URL). */
+  folder?: string;
 }
 
 const sessions = new Map<string, Session>();
@@ -147,7 +149,7 @@ export async function startSession(opts: SessionOptions, name = "main"): Promise
   const executablePath = findChromium();
   const browser = await pw.chromium.launch({ headless: true, ...(executablePath ? { executablePath } : {}), args: [...WEBGL_ARGS, ...(opts.webgpu ? WEBGPU_ARGS : [])] });
   const page = await browser.newPage({ viewport: { width: opts.width ?? 800, height: opts.height ?? 600 }, deviceScaleFactor: 1 });
-  const s: Session = { name, url, browser, page, ...(server ? { server } : {}), errors: [], seen: 0, started: Date.now(), idleMs: opts.idleMs ?? 10 * 60_000 };
+  const s: Session = { name, url, browser, page, ...(server ? { server } : {}), ...(isUrl ? {} : { folder }), errors: [], seen: 0, started: Date.now(), idleMs: opts.idleMs ?? 10 * 60_000 };
   const add = (kind: string, text: string) => {
     if (s.errors.length > 500) return;
     const ex = explain(text)[0];
@@ -199,6 +201,11 @@ export async function stopAll(): Promise<void> {
 
 export function listSessions(): { name: string; url: string; minutes: number }[] {
   return [...sessions.values()].map((s) => ({ name: s.name, url: s.url, minutes: Math.round((Date.now() - s.started) / 60000) }));
+}
+
+/** The folder of a live page (undefined for a dev server URL), or throws when there is no such page. */
+export function sessionFolder(name = "main"): string | undefined {
+  return get(name).folder;
 }
 
 function get(name: string): Session {
