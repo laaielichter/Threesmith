@@ -77,6 +77,8 @@ export interface LookResult {
   verdicts: LookVerdict[];
   claims: LookClaim[];
   issues: Issue[];
+  /** With annotate: the frame with boxes and names, PNG. */
+  image?: Buffer;
 }
 
 export interface LookOptions extends PageOptions {
@@ -89,6 +91,8 @@ export interface LookOptions extends PageOptions {
   size?: number;
   /** Objects to measure at most (default 40). */
   maxObjects?: number;
+  /** Also return the frame with a numbered box and the name of each visible object drawn on it. */
+  annotate?: boolean;
 }
 
 /** In the page: measure the frame. Plain JS, no three import; uses the renderer, scene and camera last rendered. */
@@ -263,22 +267,67 @@ export function judge(r: LookReport, claims: readonly string[]): LookClaim[] {
   });
 }
 
+/** The order objects are numbered in on an annotated frame (and in the text): most of the frame first. */
+export const annotationOrder = (r: LookReport): LookObject[] => [...r.objects].filter((o) => o.visible > 0 && o.box).sort((a, b) => b.visible - a.visible).slice(0, 20);
+
+/** In the page: the frame at its own size (at most 960 wide) with a numbered box and the name of each object. */
+export function annotateEval(r: LookReport): string {
+  const items = annotationOrder(r).map((o, i) => ({ n: i + 1, name: o.name, box: o.box, pct: o.visible }));
+  return `(() => {
+  const ts = window.__tsScene;
+  const first = (list) => { for (const x of list) { const o = x.deref(); if (o) return o; } return null; };
+  const scene = ts && ((ts.last && ts.last.scene) || first(ts.scenes));
+  const renderer = ts && ((ts.last && ts.last.renderer) || first(ts.renderers));
+  const camera = ts && ts.last && ts.last.camera;
+  if (!scene || !renderer || !camera) return null;
+  const src = renderer.domElement;
+  const W = Math.min(960, src.width), H = Math.round(W * src.height / src.width);
+  const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+  const g = cv.getContext('2d');
+  renderer.render(scene, camera);
+  g.drawImage(src, 0, 0, W, H);
+  const items = ${JSON.stringify(items)};
+  const colors = ['#ff3b30', '#34c759', '#0a84ff', '#ffcc00', '#af52de', '#ff9500', '#5ac8fa', '#ff2d55'];
+  g.font = 'bold ' + Math.max(11, Math.round(W / 60)) + 'px sans-serif';
+  g.textBaseline = 'top';
+  for (const it of items) {
+    const c = colors[(it.n - 1) % colors.length];
+    const [x0, y0, x1, y1] = it.box;
+    const x = x0 * W, y = y0 * H, w = (x1 - x0) * W, h = (y1 - y0) * H;
+    g.lineWidth = 2; g.strokeStyle = c; g.strokeRect(x + 1, y + 1, Math.max(2, w - 2), Math.max(2, h - 2));
+    const label = it.n + ' ' + it.name + ' ' + (it.pct >= 0.1 ? Math.round(it.pct * 100) : Math.round(it.pct * 1000) / 10) + '%';
+    const tw = g.measureText(label).width + 8, th = Math.max(11, Math.round(W / 60)) + 6;
+    const lx = Math.min(Math.max(0, x), W - tw), ly = y - th >= 0 ? y - th : Math.min(H - th, y + 2);
+    g.fillStyle = c; g.fillRect(lx, ly, tw, th);
+    g.fillStyle = '#000'; g.fillText(label, lx + 4, ly + 3);
+  }
+  return cv.toDataURL('image/png');
+})()`;
+}
+
+async function annotate(page: import("playwright-core").Page, r: LookReport): Promise<Buffer | undefined> {
+  const url = (await page.evaluate(annotateEval(r))) as string | null;
+  return url ? Buffer.from(url.replace(/^data:image\/png;base64,/, ""), "base64") : undefined;
+}
+
 /** Opens the page headless, lets it run, and measures the frame. */
 export async function look(opts: LookOptions): Promise<LookResult> {
   const size = Math.max(64, Math.min(320, Math.round(opts.size ?? 160)));
   const o = await openRunPage(opts);
   try {
     let report: LookReport = { found: false, objects: [], skipped: 0, why: "the page did not load" };
+    let image: Buffer | undefined;
     if (o.loaded) {
       await settle(o.page, opts.wait ?? 1500);
       if (opts.steps?.length) await runSteps(o, opts.steps);
       await settle(o.page, 50);
       report = (await o.page.evaluate(lookEval(size, Math.max(1, Math.min(80, opts.maxObjects ?? 40))))) as LookReport;
+      if (opts.annotate && report.found) image = await annotate(o.page, report);
     }
     const v = verdicts(report);
     const claims = judge(report, opts.expect ?? []);
     const errors = o.issues.filter((i) => i.severity === "error");
-    return { ok: report.found && !v.some((x) => x.severity === "error") && claims.every((c) => c.ok) && !errors.length, url: o.url, report, verdicts: v, claims, issues: o.issues };
+    return { ok: report.found && !v.some((x) => x.severity === "error") && claims.every((c) => c.ok) && !errors.length, url: o.url, report, verdicts: v, claims, issues: o.issues, ...(image ? { image } : {}) };
   } finally {
     await o.close();
   }
@@ -292,6 +341,7 @@ export function formatLook(r: Pick<LookResult, "report" | "verdicts" | "claims">
     if (f.content) out.push(`Content: from ${pct(f.content.box[0])},${pct(f.content.box[1])} to ${pct(f.content.box[2])},${pct(f.content.box[3])} of the frame, weight at the ${placeOf(f.content.center)}.`);
   }
   const objs = [...r.report.objects].sort((a, b) => b.visible - a.visible);
+  const num = new Map(annotationOrder(r.report).map((o, i) => [o, i + 1]));
   const cap = opts.maxObjects ?? 15;
   if (objs.length) out.push("Objects (share of the frame it really shows; place; cut by the edge; hidden):");
   for (const o of objs.slice(0, cap)) {
@@ -301,7 +351,7 @@ export function formatLook(r: Pick<LookResult, "report" | "verdicts" | "claims">
     }
     const hidden = o.silhouette > 0 ? 1 - o.visible / o.silhouette : 0;
     out.push(
-      `  ${o.name}: ${pct(o.visible)} at the ${placeOf(o.center!)}${o.cut.length ? `, cut ${o.cut.join("/")}` : ""}${hidden >= 0.1 ? `, ${pct(hidden)} hidden${o.hiddenBy ? ` by ${o.hiddenBy.name}` : ""}` : ""}, luma ${o.luma}${o.meshes > 1 ? ` (${o.meshes} meshes)` : ""}`,
+      `  ${num.has(o) ? `${num.get(o)}. ` : ""}${o.name}: ${pct(o.visible)} at the ${placeOf(o.center!)}${o.cut.length ? `, cut ${o.cut.join("/")}` : ""}${hidden >= 0.1 ? `, ${pct(hidden)} hidden${o.hiddenBy ? ` by ${o.hiddenBy.name}` : ""}` : ""}, luma ${o.luma}${o.meshes > 1 ? ` (${o.meshes} meshes)` : ""}`,
     );
   }
   if (objs.length > cap) out.push(`  +${objs.length - cap} more`);

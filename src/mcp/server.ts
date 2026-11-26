@@ -842,6 +842,7 @@ export function createServer(options: ServerOptions = {}): McpServer {
         expect: z.array(z.string()).optional().describe('claims: "car visible >= 5%", "car centered", "car not cut", "car not hidden", "frame not dark"'),
         size: z.number().int().min(64).max(320).optional().describe("width of the measuring frame in pixels (default 160)"),
         max_objects: z.number().int().min(1).max(80).optional().describe("objects to measure at most (default 40, the largest first)"),
+        annotate: z.boolean().optional().describe("also return the frame with a numbered box and the name of each visible object (the same numbers as the text)"),
         seed: seedParam,
         fixed_dt: dtParam,
       },
@@ -857,8 +858,10 @@ export function createServer(options: ServerOptions = {}): McpServer {
           ...(a.expect ? { expect: a.expect } : {}),
           ...(a.size ? { size: a.size } : {}),
           ...(a.max_objects ? { maxObjects: a.max_objects } : {}),
+          ...(a.annotate ? { annotate: true } : {}),
         });
-        return text(formatLook(r, { maxObjects: tier === "cheap" ? 12 : 40 }), !r.ok);
+        const t = formatLook(r, { maxObjects: tier === "cheap" ? 12 : 40 });
+        return { content: [{ type: "text" as const, text: t }, ...(r.image ? [{ type: "image" as const, data: r.image.toString("base64"), mimeType: "image/png" }] : [])], ...(r.ok ? {} : { isError: true }) };
       }),
   );
 
@@ -1235,7 +1238,7 @@ export function createServer(options: ServerOptions = {}): McpServer {
     {
       title: "Look at and drive the live page",
       description:
-        "Work with the page three_session started, without reloading it. op eval runs JS in the page and returns the value as compact JSON (vectors as [x,y,z], colours as hex, objects as type/name/position), with `scene`, `camera`, `renderer` (the last ones rendered), `$('name')` (getObjectByName), `$$('Type')` and `THREE` (when global) in scope; a single expression is returned, statements need `return`. op steps runs interactions (click, press, drag, wheel, wait, wait-for); op frames waits n animation frames; op until waits until a JS expression is true; op screenshot returns the picture; op inspect reads the scene graph and why objects are not visible; op look measures the frame as text (as three_look, with expect claims); op reload loads edited files (state starts over); op errors lists the errors so far. Every answer ends with the new console and page errors.",
+        "Work with the page three_session started, without reloading it. op eval runs JS in the page and returns the value as compact JSON (vectors as [x,y,z], colours as hex, objects as type/name/position), with `scene`, `camera`, `renderer` (the last ones rendered), `$('name')` (getObjectByName), `$$('Type')` and `THREE` (when global) in scope; a single expression is returned, statements need `return`. op steps runs interactions (click, press, drag, wheel, wait, wait-for); op frames waits n animation frames; op until waits until a JS expression is true; op screenshot returns the picture; op inspect reads the scene graph and why objects are not visible; op look measures the frame as text (as three_look, with expect claims and annotate); op reload loads edited files (state starts over); op errors lists the errors so far. Every answer ends with the new console and page errors.",
       inputSchema: {
         op: z.enum(["eval", "steps", "frames", "until", "screenshot", "inspect", "look", "reload", "errors"]),
         name: z.string().optional(),
@@ -1245,6 +1248,7 @@ export function createServer(options: ServerOptions = {}): McpServer {
         timeout: z.number().int().min(0).max(60000).optional().describe("ms for until (default 5000)"),
         max_nodes: z.number().int().min(1).max(400).optional(),
         expect: z.array(z.string()).optional().describe("for look: claims about the frame, as in three_look"),
+        annotate: z.boolean().optional().describe("for look: also return the frame with numbered boxes and names"),
       },
       annotations: { ...WRITES, openWorldHint: true },
     },
@@ -1259,7 +1263,7 @@ export function createServer(options: ServerOptions = {}): McpServer {
           op = { op: "steps", steps: parseSteps(JSON.stringify(a.steps)) };
         } else if (a.op === "frames") op = { op: "frames", n: a.n ?? 1 };
         else if (a.op === "inspect") op = { op: "inspect", ...(a.max_nodes ? { maxNodes: a.max_nodes } : {}) };
-        else if (a.op === "look") op = { op: "look", ...(a.expect ? { expect: a.expect } : {}) };
+        else if (a.op === "look") op = { op: "look", ...(a.expect ? { expect: a.expect } : {}), ...(a.annotate ? { annotate: true } : {}) };
         else op = { op: a.op };
         const r = await pageOp(op, a.name ?? "main");
         const errors = formatErrors(r.errors);
