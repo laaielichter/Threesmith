@@ -1,4 +1,4 @@
-import { formatLook, judge, lookEval, verdicts, type LookReport } from "../check/look.js";
+import { annotateEval, formatLook, judge, lookEval, verdicts, type LookReport } from "../check/look.js";
 import { join, relative, resolve, sep } from "node:path";
 import { findChromium, loadPlaywright, WEBGL_ARGS, WEBGPU_ARGS } from "../check/browser.js";
 import { blankness } from "../check/diff.js";
@@ -222,7 +222,7 @@ export type PageOp =
   | { op: "until"; js: string; timeout?: number }
   | { op: "screenshot" }
   | { op: "inspect"; maxNodes?: number }
-  | { op: "look"; expect?: string[] }
+  | { op: "look"; expect?: string[]; annotate?: boolean }
   | { op: "reload"; wait?: number }
   | { op: "errors" };
 
@@ -328,6 +328,10 @@ export async function pageOp(op: PageOp, name = "main"): Promise<PageAnswer> {
       const v = verdicts(report);
       text = formatLook({ report, verdicts: v, claims });
       ok = report.found && claims.every((c) => c.ok);
+      if (op.annotate && report.found) {
+        const url = (await page.evaluate(annotateEval(report))) as string | null;
+        if (url) image = Buffer.from(url.replace(/^data:image\/png;base64,/, ""), "base64");
+      }
       break;
     }
     case "inspect": {

@@ -92,8 +92,50 @@ export interface BudgetResult {
   ok: boolean;
 }
 
+/** What each object costs per frame, the most first, and meshes that could be one InstancedMesh. */
+export interface Breakdown {
+  objects: { name: string; type: string; calls: number; triangles: number; instances: number; materials: number }[];
+  /** Meshes that share one geometry and one material: candidates for InstancedMesh. */
+  repeats: { geometry: string; material: string; count: number; example: string }[];
+  drawables: number;
+}
+
+/** In the page: per-object draw calls and triangles (as three counts them), and repeated geometry + material pairs. */
+export const BREAKDOWN_EVAL = `(() => {
+  const ts = window.__tsScene;
+  const first = (list) => { for (const x of list) { const o = x.deref(); if (o) return o; } return null; };
+  const scene = ts && ((ts.last && ts.last.scene) || first(ts.scenes));
+  if (!scene) return null;
+  const shown = (o) => { let x = o; while (x) { if (!x.visible) return false; x = x.parent; } return true; };
+  const pathOf = (o) => { const p = []; let x = o; while (x && x !== scene) { p.unshift(x.name || x.type); x = x.parent; } return p.join(' > '); };
+  const objects = [];
+  const pairs = new Map();
+  let drawables = 0;
+  scene.traverse((o) => {
+    if (!(o.isMesh || o.isPoints || o.isLine || o.isSprite) || !shown(o)) return;
+    drawables++;
+    const g = o.geometry;
+    const mats = Array.isArray(o.material) ? o.material.length : 1;
+    const instances = o.isInstancedMesh ? o.count : 1;
+    const groups = g && g.groups && g.groups.length && Array.isArray(o.material) ? g.groups.length : 1;
+    const verts = g ? (g.index ? g.index.count : g.attributes.position ? g.attributes.position.count : 0) : 6;
+    const range = g && g.drawRange && isFinite(g.drawRange.count) ? Math.min(verts, g.drawRange.count) : verts;
+    const tris = o.isMesh ? Math.floor(range / 3) * instances : o.isSprite ? 2 : 0;
+    objects.push({ name: o.name || pathOf(o), type: o.type, calls: groups, triangles: tris, instances, materials: mats });
+    if (o.isMesh && !o.isInstancedMesh && !o.isSkinnedMesh && g && !Array.isArray(o.material)) {
+      const k = g.uuid + '|' + o.material.uuid;
+      const e = pairs.get(k) || { geometry: g.type, material: o.material.type, count: 0, example: o.name || pathOf(o) };
+      e.count++; pairs.set(k, e);
+    }
+  });
+  objects.sort((a, b) => b.triangles - a.triangles || b.calls - a.calls);
+  return { objects: objects.slice(0, 40), repeats: [...pairs.values()].filter((e) => e.count >= 10).sort((a, b) => b.count - a.count).slice(0, 10), drawables };
+})()`;
+
 export interface PerfResult extends PerfSummary {
   ok: boolean;
+  /** Per-object cost, read once after measuring. */
+  breakdown?: Breakdown;
   url: string;
   name: string;
   seconds: number;
@@ -230,6 +272,7 @@ export async function perf(opts: PerfOptions): Promise<PerfResult> {
   const file = perfFile(o.stateDir, name);
   let frames: FrameRecord[] = [];
   let heapMb: number | undefined;
+  let breakdown: Breakdown | undefined;
   try {
     if (o.loaded) {
       await o.page.waitForTimeout(opts.wait ?? 1000);
@@ -239,6 +282,7 @@ export async function perf(opts: PerfOptions): Promise<PerfResult> {
         await o.page.evaluate("window.__tsRun.rec = []");
         await o.page.waitForTimeout(seconds * 1000);
         frames = (await o.page.evaluate("(() => { const r = window.__tsRun.rec || []; window.__tsRun.rec = null; return r; })()")) as FrameRecord[];
+        breakdown = ((await o.page.evaluate(BREAKDOWN_EVAL).catch(() => null)) as Breakdown | null) ?? undefined;
         try {
           const cdp = await o.cdp();
           const heap = (await cdp.send("Runtime.getHeapUsage")) as { usedSize: number };
@@ -270,7 +314,7 @@ export async function perf(opts: PerfOptions): Promise<PerfResult> {
     saved = true;
   }
   const ok = !o.issues.some((i) => i.severity === "error") && s.budgets.every((b) => b.ok) && frames.length > 0;
-  return { ...s, ok, url: o.url, name, seconds, file, saved, issues: o.issues };
+  return { ...s, ok, url: o.url, name, seconds, file, saved, issues: o.issues, ...(breakdown ? { breakdown } : {}) };
 }
 
 const fmt = (s: Stats) => `p50 ${s.p50}  p95 ${s.p95}  p99 ${s.p99}  max ${s.max}`;
@@ -283,6 +327,12 @@ export function formatPerf(r: PerfResult): string {
   if (r.slowest.length) {
     out.push("slowest frames:");
     for (const f of r.slowest) out.push(`  frame ${f.frame} @${f.t}ms: ${f.ms} ms (script ${f.scriptMs} ms, ${f.calls} calls): ${f.cause}`);
+  }
+  if (r.breakdown?.objects.length) {
+    const b = r.breakdown;
+    out.push(`cost per object (${b.drawables} drawn, the most triangles first):`);
+    for (const x of b.objects.slice(0, 8)) out.push(`  ${x.name}: ${x.triangles} triangles, ${x.calls} call(s)${x.instances > 1 ? `, ${x.instances} instances` : ""}${x.materials > 1 ? `, ${x.materials} materials (one call per material group)` : ""}`);
+    for (const rep of b.repeats.slice(0, 4)) out.push(`  ${rep.count} meshes share one ${rep.geometry} and one ${rep.material} (e.g. ${rep.example}): one InstancedMesh draws them in 1 call instead of ${rep.count}`);
   }
   for (const b of r.budgets) out.push(`${b.ok ? "ok  " : "OVER"} budget ${b.metric} ${b.actual} (limit ${b.limit})`);
   if (r.previous && r.delta) {

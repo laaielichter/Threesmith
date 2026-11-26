@@ -295,8 +295,9 @@ export function buildProgram(): Command {
     .option("--expect <claim...>", 'claims: "car visible >= 5%" "car centered" "car not cut" "frame not dark"')
     .option("--size <px>", "width of the measuring frame (64..320)", "160")
     .option("--seed <n>", "deterministic clock: seed for Math.random")
+    .option("--annotate <file>", "also write the frame with numbered boxes and names to this .png")
     .option("--json", "JSON output")
-    .action(async (target: string, o: { entry: string; root?: string; wait: string; steps?: string; expect?: string[]; size: string; seed?: string; json?: boolean }) => {
+    .action(async (target: string, o: { entry: string; root?: string; wait: string; steps?: string; expect?: string[]; size: string; seed?: string; annotate?: string; json?: boolean }) => {
       const r = await look({
         target,
         entry: o.entry,
@@ -306,7 +307,9 @@ export function buildProgram(): Command {
         ...(o.steps ? { steps: parsePlaySteps(JSON.parse(o.steps)) } : {}),
         ...(o.expect?.length ? { expect: o.expect } : {}),
         ...(o.seed !== undefined ? { seed: positiveInt("--seed", o.seed) } : {}),
+        ...(o.annotate ? { annotate: true } : {}),
       });
+      if (o.annotate && r.image) writeFileSync(o.annotate, r.image);
       out(o.json ? JSON.stringify({ ok: r.ok, report: r.report, verdicts: r.verdicts, claims: r.claims }, null, 2) : formatLook(r));
       if (!r.ok) process.exitCode = 1;
     });

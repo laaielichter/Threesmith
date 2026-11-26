@@ -85,6 +85,21 @@ describe.skipIf(!have)("perf (needs Chromium)", () => {
     expect(text).toContain("no earlier run with this name");
   }, 120_000);
 
+  it("breaks the cost down per object and names meshes that could be one InstancedMesh", async () => {
+    const dir = gamePage(`import * as THREE from 'three';
+const renderer = new THREE.WebGLRenderer(); renderer.setSize(200, 150); document.body.appendChild(renderer.domElement);
+const scene = new THREE.Scene(); const camera = new THREE.PerspectiveCamera(60, 4 / 3, 0.1, 100); camera.position.z = 8;
+const geo = new THREE.BoxGeometry(0.2, 0.2, 0.2); const mat = new THREE.MeshBasicMaterial();
+for (let i = 0; i < 12; i++) { const m = new THREE.Mesh(geo, mat); m.name = 'tree' + i; m.position.x = i * 0.3 - 2; scene.add(m); }
+const ball = new THREE.Mesh(new THREE.SphereGeometry(1, 64, 32), new THREE.MeshBasicMaterial()); ball.name = 'ball'; scene.add(ball);
+renderer.setAnimationLoop(() => renderer.render(scene, camera));`);
+    const r = await perf({ target: dir, wait: 200, seconds: 0.6, warmupMs: 100, save: false });
+    expect(r.breakdown?.drawables).toBe(13);
+    expect(r.breakdown?.objects[0]).toMatchObject({ name: "ball", triangles: 64 * 32 * 2 - 64 * 2, calls: 1 });
+    expect(r.breakdown?.repeats).toEqual([{ geometry: "BoxGeometry", material: "MeshBasicMaterial", count: 12, example: "tree0" }]);
+    expect(formatPerf(r)).toContain("12 meshes share one BoxGeometry and one MeshBasicMaterial");
+  }, 60_000);
+
   it("compares with the last saved run", async () => {
     const dir = gamePage();
     const first = await perf({ target: dir, wait: 200, seconds: 0.7, warmupMs: 100 });

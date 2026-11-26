@@ -86,6 +86,15 @@ describe.skipIf(!have)("look (needs Chromium)", () => {
     expect(text).toMatch(/crate: [\d.]+% at the centre/);
   }, 60_000);
 
+  it("draws numbered boxes and names on the frame", async () => {
+    const r = await look({ target: page(scene("box('crate', 0xff3030, 0, 0, 0, 1.5);")), wait: 600, annotate: true });
+    expect(r.image?.subarray(1, 4).toString()).toBe("PNG");
+    const { decodePng } = await import("../src/check/png.js");
+    const img = decodePng(r.image!);
+    expect([img.width, img.height]).toEqual([400, 300]);
+    expect(formatLook(r)).toMatch(/1\. crate: /);
+  }, 60_000);
+
   it("says what hides an object", async () => {
     const r = await look({ target: page(scene("box('car', 0xff3030, 0, 0, -2, 1);\nbox('wall', 0x8080ff, 0, 0, 1, 2.5);")), wait: 600, expect: ["car hidden"] });
     const car = r.report.objects.find((o) => o.name === "car")!;
