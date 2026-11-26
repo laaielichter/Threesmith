@@ -1,6 +1,5 @@
 import { spawn, type ChildProcess } from "node:child_process";
-import { mkdtempSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { mkdirSync, mkdtempSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { afterAll, describe, expect, it } from "vitest";
 import { findChromium, WEBGL_ARGS } from "../src/check/browser.js";
@@ -12,6 +11,10 @@ const chrome = findChromium();
 const PORT = 9300 + Math.floor(Math.random() * 500);
 const endpoint = `http://127.0.0.1:${PORT}`;
 let proc: ChildProcess | undefined;
+// the profile lives outside the test's temp folder: Chromium's helper processes can still write to it for a moment
+// after the browser is gone, and the temp folder is removed right after the tests
+const profiles = join("node_modules", ".cache", "threesmith", "chrome-profiles");
+let profile: string | undefined;
 
 async function up(): Promise<boolean> {
   for (let i = 0; i < 120; i++) {
@@ -27,10 +30,16 @@ async function up(): Promise<boolean> {
 
 // the browser must be gone before the test's temp folder (its profile) is removed
 afterAll(async () => {
-  if (!proc || proc.exitCode !== null) return;
-  const gone = new Promise((r) => proc!.once("exit", r));
-  proc.kill("SIGKILL");
-  await Promise.race([gone, new Promise((r) => setTimeout(r, 5000))]);
+  if (proc && proc.exitCode === null && proc.pid) {
+    const gone = new Promise((r) => proc!.once("exit", r));
+    try {
+      process.kill(-proc.pid, "SIGKILL"); // the whole process group: the browser and its helpers
+    } catch {
+      proc.kill("SIGKILL");
+    }
+    await Promise.race([gone, new Promise((r) => setTimeout(r, 5000))]);
+  }
+  if (profile) rmSync(profile, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
 });
 
 describe.skipIf(!chrome)("attach to a running browser (needs Chromium)", () => {
@@ -43,7 +52,9 @@ renderer.setAnimationLoop(() => renderer.render(scene, camera));`);
     const server = await serveStatic(dir);
     try {
       const url = `${server.url}/index.html`;
-      proc = spawn(chrome!, [...WEBGL_ARGS, "--no-sandbox", "--headless=new", `--remote-debugging-port=${PORT}`, `--user-data-dir=${mkdtempSync(join(tmpdir(), "ts-chrome-"))}`, "--no-first-run", url], { stdio: "ignore" });
+      mkdirSync(profiles, { recursive: true });
+      profile = mkdtempSync(join(profiles, "p-"));
+      proc = spawn(chrome!, [...WEBGL_ARGS, "--no-sandbox", "--headless=new", `--remote-debugging-port=${PORT}`, `--user-data-dir=${profile}`, "--no-first-run", url], { stdio: "ignore", detached: process.platform !== "win32" });
       expect(await up()).toBe(true);
       await expect(startSession({ target: "", cdp: endpoint, match: "nothing-like-this" }, "att")).rejects.toThrow(/No tab in that browser/);
       const r = await startSession({ target: url, cdp: endpoint, match: "index.html", wait: 800 }, "att");
