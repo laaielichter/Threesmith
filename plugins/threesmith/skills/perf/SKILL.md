@@ -25,5 +25,9 @@ Work on $ARGUMENTS (or what the user named). Never optimise without a number bef
 5. **Measure again** with `three_perf`, the same case. Keep the change only when the numbers say so.
 6. **Memory that grows** while the user switches levels or opens and closes things: `three_leaks` with the steps of
    one cycle. It says what grows per cycle (geometries, textures, objects by type); after the fix it must be 0.
+7. **Phones and low-end devices:** `three_device` with `profile: phone` (or `tablet`, `low-end-laptop`, or your own
+   `.json`). It runs the page at the profile's pixel ratio with the CPU slowed down and the WebGL limits clamped, and
+   names textures over the limit (black on such a device), textures three had to resize, an uncapped pixel ratio, a
+   missing viewport meta and texture memory over budget. Compare its frame times only with its own earlier runs.
 
 End with a table: change, before, after, kept or dropped.

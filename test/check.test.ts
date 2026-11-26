@@ -107,6 +107,17 @@ describe.skipIf(!have)("headless check (needs Chromium)", () => {
     expect(kinds).toContain("no-canvas");
   }, 60_000);
 
+  it("reports each missing file once, and a file read through a stream not at all", async () => {
+    const dir = page(`import * as THREE from 'three';
+const loader = new THREE.FileLoader();
+loader.loadAsync('./missing.bin').catch(() => {});
+import('./missing-module.js').catch(() => {});
+loader.loadAsync('./three/three.core.js').then(() => { window.__loaded = true; });`);
+    const r = await check({ target: dir, wait: 800 });
+    const failed = r.issues.filter((i) => i.kind === "request-failed").map((i) => i.message.replace(/^https?:\/\/[^/]+/, ""));
+    expect(failed.sort()).toEqual(["/missing-module.js -> HTTP 404", "/missing.bin -> HTTP 404"]);
+  }, 60_000);
+
   it("creates, matches and catches a changed baseline", async () => {
     const dir = page(scene("0x44aa88"));
     const base = { target: dir, wait: 600, baseline: "home" };
