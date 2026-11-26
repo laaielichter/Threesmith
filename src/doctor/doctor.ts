@@ -1,6 +1,25 @@
-import { existsSync } from "node:fs";
+import { existsSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { findThree } from "../api/install.js";
-import { findChromium, loadPlaywright, WEBGL_ARGS } from "../check/browser.js";
+import { findChromium, loadPlaywright, WEBGL_ARGS, WEBGPU_ARGS } from "../check/browser.js";
+import { serveStatic } from "../check/server.js";
+
+/** Where Linux keeps libvulkan.so.1, which Chromium needs for WebGPU (also through SwiftShader). */
+const VULKAN_DIRS = ["/usr/lib/x86_64-linux-gnu", "/usr/lib/aarch64-linux-gnu", "/usr/lib64", "/usr/lib", "/lib/x86_64-linux-gnu", "/lib64"];
+
+/** Is libvulkan there? Only asked on Linux; elsewhere the browser brings what it needs. */
+export function hasVulkan(platform: string = process.platform, dirs: readonly string[] = VULKAN_DIRS, exists: (p: string) => boolean = existsSync): boolean | null {
+  if (platform !== "linux") return null;
+  return dirs.some((d) => exists(join(d, "libvulkan.so.1")));
+}
+
+/** What a WebGPU adapter probe found, in words, with the fix when there is none. Pure, for tests. */
+export function webgpuItem(adapter: string | null, vulkan: boolean | null): DoctorItem {
+  if (adapter !== null) return { name: "WebGPU (headless)", ok: true, detail: `adapter ${adapter || "unnamed"}; three_check webgpu: true tests the WebGPU backend` };
+  const lib = vulkan === false ? " libvulkan.so.1 is missing: apt install libvulkan1 mesa-vulkan-drivers." : "";
+  return { name: "WebGPU (headless)", ok: true, detail: `no adapter (optional: WebGPURenderer pages fall back to WebGL 2 here, and check says so).${lib}` };
+}
 
 export interface DoctorItem {
   name: string;
@@ -50,8 +69,40 @@ export async function doctor(path: string, threeDir?: string): Promise<DoctorIte
     } catch (e) {
       items.push({ name: "chromium + WebGL", ok: false, detail: String((e as Error).message).split("\n")[0] ?? "", fix: "npx playwright-core install --with-deps chromium, or set THREESMITH_CHROMIUM to a Chromium binary." });
     }
+    items.push(webgpuItem(await probeWebgpu(pw, chromium), hasVulkan()));
   }
   return items;
+}
+
+/** Asks headless Chromium, with the flags three_check uses for WebGPU, for an adapter (on localhost: WebGPU needs a secure context). */
+async function probeWebgpu(pw: Awaited<ReturnType<typeof loadPlaywright>>, chromium: string | undefined): Promise<string | null> {
+  const dir = mkdtempSync(join(tmpdir(), "threesmith-gpu-"));
+  writeFileSync(join(dir, "index.html"), "<!doctype html><title>gpu</title>");
+  let server: Awaited<ReturnType<typeof serveStatic>> | undefined;
+  try {
+    server = await serveStatic(dir);
+    const browser = await pw.chromium.launch({ headless: true, ...(chromium ? { executablePath: chromium } : {}), args: [...WEBGL_ARGS, ...WEBGPU_ARGS] });
+    try {
+      const page = await browser.newPage();
+      await page.goto(`${server.url}/index.html`);
+      return (await page.evaluate(`(async () => {
+        if (!navigator.gpu) return null;
+        try {
+          const a = await navigator.gpu.requestAdapter();
+          if (!a) return null;
+          const i = a.info || {};
+          return [i.vendor, i.architecture, i.description].filter(Boolean).join(' ') + (i.isFallbackAdapter ? ' (fallback adapter)' : '');
+        } catch { return null; }
+      })()`)) as string | null;
+    } finally {
+      await browser.close();
+    }
+  } catch {
+    return null;
+  } finally {
+    await server?.close();
+    rmSync(dir, { recursive: true, force: true });
+  }
 }
 
 export function formatDoctor(items: DoctorItem[]): string {

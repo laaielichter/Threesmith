@@ -43,6 +43,8 @@ export const CheckOutput = {
   frames: z.number(),
   threeRevision: z.string().nullable(),
   contexts: z.array(z.string()),
+  backend: z.enum(["webgpu", "webgl2", "webgl", "webgpu-fallback-webgl2", "2d", "none"]),
+  adapter: z.string().nullable(),
   baseline: z.string().optional(),
   screenshot: z.string().optional(),
 };
@@ -83,6 +85,8 @@ export function checkData(r: CheckResult, cap: number) {
     frames: r.stats.frames,
     threeRevision: r.stats.threeRevision,
     contexts: r.stats.contexts,
+    backend: r.stats.backend,
+    adapter: r.stats.adapter,
     ...(r.baseline ? { baseline: r.baseline.status } : {}),
     ...(r.screenshot ? { screenshot: r.screenshot } : {}),
   };

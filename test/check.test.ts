@@ -2,10 +2,34 @@ import { cpSync, mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { findChromium } from "../src/check/browser.js";
-import { check, parseSteps } from "../src/check/check.js";
+import { backendOf, check, formatCheck, parseSteps } from "../src/check/check.js";
+import { hasVulkan, webgpuItem } from "../src/doctor/doctor.js";
 import { project, THREE_DIR } from "./helpers.js";
 
 const have = !!findChromium();
+
+/** A page on WebGPURenderer (three/webgpu), which falls back to WebGL 2 by itself when there is no adapter. */
+function webgpuPage(): string {
+  const dir = page("");
+  writeFileSync(
+    join(dir, "index.html"),
+    `<!doctype html><html><body style="margin:0"><script type="importmap">{"imports":{"three":"./three/three.webgpu.js","three/webgpu":"./three/three.webgpu.js","three/tsl":"./three/three.tsl.js"}}</script><script type="module">
+import * as THREE from 'three/webgpu';
+const renderer = new THREE.WebGPURenderer();
+renderer.setSize(400, 300);
+document.body.appendChild(renderer.domElement);
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x101820);
+const camera = new THREE.PerspectiveCamera(60, 4/3, 0.1, 100);
+camera.position.z = 3;
+scene.add(new THREE.Mesh(new THREE.BoxGeometry(2, 2, 2), new THREE.MeshBasicMaterial({ color: 0x44aa88 })));
+await renderer.init();
+renderer.setAnimationLoop(() => renderer.render(scene, camera));
+</script></body></html>`,
+  );
+  for (const f of ["three.webgpu.js", "three.tsl.js"]) cpSync(join(THREE_DIR, "build", f), join(dir, "three", f));
+  return dir;
+}
 
 function page(script: string): string {
   const dir = project({
@@ -40,6 +64,29 @@ describe.skipIf(!have)("headless check (needs Chromium)", () => {
     expect(r.stats.canvases).toBe(1);
     expect(r.stats.contexts.some((c) => c.startsWith("webgl"))).toBe(true);
     expect(r.stats.threeRevision).toBe("187");
+    expect(r.stats.backend).toBe("webgl2");
+    expect(r.stats.adapter).toBeTruthy();
+    expect(formatCheck(r)).toContain("backend WebGL 2 · adapter ");
+  }, 60_000);
+
+  it("names a WebGPURenderer page that fell back to WebGL 2, so a pass is not taken for WebGPU", async () => {
+    const r = await check({ target: webgpuPage(), wait: 1500 });
+    expect(r.stats.backend).toBe("webgpu-fallback-webgl2");
+    const warn = r.issues.find((i) => i.kind === "webgpu-fallback");
+    expect(warn?.severity).toBe("warn");
+    expect(warn?.message).toContain("WebGPU is off in this run");
+    expect(formatCheck(r)).toContain("backend WebGL 2 (WebGPU fallback)");
+  }, 60_000);
+
+  it("names WebGPU when the browser has an adapter (skips with the reason when it has none)", async (ctx) => {
+    const r = await check({ target: webgpuPage(), wait: 2500, webgpu: true });
+    if (r.stats.webgpuAdapter !== true) {
+      ctx.skip(`no WebGPU adapter in this Chromium (backend ${r.stats.backend}); see threesmith doctor --env`);
+      return;
+    }
+    expect(r.stats.backend).toBe("webgpu");
+    expect(r.issues.map((i) => i.kind)).not.toContain("webgpu-fallback");
+    expect(r.stats.adapter).toBeTruthy();
   }, 60_000);
 
   it("fails a blank scene", async () => {
@@ -99,6 +146,28 @@ renderer.setAnimationLoop`,
     expect(missing.issues.map((i) => i.kind)).toContain("step-failed");
     expect(missing.ok).toBe(false);
   }, 120_000);
+});
+
+describe("backend naming", () => {
+  const use = (o: Partial<Parameters<typeof backendOf>[0]>) => ({ contexts: [], requested: false, gpuAdapter: null, glRenderer: null, ...o });
+  it("names each backend from the contexts and the adapter request", () => {
+    expect(backendOf(use({ contexts: ["webgpu"], requested: true, gpuAdapter: "google swiftshader (fallback adapter)" }))).toEqual({ backend: "webgpu", adapter: "google swiftshader (fallback adapter)" });
+    expect(backendOf(use({ contexts: ["webgl2"], glRenderer: "ANGLE (SwiftShader)" }))).toEqual({ backend: "webgl2", adapter: "ANGLE (SwiftShader)" });
+    expect(backendOf(use({ contexts: ["webgl2"], requested: true, glRenderer: "ANGLE" })).backend).toBe("webgpu-fallback-webgl2");
+    expect(backendOf(use({ contexts: ["webgl"] })).backend).toBe("webgl");
+    expect(backendOf(use({ contexts: ["2d"] })).backend).toBe("2d");
+    expect(backendOf(use({})).backend).toBe("none");
+    expect(backendOf(use({ contexts: ["webgpu"], gpuAdapter: "" })).adapter).toBe("unnamed adapter");
+  });
+  it("says what WebGPU needs on Linux when there is no adapter", () => {
+    expect(hasVulkan("darwin")).toBeNull();
+    expect(hasVulkan("linux", ["/x"], (p) => p === "/x/libvulkan.so.1")).toBe(true);
+    expect(hasVulkan("linux", ["/x"], () => false)).toBe(false);
+    expect(webgpuItem(null, false).detail).toContain("libvulkan");
+    expect(webgpuItem(null, true).detail).not.toContain("libvulkan");
+    expect(webgpuItem("google swiftshader", null).detail).toContain("adapter google swiftshader");
+    expect(webgpuItem(null, false).ok).toBe(true);
+  });
 });
 
 describe("steps parsing", () => {
