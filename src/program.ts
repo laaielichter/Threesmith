@@ -1,3 +1,4 @@
+import { formatImpact, impact } from "./impact/impact.js";
 import { applyDream, apiHintFor, dream, formatApply, formatDream, markDreamed } from "./dream/dream.js";
 import { recordApiMiss, recordUnexplained } from "./dream/signals.js";
 import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -879,6 +880,21 @@ export function buildProgram(): Command {
       const root = projectRootOf(o.path);
       if (o.list) out(formatJournal(readJournal(root)));
       else out(formatUndo(undoJournal(root, { steps: positiveInt("--steps", o.steps), ...(o.force ? { force: true } : {}) })));
+    });
+
+  program
+    .command("impact")
+    .description("What a change touches in the three.js scene, which pages, scenarios and baselines run it, and the checks that prove it")
+    .argument("[path]", "project directory (same as --path)")
+    .option("-p, --path <dir>", "project directory", ".")
+    .option("--base <ref>", "git ref to compare with (default HEAD: the uncommitted work)")
+    .option("--files <list>", "changed files instead of git, comma separated")
+    .option("--full", "every file")
+    .option("--json", "JSON output")
+    .action((dir: string | undefined, o: { path: string; base?: string; files?: string; full?: boolean; json?: boolean }) => {
+      if (dir) o.path = dir;
+      const r = impact(projectRootOf(o.path), { ...(o.base ? { base: o.base } : {}), ...(o.files ? { files: o.files.split(",").map((f) => f.trim()).filter(Boolean) } : {}) });
+      out(o.json ? JSON.stringify(r, null, 2) : formatImpact(r, o.full ? "full" : "brief"));
     });
 
   program
