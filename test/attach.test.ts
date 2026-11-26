@@ -25,7 +25,13 @@ async function up(): Promise<boolean> {
   return false;
 }
 
-afterAll(() => proc?.kill("SIGKILL"));
+// the browser must be gone before the test's temp folder (its profile) is removed
+afterAll(async () => {
+  if (!proc || proc.exitCode !== null) return;
+  const gone = new Promise((r) => proc!.once("exit", r));
+  proc.kill("SIGKILL");
+  await Promise.race([gone, new Promise((r) => setTimeout(r, 5000))]);
+});
 
 describe.skipIf(!chrome)("attach to a running browser (needs Chromium)", () => {
   it("finds the tab by URL, installs the hooks with one reload, and leaves the browser running on stop", async () => {
