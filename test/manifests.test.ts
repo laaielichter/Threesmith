@@ -66,9 +66,10 @@ describe("manifests", () => {
     const commands = buildProgram().commands.map((c) => c.name());
     const readme = /CLI: `threesmith ([^`]+)`/.exec(readFileSync("README.md", "utf8"))?.[1] ?? "";
     const llms = /- CLI: threesmith (.+)/.exec(readFileSync("docs/llms.txt", "utf8"))?.[1] ?? "";
-    const listed = (text: string) => new Set(text.replace(/<[^>]*>/g, "").split(/[\s|]+/).filter(Boolean));
+    // a command as its own item of the list ("| migrate |", "model <inspect|...>")
+    const listed = (text: string, c: string) => new RegExp(`(?:^|[\\s|])${c}(?=$|[\\s|<])`).test(text);
     // hook is for the plugin's hooks, not for people
-    for (const c of commands) expect(listed(readme).has(c), `README CLI list lacks ${c}`).toBe(true);
-    for (const c of commands.filter((x) => x !== "hook")) expect(listed(llms).has(c), `llms.txt CLI list lacks ${c}`).toBe(true);
+    for (const c of commands) expect(listed(readme, c), `README CLI list lacks ${c}`).toBe(true);
+    for (const c of commands.filter((x) => x !== "hook")) expect(listed(llms, c), `llms.txt CLI list lacks ${c}`).toBe(true);
   });
 });
