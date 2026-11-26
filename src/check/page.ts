@@ -118,7 +118,13 @@ export async function openPage(opts: PageOptions & { init?: string[] }): Promise
     }
   });
   page.on("requestfailed", (r) => {
-    if (!skip(r.url())) issues.push({ kind: "request-failed", severity: "error", message: `${r.url()} (${r.failure()?.errorText ?? "failed"})` });
+    if (skip(r.url())) return;
+    const why = r.failure()?.errorText ?? "failed";
+    const push = () => issues.push({ kind: "request-failed", severity: "error", message: `${r.url()} (${why})` });
+    // Chromium reports a fetch whose body was read through a stream reader (three's FileLoader) as ERR_ABORTED at
+    // the end, although the whole response arrived: only a request without a good response failed.
+    if (why !== "net::ERR_ABORTED") return void push();
+    void r.response().then((res) => (res && res.status() < 400 ? undefined : push()), push);
   });
   page.on("response", (r) => {
     if (r.status() >= 400 && !skip(r.url())) issues.push({ kind: "request-failed", severity: "error", message: `${r.url()} -> HTTP ${r.status()}` });

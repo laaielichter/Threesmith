@@ -8,7 +8,11 @@ export interface RuleCase {
   quiet: Record<string, string>;
 }
 
+import { readFileSync } from "node:fs";
+
 const T = "import * as THREE from 'three';\n";
+/** The installed three version (the tests pin node_modules/three). */
+const THREE_VERSION = (JSON.parse(readFileSync("node_modules/three/package.json", "utf8")) as { version: string }).version;
 const GL = `${T}const renderer = new THREE.WebGLRenderer();\n`;
 const GPU = "import * as THREE from 'three/webgpu';\nconst renderer = new THREE.WebGPURenderer();\n";
 const R3F = "import { Canvas, useFrame } from '@react-three/fiber';\nimport * as THREE from 'three';\nimport { useState, useMemo } from 'react';\n";
@@ -133,6 +137,16 @@ export const CASES: RuleCase[] = [
     id: "decoder-not-attached",
     fire: { "a.js": `${T}import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';\nimport { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';\nconst draco = new DRACOLoader();\nconst loader = new GLTFLoader();\nloader.load('a.glb', (gltf) => scene.add(gltf.scene));\n` },
     quiet: { "a.js": `${T}import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';\nimport { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';\nconst draco = new DRACOLoader();\nconst loader = new GLTFLoader().setDRACOLoader(draco);\nloader.load('a.glb', (gltf) => scene.add(gltf.scene));\n` },
+  },
+  {
+    id: "decoder-setter-assigned",
+    fire: { "a.js": `${T}import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';\nimport { KTX2Loader } from 'three/addons/loaders/KTX2Loader.js';\nconst loader = new GLTFLoader();\nloader.setKTX2Loader = new KTX2Loader().detectSupport(renderer);\n` },
+    quiet: { "a.js": `${T}import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';\nimport { KTX2Loader } from 'three/addons/loaders/KTX2Loader.js';\nconst loader = new GLTFLoader();\nloader.setKTX2Loader(new KTX2Loader().detectSupport(renderer));\nif (loader.setKTX2Loader === undefined) throw new Error('old three');\n` },
+  },
+  {
+    id: "ktx2-transcoder-version",
+    fire: { "a.js": `${T}import { KTX2Loader } from 'three/addons/loaders/KTX2Loader.js';\nconst ktx2 = new KTX2Loader().setTranscoderPath('https://cdn.jsdelivr.net/npm/three@0.150.0/examples/jsm/libs/basis/').detectSupport(renderer);\n` },
+    quiet: { "a.js": `${T}import { KTX2Loader } from 'three/addons/loaders/KTX2Loader.js';\nconst ktx2 = new KTX2Loader().setTranscoderPath('https://cdn.jsdelivr.net/npm/three@${THREE_VERSION}/examples/jsm/libs/basis/').detectSupport(renderer);\nconst local = new KTX2Loader().setTranscoderPath('/basis/');\n` },
   },
   {
     id: "file-loader-no-return",

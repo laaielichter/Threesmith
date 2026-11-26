@@ -18,7 +18,8 @@ and look at the page before you say it works.
    `only_new: true`, and in TypeScript `three_types`. Fix errors first; `three_fix` does the pure renames (dry run,
    then `write: true`; `three_undo` if needed). A verified false alarm goes to `three_feedback`.
 4. **Loading models or textures:** `three_assets`: every path must resolve with exact capitals, and Draco, meshopt or
-   KTX2 files need their decoder set up on the GLTFLoader. `three_model_inspect` says what a `.glb` needs.
+   KTX2 files need their decoder set up on the GLTFLoader: `three_decoders` (then `write: true`) wires them with the
+   installed three's decoder files. `three_model_inspect` says what a `.glb` needs.
 5. **Before saying it works:** `three_check` on the page (a folder with `index.html` or the dev server URL) and look at
    the screenshot. Black, empty or wrong: `three_inspect` says why per object.
 6. **Proving behaviour:** `three_play` with `steps`, `watch` and `expect`; keep a passing run with `three_scenario`

@@ -322,6 +322,44 @@ export const SCENE_RULES: Rule[] = [
     },
   },
   {
+    id: "decoder-setter-assigned",
+    category: "correctness",
+    severity: "error",
+    title: "setDRACOLoader / setKTX2Loader / setMeshoptDecoder assigned instead of called",
+    message: "`loader.setKTX2Loader = ktx2` replaces the method on that loader instead of calling it, so the GLTFLoader never gets the decoder and compressed models still fail.",
+    fix: "Call it: gltfLoader.setKTX2Loader( ktx2Loader ) (three_decoders write: true rewrites it).",
+    check(ctx, report) {
+      for (const f of ctx.three) {
+        for (const m of f.text.matchAll(/\.(setDRACOLoader|setKTX2Loader|setMeshoptDecoder)\s*=(?![=>])/g)) {
+          report(f, m.index ?? 0, { message: `\`.${m[1]} = ...\` replaces the method instead of calling it, so the GLTFLoader never gets the decoder and compressed models still fail.`, fix: `Call it: .${m[1]}( ... ) (three_decoders write: true rewrites it).` });
+        }
+      }
+    },
+  },
+  {
+    id: "ktx2-transcoder-version",
+    category: "correctness",
+    severity: "warn",
+    title: "KTX2 transcoder from a CDN of another three release",
+    message: "KTX2Loader's worker code calls into basis_transcoder.js, which changes between three releases: a transcoder from another release can fail to load or transcode.",
+    fix: "Use the transcoder of the installed three: copy node_modules/three/examples/jsm/libs/basis/ (three_decoders write: true does it), or pin the CDN path to the same version.",
+    check(ctx, report) {
+      const installed = ctx.install?.version;
+      if (!installed) return;
+      for (const f of ctx.three) {
+        for (const m of f.text.matchAll(/\.setTranscoderPath\s*\(\s*(['"`])(?:https?:)?\/\/(?:cdn\.jsdelivr\.net\/npm|unpkg\.com|esm\.sh)\/three(?:@([^/'"`]+))?\//g)) {
+          const found = m[2];
+          if (found === installed) continue;
+          report(f, m.index ?? 0, {
+            message: found && /^\d+\.\d+\.\d+$/.test(found)
+              ? `The KTX2 transcoder comes from three@${found}, but three ${installed} is installed: KTX2Loader's worker and basis_transcoder.js must be from the same release.`
+              : `The KTX2 transcoder comes from an unpinned three (${found ? `@${found}` : "no version"}) on a CDN: it moves to new releases on its own while the installed three ${installed} stays, so they stop matching.`,
+          });
+        }
+      }
+    },
+  },
+  {
     id: "file-loader-no-return",
     category: "api",
     severity: "error",
