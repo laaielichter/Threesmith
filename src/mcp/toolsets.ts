@@ -23,7 +23,7 @@ export const TOOLSETS = {
   ],
   run: ["three_check", "three_inspect", "three_play", "three_scenario", "three_perf", "three_leaks"],
   live: ["three_session", "three_page"],
-  build: ["three_assets", "three_decoders", "three_build"],
+  build: ["three_assets", "three_decoders", "three_gltf", "three_build"],
   model: ["three_model_brief", "three_model_identify", "three_model_spec", "three_model_build", "three_model_view", "three_model_lint", "three_model_inspect"],
 } as const satisfies Record<string, readonly string[]>;
 
@@ -59,7 +59,7 @@ export function enabledTools(list?: string | readonly string[]): Set<string> {
 /** Tools a read-only server leaves out: they always change project files. */
 export const WRITE_ONLY_TOOLS: readonly string[] = ["three_undo", "three_build"];
 
-const DRY_RUN_TOOLS = new Set(["three_fix", "three_migrate", "three_decoders"]);
+const DRY_RUN_TOOLS = new Set(["three_fix", "three_migrate", "three_decoders", "three_gltf"]);
 
 /** Why a read-only server refuses this call, or undefined when it may run. Dry runs still work. */
 export function readOnlyRefusal(tool: string, args: Record<string, unknown>): string | undefined {

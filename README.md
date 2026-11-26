@@ -104,9 +104,9 @@ the doctor, fix in its order) and `threesmith-<skill>` for each skill (`debug`, 
 - **Tool sets.** `--tools core` loads 15 tools; add `run`, `live`, `build`, `model` when you need them, or name single
   tools. A tool list the client pays for in every turn stays small. The server instructions only ever name tools
   that are loaded.
-- **Lean mode.** `--lean` offers two tools instead of 33: `three` runs any tool by name
+- **Lean mode.** `--lean` offers two tools instead of 34: `three` runs any tool by name
   (`{"tool": "review", "args": {"only_new": true}}`) and `three_help` gives a tool's parameters when they are needed.
-  Same tools, same results, same read-only refusals; the tool list drops from about 14,700 to about 1,800 tokens
+  Same tools, same results, same read-only refusals; the tool list drops from about 15,200 to about 1,900 tokens
   (estimated at 4 characters per token; `threesmith mcp --stats` prints the numbers for your options).
 - **Fix loops that cost less.** `three_review` with `only_new: true` shows new findings in full, the ones the agent
   already saw as one short line, and how many are fixed. `code` + `file` reviews code before it is saved.
@@ -118,7 +118,7 @@ the doctor, fix in its order) and `threesmith-<skill>` for each skill (`debug`, 
 - **It learns, locally.** A finding marked as a false alarm with `three_feedback` is hidden from then on; lessons kept
   with `three_lesson_add` come back under the same error. Only hashes, counters and scrubbed text, on this machine.
 
-## The 33 tools
+## The 34 tools
 
 <details open>
 <summary>All MCP tools (most are also CLI commands)</summary>
@@ -150,6 +150,7 @@ the doctor, fix in its order) and `threesmith-<skill>` for each skill (`debug`, 
 | live | `three_page` | Drive that page without reloading: eval JS against the live scene, steps, frames, until, screenshot, inspect, reload, new errors after every answer |
 | build | `three_assets` | Every asset path resolved like the dev server and a static host: missing files, wrong capitals, decoder folders, glTF decoders the code never sets up, huge textures, unused files |
 | build | `three_decoders` | Wire Draco, KTX2 and meshopt with the decoder files of the installed three: which model needs which decoder, how the code points each loader at its files, served files checked by hash against the installed three, a CDN transcoder of another release; `write: true` copies the files to `public/` (or next to the page), adds the loader setup after `new GLTFLoader()` (or `useGLTF.setDecoderPath` for R3F) and pins CDN paths, as one undoable step |
+| build | `three_gltf` | `op: validate`: the Khronos glTF-Validator report of a `.glb`/`.gltf` (errors and warnings with their JSON pointer); `op: optimize`: gltf-transform dedup, prune and weld, optional Draco or meshopt compression and simplification, with the measured size and triangles before and after and the output validated; `write: true` saves it as one undoable step. Optional packages, see Limits |
 | build | `three_build` | Run the build, check the output (copies of three, missing assets, sub-path URLs, decoders) and open the built page headless |
 | model | `three_model_brief` | One page before you build a model: the nearest ready-made kind, parts, real size, rules, the order of tools |
 | model | `three_model_identify` | What a thing is (English or Dutch): parts, pivots, typical size, variants, usual mistakes |
@@ -161,7 +162,7 @@ the doctor, fix in its order) and `threesmith-<skill>` for each skill (`debug`, 
 
 </details>
 
-CLI: `threesmith doctor | scan | api | search | review | types | fix | rules | undo | lessons | assets | decoders | check |
+CLI: `threesmith doctor | scan | api | search | review | types | fix | rules | undo | lessons | assets | decoders | gltf | check |
 inspect | play | scenario | perf | leaks | build | model <inspect|needs|view|lint|identify|brief|spec|kinds|recipes|build>
 | explain | ci | hook | mcp`. `threesmith <command> --help` lists the options.
 
@@ -223,6 +224,11 @@ CI: `threesmith ci --check dist --junit junit.xml --sarif threesmith.sarif`. Com
 - Baselines should be made in the environment that checks them (CI), with the default tolerance.
 - The API lookup parses the JSDoc in `three/src`; it is tested on r187, older releases give thinner answers.
 - The review is heuristic; the asset check follows paths written as text, not paths built at run time.
+- **Optional packages for `three_gltf`**, loaded only when used (the answer says what to install when one is missing):
+  `gltf-validator` (Khronos glTF-Validator, Apache-2.0) for `validate`; `@gltf-transform/core`, `extensions` and
+  `functions` (MIT) for `optimize`, with `draco3dgltf` (Google Draco, Apache-2.0) for Draco and `meshoptimizer` (MIT)
+  for meshopt and simplification. Threesmith does not bundle them; their licences apply when you install them.
+  `optimize` leaves textures as they are (KTX2 needs KTX-Software's `toktx`, WebP and resizing need `sharp`).
 
 ## Benchmarks
 
