@@ -184,6 +184,12 @@ an older one; a rule whose replacement does not exist yet in your release stays 
 - **color** (8): colour textures without `colorSpace`, colour management off, EffectComposer without OutputPass or with
   double gamma, `envMapIntensity` that has no effect.
 
+An upgrade changes the look on purpose, too. `three_migrate` lists those changes for the releases you cross, measured
+on your code: colour management (r152), physical light units with starting values (r155), light decay 2 (r147), tone
+mapping lost in post-processing without an OutputPass (r155), brighter rough PBR materials with their roughness (r181),
+fill lights that reflect, with or without `scene.environment` (r188), and more. Take a `three_check` baseline before
+and compare after: these differences are expected.
+
 It reads text, not types (`three_types` adds the type checker for TypeScript). The rules are tested against three's
 own examples and addons for false alarms. If a finding is wrong: `three_feedback`, `--disable <rule>`, or
 `// threesmith-disable-next-line <rule>` (also `-disable-line`, `-disable-file`); an issue with the snippet is the most
