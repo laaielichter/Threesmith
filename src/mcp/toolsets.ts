@@ -14,6 +14,7 @@ export const TOOLSETS = {
     "three_fix",
     "three_impact",
     "three_migrate",
+    "three_tsl",
     "three_explain",
     "three_lessons",
     "three_lesson_add",

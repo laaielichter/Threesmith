@@ -16,10 +16,13 @@ Work on $ARGUMENTS (or the project).
    `render()` (setAnimationLoop does it), and every import from `three/webgpu` and `three/tsl` (one copy of the core).
 4. Port each shader from its draft: the draft is a module with `createMaterial( values )` that returns the node
    material and its uniforms. Read every `TODO` (control flow, custom functions, values that were not literal) and
-   finish those parts by hand, with `three_api` for every node name you are not sure of.
+   finish those parts by hand, with `three_api` for every node name you are not sure of. In TSL, maths and branches
+   are node methods: `a.mul(b)`, not `a * b`; `If(cond, ...)` and `select(cond, a, b)`, not `if` or `?:`; `assign()`
+   only inside a `Fn()`. `three_tsl` (outline) lists what is still written the JavaScript way.
 5. Replace `EffectComposer` with `RenderPipeline` (`PostProcessing` before r183) and the TSL passes the readiness
    list names (`pass( scene, camera )`, `bloom()`, ...). No OutputPass: the pipeline does tone mapping and colour space.
-6. `three_review` with `only_new: true` after each file: `webgpu-glsl-material` must be gone.
+6. `three_review` with `only_new: true` after each file: `webgpu-glsl-material` must be gone. When a node material
+   looks wrong, `three_tsl` op graph shows the node graph it really has, and op shader the code three generated.
 7. `three_check` with `webgpu: true` and the baseline: the `backend` line must say WebGPU (on a machine with an
    adapter; `threesmith doctor --env` says whether this one has one), and also check it on the WebGL 2 fallback.
 8. WebGPURenderer and TSL still change from release to release: before a three bump, `three_compare` with

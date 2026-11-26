@@ -1,3 +1,4 @@
+import { formatOutline, live, outline } from "./tsl/tsl.js";
 import { formatLook, look } from "./check/look.js";
 import { formatImpact, impact } from "./impact/impact.js";
 import { applyDream, apiHintFor, dream, formatApply, formatDream, markDreamed } from "./dream/dream.js";
@@ -923,6 +924,33 @@ export function buildProgram(): Command {
       if (dir) o.path = dir;
       const r = impact(projectRootOf(o.path), { ...(o.base ? { base: o.base } : {}), ...(o.files ? { files: o.files.split(",").map((f) => f.trim()).filter(Boolean) } : {}) });
       out(o.json ? JSON.stringify(r, null, 2) : formatImpact(r, o.full ? "full" : "brief"));
+    });
+
+  program
+    .command("tsl")
+    .description("TSL: the Fn, uniforms and node slots in the files with the TSL findings (outline), the node graph in the page (graph), or the shader three generated (shader)")
+    .argument("[op]", "outline | graph | shader", "outline")
+    .option("-p, --path <dir>", "project directory (outline)", ".")
+    .option("--target <dir|url>", "page folder or dev server URL (graph, shader)")
+    .option("--entry <file>", "HTML file inside the folder", "index.html")
+    .option("--object <name>", "object or material name")
+    .option("--find <text>", "shader: only the lines with this text")
+    .option("--stage <stage>", "shader: vertex | fragment | both", "fragment")
+    .option("--wait <ms>", "let the scene run this long", "1500")
+    .option("--full", "everything (outline)")
+    .action(async (op: string, o: { path: string; target?: string; entry: string; object?: string; find?: string; stage: string; wait: string; full?: boolean }) => {
+      if (op === "outline") {
+        const r = outline(projectRootOf(o.path));
+        out(formatOutline(r, o.full ? "full" : "brief"));
+        if (r.findings.some((f) => f.severity === "error")) process.exitCode = 1;
+        return;
+      }
+      if (op !== "graph" && op !== "shader") throw new Error(`op must be outline, graph or shader (got "${op}")`);
+      if (!o.target) throw new Error(`tsl ${op} needs --target (a page folder or a dev server URL)`);
+      if (!["vertex", "fragment", "both"].includes(o.stage)) throw new Error(`--stage must be vertex, fragment or both (got "${o.stage}")`);
+      const r = await live(op, { target: o.target, entry: o.entry, wait: positiveInt("--wait", o.wait), stage: o.stage as "vertex", ...(o.object ? { object: o.object } : {}), ...(o.find ? { find: o.find } : {}) });
+      out(r.text);
+      if (!r.ok) process.exitCode = 1;
     });
 
   program

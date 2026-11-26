@@ -91,6 +91,14 @@ describe("explain", () => {
       // three r187 (Renderer.js).
       ['Error: THREE.Renderer: .render() called before the backend is initialized. Use "await renderer.init();" before rendering.', "webgpu-init"],
       ['THREE.Renderer: "renderAsync()" has been deprecated. Use "render()" and "await renderer.init();" when creating the renderer.', "webgpu-init"],
+      // three r187 TSL (TSLCore.js, FunctionCallNode.js, ConditionalNode.js, MathNode.js, TextureNode.js, Normal.js).
+      ["THREE.TSL: No stack defined for assign operation. Make sure the assign is inside a Fn().", "tsl-assign-outside-fn"],
+      ["THREE.TSL: The number of provided parameters exceeds the expected number of inputs in 'Fn()'.", "tsl-fn-arguments"],
+      ["THREE.TSL: Input 'uvScale' not found in 'Fn()'.", "tsl-fn-arguments"],
+      ["THREE.TSL: Return statement used in an inline 'Fn()'. Define a layout struct to allow return values.", "tsl-inline-return"],
+      ["THREE.TSL: 'dFdx' is not supported in the vertex stage.", "tsl-wrong-stage"],
+      ["THREE.TSL: `texture( value )` function expects a valid instance of THREE.Texture().", "tsl-texture-not-texture"],
+      ['THREE.TSL: Vertex attribute "normal" not found on geometry.', "tsl-no-normal"],
     ];
     for (const [msg, id] of chromium) expect(ids(msg), msg).toContain(id);
     // Firefox formats, from the SpiderMonkey source (ErrorNumbers.msg, JSONParser.cpp): not reproduced here.

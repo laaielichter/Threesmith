@@ -5,6 +5,7 @@ import { blockAt } from "./source.js";
 import { buildExports, each, inLoops, legacy, loopBodies, ns } from "./parse.js";
 import { SCENE_RULES } from "./scene-rules.js";
 import { SHADER_RULES } from "./shader-rules.js";
+import { TSL_RULES } from "./tsl-rules.js";
 import type { SourceFile } from "./source.js";
 import type { Ctx, Report, Rule } from "./types.js";
 
@@ -409,6 +410,7 @@ export const RULES: Rule[] = [
   },
   ...SHADER_RULES,
   ...SCENE_RULES,
+  ...TSL_RULES,
 ];
 
 function addonFileExists(root: string, rel: string): boolean {
