@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { join, relative, resolve, sep } from "node:path";
 import type { Browser, CDPSession, Page } from "playwright-core";
 import { findChromium, loadPlaywright, WEBGL_ARGS, WEBGPU_ARGS } from "./browser.js";
@@ -8,6 +9,7 @@ import type { ApiIndex } from "../api/index-builder.js";
 import { explain, parseShaderErrors } from "../explain/explain.js";
 import { locateCode } from "../explain/locate.js";
 import type { Issue } from "./check.js";
+import { swapPath } from "../compare/releases.js";
 
 /** How to open a page: the options check, play, perf and leaks share. */
 export interface PageOptions {
@@ -33,6 +35,8 @@ export interface PageOptions {
   device?: { deviceScaleFactor?: number; isMobile?: boolean; hasTouch?: boolean; cpuThrottle?: number };
   /** More init scripts, after the ones the tool installs. */
   extraInit?: string[];
+  /** Serve this three package (a folder with build/) for every three file the page loads (three_compare; see swapPath). */
+  swapThree?: string;
 }
 
 export interface OpenedPage {
@@ -48,6 +52,8 @@ export interface OpenedPage {
   issues: Issue[];
   /** False when the page could not be opened (a load-failed issue says why). */
   loaded: boolean;
+  /** With swapThree: the paths inside the package that were served instead of the page's own three files. */
+  swapped: string[];
   /** A Chrome DevTools Protocol session on the page (garbage collection, heap size). */
   cdp(): Promise<CDPSession>;
   close(): Promise<void>;
@@ -146,6 +152,7 @@ export async function openPage(opts: PageOptions & { init?: string[] }): Promise
     stateDir: resolve(opts.stateDir ?? join(folder, ".threesmith")),
     issues,
     loaded: false,
+    swapped: [],
     cdp: async () => (session ??= await page.context().newCDPSession(page)),
     close: async () => {
       await browser.close();
@@ -158,6 +165,24 @@ export async function openPage(opts: PageOptions & { init?: string[] }): Promise
     } catch {
       issues.push({ kind: "console-warn", severity: "warn", message: "CPU throttling is not available in this browser (no Chrome DevTools Protocol): frame times are not slowed down." });
     }
+  }
+  if (opts.swapThree) {
+    const pkg = resolve(opts.swapThree);
+    await page.route(
+      (u) => swapPath(u.href) !== undefined,
+      async (route) => {
+        const rel = swapPath(route.request().url())!;
+        let body: Buffer | undefined;
+        try {
+          body = readFileSync(join(pkg, ...rel.split("/")));
+        } catch {
+          body = undefined;
+        }
+        if (!opened.swapped.includes(rel)) opened.swapped.push(rel);
+        if (!body) return route.fulfill({ status: 404, body: `not in this three release: ${rel}` });
+        return route.fulfill({ status: 200, body, headers: { "content-type": /\.json$/.test(rel) ? "application/json" : rel.endsWith(".wasm") ? "application/wasm" : "text/javascript; charset=utf-8", "cache-control": "no-store", "access-control-allow-origin": "*" } });
+      },
+    );
   }
   try {
     await page.goto(url, { waitUntil: "load", timeout: 30_000 });
