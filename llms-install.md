@@ -44,7 +44,9 @@ Start with `three_doctor` in a project you do not know: it says what is wrong an
 - `--tier cheap` (default): short output and step-by-step instructions. `--tier premium`: full detail for large models.
 - `--tools core,run`: load only some tool sets (`core`, `run`, `live`, `build`, `model`, `all`) or single tools.
 - `--read-only`: leave out the tools that always write and refuse write options (dry runs still work).
-- Environment: `THREESMITH_PROJECT`, `THREESMITH_TIER`, `THREESMITH_TOOLS`, `THREESMITH_READ_ONLY=1`,
+- `--lean`: two tools instead of all: `three` runs any tool by name, `three_help` gives its parameters. For clients
+  with a tool limit or a small context. `threesmith mcp --stats` prints what the tool list costs, full and lean.
+- Environment: `THREESMITH_PROJECT`, `THREESMITH_TIER`, `THREESMITH_TOOLS`, `THREESMITH_READ_ONLY=1`, `THREESMITH_LEAN=1`,
   `THREESMITH_PROTECT` (folders no write may touch), `THREESMITH_LEARN=0` (no local learning).
 - CLI output is plain ASCII on Windows when it is piped (PowerShell would garble UTF-8 symbols); `THREESMITH_ASCII=1`
   forces that everywhere, `THREESMITH_ASCII=0` keeps the symbols.

@@ -1,6 +1,7 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { ALL_TOOLS } from "../src/mcp/toolsets.js";
+import { LEAN_TOOLS } from "../src/mcp/lean.js";
 import { HOOK_EVENTS } from "../src/hooks/hooks.js";
 
 const plugin = (dir: string): string[] => readdirSync(`plugins/threesmith/${dir}`).filter((f) => !f.startsWith("."));
@@ -39,7 +40,7 @@ describe("manifests", () => {
     for (const t of ALL_TOOLS) expect(readme, t).toContain(`\`${t}\``);
     const docs = ["README.md", "llms-install.md", "docs/llms.txt", "plugins/threesmith/README.md", ...plugin("skills").map((d) => `plugins/threesmith/skills/${d}/SKILL.md`), ...plugin("agents").map((f) => `plugins/threesmith/agents/${f}`)];
     for (const f of docs) {
-      for (const m of readFileSync(f, "utf8").matchAll(/\bthree_[a-z_]+[a-z]\b/g)) expect(ALL_TOOLS, `${f} names ${m[0]}`).toContain(m[0]);
+      for (const m of readFileSync(f, "utf8").matchAll(/\bthree_[a-z_]+[a-z]\b/g)) expect([...ALL_TOOLS, ...LEAN_TOOLS], `${f} names ${m[0]}`).toContain(m[0]);
     }
   });
   it("gives every skill and agent valid front matter", () => {

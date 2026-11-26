@@ -100,6 +100,10 @@ project. The browser tools need `playwright-core` and a Chromium (`npx playwrigh
 - **Tool sets.** `--tools core` loads 14 tools; add `run`, `live`, `build`, `model` when you need them, or name single
   tools. A tool list the client pays for in every turn stays small. The server instructions only ever name tools
   that are loaded.
+- **Lean mode.** `--lean` offers two tools instead of 31: `three` runs any tool by name
+  (`{"tool": "review", "args": {"only_new": true}}`) and `three_help` gives a tool's parameters when they are needed.
+  Same tools, same results, same read-only refusals; the tool list drops from about 13,300 to about 1,600 tokens
+  (estimated at 4 characters per token; `threesmith mcp --stats` prints the numbers for your options).
 - **Fix loops that cost less.** `three_review` with `only_new: true` shows new findings in full, the ones the agent
   already saw as one short line, and how many are fixed. `code` + `file` reviews code before it is saved.
 - **Structured results.** Review, check and doctor return `structuredContent` with an output schema next to the text.
