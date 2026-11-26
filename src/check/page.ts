@@ -29,6 +29,10 @@ export interface PageOptions {
   seed?: number;
   /** Deterministic clock: milliseconds per frame (default 1000/60 when seed is set). */
   fixedDt?: number;
+  /** Device emulation (three_device): pixel ratio, mobile viewport, touch, and CPU slow-down through CDP. */
+  device?: { deviceScaleFactor?: number; isMobile?: boolean; hasTouch?: boolean; cpuThrottle?: number };
+  /** More init scripts, after the ones the tool installs. */
+  extraInit?: string[];
 }
 
 export interface OpenedPage {
@@ -77,13 +81,14 @@ export async function openPage(opts: PageOptions & { init?: string[] }): Promise
     throw e;
   }
   const url = isUrl ? opts.target : `${server?.url}/${entryPath}`;
-  const page = await browser.newPage({ viewport: { width: opts.width ?? 800, height: opts.height ?? 600 }, deviceScaleFactor: 1 });
+  const d = opts.device;
+  const page = await browser.newPage({ viewport: { width: opts.width ?? 800, height: opts.height ?? 600 }, deviceScaleFactor: d?.deviceScaleFactor ?? 1, ...(d?.isMobile ? { isMobile: true } : {}), ...(d?.hasTouch ? { hasTouch: true } : {}) });
   // The clock goes first, so the frame counters of the other init scripts count its frames.
   if (clock) {
     await page.addInitScript(clockInit(clock));
     markVirtual(page, clock.fixedDt);
   }
-  for (const script of opts.init ?? []) await page.addInitScript(script);
+  for (const script of [...(opts.init ?? []), ...(opts.extraInit ?? [])]) await page.addInitScript(script);
   let index: ApiIndex | undefined;
   try {
     index = isUrl ? undefined : indexFor(folder);
@@ -124,7 +129,8 @@ export async function openPage(opts: PageOptions & { init?: string[] }): Promise
     // Chromium reports a fetch whose body was read through a stream reader (three's FileLoader) as ERR_ABORTED at
     // the end, although the whole response arrived: only a request without a good response failed.
     if (why !== "net::ERR_ABORTED") return void push();
-    void r.response().then((res) => (res && res.status() < 400 ? undefined : push()), push);
+    // a response of 400 or more is already reported by the "response" handler
+    void r.response().then((res) => (res ? undefined : push()), push);
   });
   page.on("response", (r) => {
     if (r.status() >= 400 && !skip(r.url())) issues.push({ kind: "request-failed", severity: "error", message: `${r.url()} -> HTTP ${r.status()}` });
@@ -146,6 +152,13 @@ export async function openPage(opts: PageOptions & { init?: string[] }): Promise
       await server?.close();
     },
   };
+  if (d?.cpuThrottle && d.cpuThrottle > 1) {
+    try {
+      await (await opened.cdp()).send("Emulation.setCPUThrottlingRate", { rate: d.cpuThrottle });
+    } catch {
+      issues.push({ kind: "console-warn", severity: "warn", message: "CPU throttling is not available in this browser (no Chrome DevTools Protocol): frame times are not slowed down." });
+    }
+  }
   try {
     await page.goto(url, { waitUntil: "load", timeout: 30_000 });
     opened.loaded = true;

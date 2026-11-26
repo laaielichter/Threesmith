@@ -104,9 +104,9 @@ the doctor, fix in its order) and `threesmith-<skill>` for each skill (`debug`, 
 - **Tool sets.** `--tools core` loads 15 tools; add `run`, `live`, `build`, `model` when you need them, or name single
   tools. A tool list the client pays for in every turn stays small. The server instructions only ever name tools
   that are loaded.
-- **Lean mode.** `--lean` offers two tools instead of 34: `three` runs any tool by name
+- **Lean mode.** `--lean` offers two tools instead of 35: `three` runs any tool by name
   (`{"tool": "review", "args": {"only_new": true}}`) and `three_help` gives a tool's parameters when they are needed.
-  Same tools, same results, same read-only refusals; the tool list drops from about 15,200 to about 1,900 tokens
+  Same tools, same results, same read-only refusals; the tool list drops from about 15,700 to about 1,900 tokens
   (estimated at 4 characters per token; `threesmith mcp --stats` prints the numbers for your options).
 - **Fix loops that cost less.** `three_review` with `only_new: true` shows new findings in full, the ones the agent
   already saw as one short line, and how many are fixed. `code` + `file` reviews code before it is saved.
@@ -118,7 +118,7 @@ the doctor, fix in its order) and `threesmith-<skill>` for each skill (`debug`, 
 - **It learns, locally.** A finding marked as a false alarm with `three_feedback` is hidden from then on; lessons kept
   with `three_lesson_add` come back under the same error. Only hashes, counters and scrubbed text, on this machine.
 
-## The 34 tools
+## The 35 tools
 
 <details open>
 <summary>All MCP tools (most are also CLI commands)</summary>
@@ -145,6 +145,7 @@ the doctor, fix in its order) and `threesmith-<skill>` for each skill (`debug`, 
 | run | `three_play` | Steps (click, press, hold, drag, wheel, frames, eval, until), watched values per frame and step, claims judged at the end, any moment or every frame; `seed` (+ `fixed_dt`) pauses the clock and seeds `Math.random`, so every run gives the same frames, values and pixels (also on `three_check` and scenarios) |
 | run | `three_scenario` | Keep a passing play run as a regression test in `.threesmith/scenarios/`; `ci` runs them and writes JUnit |
 | run | `three_perf` | Draw calls, triangles, programs, geometries, textures (exact) and frame-time percentiles with the slowest frames and their cause, against a budget and the last run |
+| run | `three_device` | The page as on a phone, tablet or low-end laptop (or your own `.json` profile): its pixel ratio, touch and a CPU slow-down, with the WebGL texture and renderbuffer limits clamped; textures uploaded over the limit, textures three had to resize, texture memory against the profile budget, an uncapped pixel ratio, no viewport meta, and frame times. Profiles are presets to test against, not real devices |
 | run | `three_leaks` | Repeat a cycle of steps with garbage collection and report what grows per cycle, down to the GPU resources never disposed, by type |
 | live | `three_session` | Keep a headless page open between calls (start, status, stop) |
 | live | `three_page` | Drive that page without reloading: eval JS against the live scene, steps, frames, until, screenshot, inspect, reload, new errors after every answer |
@@ -163,7 +164,7 @@ the doctor, fix in its order) and `threesmith-<skill>` for each skill (`debug`, 
 </details>
 
 CLI: `threesmith doctor | scan | api | search | review | types | fix | rules | undo | lessons | assets | decoders | gltf | check |
-inspect | play | scenario | perf | leaks | build | model <inspect|needs|view|lint|identify|brief|spec|kinds|recipes|build>
+inspect | play | scenario | perf | device | leaks | build | model <inspect|needs|view|lint|identify|brief|spec|kinds|recipes|build>
 | explain | ci | hook | mcp`. `threesmith <command> --help` lists the options.
 
 ### The review

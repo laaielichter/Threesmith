@@ -39,6 +39,7 @@ import { clockSettings } from "./check/clock.js";
 import { formatPlay, play, type PlayOptions } from "./check/play.js";
 import { formatJunit, formatScenarios, loadScenarios, runScenarios, saveScenario } from "./check/scenario.js";
 import { formatPerf, perf } from "./check/perf.js";
+import { device, formatDevice, PROFILES } from "./check/device.js";
 import { formatLeaks, leaks } from "./check/leaks.js";
 import { buildCheck, formatBuild } from "./check/build.js";
 import {
@@ -426,6 +427,23 @@ export function buildProgram(): Command {
       const budget = budgetFrom(o.budget);
       const r = await perf({ ...pageFrom(target, o as never), seconds: Number(o.seconds), ...(steps ? { steps } : {}), ...(budget ? { budget } : {}), ...(o.name ? { name: o.name } : {}), save: o.save });
       out(o.json ? JSON.stringify(r, null, 2) : formatPerf(r));
+      if (!r.ok) process.exitCode = 1;
+    });
+
+  pageOptions(
+    program
+      .command("device")
+      .description("Run the page as on a phone, tablet or low-end laptop: pixel ratio, CPU slow-down, clamped WebGL limits; textures over the limit, pixel ratio, texture memory, frame times")
+      .argument("<target>", "folder with the page, or an http(s) URL"),
+  )
+    .option("--profile <name>", `${Object.keys(PROFILES).join(", ")}, or a .json profile`, "phone")
+    .option("--seconds <n>", "how long to measure frames", "3")
+    .option("--budget <list>", "limits, e.g. frameMs=40,textureMb=128")
+    .option("--json", "JSON output")
+    .action(async (target: string, o: { profile: string; seconds: string; budget?: string; json?: boolean } & Record<string, string | boolean | undefined>) => {
+      const budget = budgetFrom(o.budget) as { frameMs?: number; textureMb?: number } | undefined;
+      const r = await device({ ...pageFrom(target, o as never), profile: o.profile, seconds: Number(o.seconds), ...(budget ? { budget } : {}) });
+      out(o.json ? JSON.stringify(r, null, 2) : formatDevice(r));
       if (!r.ok) process.exitCode = 1;
     });
 

@@ -35,6 +35,7 @@ import { parsePlaySteps } from "../check/steps.js";
 import { formatPlay, play, type PlayOptions } from "../check/play.js";
 import { formatScenarios, loadScenarios, runScenarios, saveScenario } from "../check/scenario.js";
 import { formatPerf, perf, type PerfBudget } from "../check/perf.js";
+import { device, formatDevice, PROFILES as DEVICE_PROFILES } from "../check/device.js";
 import { formatLeaks, leaks, type LeakBudget } from "../check/leaks.js";
 import { buildCheck, formatBuild } from "../check/build.js";
 import {
@@ -738,6 +739,36 @@ export function createServer(options: ServerOptions = {}): McpServer {
           ...(a.save === false || options.readOnly ? { save: false } : {}),
         });
         return text(formatPerf(r), !r.ok);
+      }),
+  );
+
+  tool(
+    "three_device",
+    {
+      title: "Run the page as on a phone or a low-end device",
+      description: `Open the page as on a device profile (${Object.keys(DEVICE_PROFILES).join(", ")}, or a .json file with your own): its viewport, pixel ratio, touch and a CPU slow-down, with the WebGL limits clamped to the profile (MAX_TEXTURE_SIZE, renderbuffer, viewport). Reports textures uploaded over the limit (black on such a device), textures three had to resize, texture memory against the profile budget, an uncapped pixel ratio (setPixelRatio(devicePixelRatio) at DPR 3), a page without a viewport meta, and frame and script times under the slow-down. Profiles are presets to test against, not real devices; frame times come from software rendering: compare runs on one machine. Read-only.`,
+      inputSchema: {
+        target: targetParam,
+        entry: z.string().optional(),
+        root: z.string().optional().describe("folder to serve when the page needs files above its own folder"),
+        ignore: z.array(z.string()).optional(),
+        profile: z.string().optional().describe(`${Object.keys(DEVICE_PROFILES).join(", ")} (default phone), or a .json profile (fields: width, height, deviceScaleFactor, isMobile, hasTouch, cpuThrottle, maxTextureSize, maxRenderbufferSize, textureMb, maxPixelRatio, extends)`),
+        wait: z.number().int().min(0).max(30000).optional(),
+        seconds: z.number().min(0.5).max(60).optional().describe("how long to measure frames (default 3)"),
+        budget: z.object({ frameMs: z.number().optional(), textureMb: z.number().optional() }).optional().describe("frameMs (p95 under the slow-down), textureMb (default: the profile's)"),
+      },
+      annotations: { ...READ, openWorldHint: true },
+    },
+    async (a) =>
+      guard(async () => {
+        const r = await device({
+          ...pageOpts(a),
+          ...(a.profile ? { profile: /\.json$/i.test(a.profile) ? where(a.profile) : a.profile } : {}),
+          ...(a.wait !== undefined ? { wait: a.wait } : {}),
+          ...(a.seconds ? { seconds: a.seconds } : {}),
+          ...(a.budget ? { budget: a.budget } : {}),
+        });
+        return text(formatDevice(r), !r.ok);
       }),
   );
 
