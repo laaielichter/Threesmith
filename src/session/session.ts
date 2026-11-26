@@ -1,3 +1,4 @@
+import { diffSnapshots, formatSceneDiff, formatTextures, SNAPSHOT_EVAL, TEXTURES_EVAL, type Snapshot, type TextureReport } from "../check/scene-state.js";
 import { annotateEval, formatLook, judge, lookEval, verdicts, type LookReport } from "../check/look.js";
 import { join, relative, resolve, sep } from "node:path";
 import { findChromium, loadPlaywright, WEBGL_ARGS, WEBGPU_ARGS } from "../check/browser.js";
@@ -64,6 +65,8 @@ interface Session {
   folder?: string;
   /** Attached to a browser that runs outside Threesmith: stop only disconnects. */
   attached?: boolean;
+  /** The scene as op diff saw it last. */
+  snapshot?: Snapshot;
 }
 
 const sessions = new Map<string, Session>();
@@ -288,6 +291,8 @@ export type PageOp =
   | { op: "screenshot" }
   | { op: "inspect"; maxNodes?: number }
   | { op: "look"; expect?: string[]; annotate?: boolean }
+  | { op: "textures" }
+  | { op: "diff" }
   | { op: "reload"; wait?: number }
   | { op: "errors" };
 
@@ -385,6 +390,19 @@ export async function pageOp(op: PageOp, name = "main"): Promise<PageAnswer> {
       image = await page.screenshot({ type: "png" });
       const b = blankness(decodePng(image));
       text = b.blank ? `screenshot: ${(b.dominant * 100).toFixed(1)}% one colour, nothing visible drawn` : `screenshot: ${(100 - b.dominant * 100).toFixed(1)}% of the picture is not the background colour`;
+      break;
+    }
+    case "textures": {
+      const r = JSON.parse(String(await page.evaluate(TEXTURES_EVAL))) as TextureReport;
+      text = formatTextures(r);
+      ok = !r.items.some((t) => t.problems.length);
+      break;
+    }
+    case "diff": {
+      const now = JSON.parse(String(await page.evaluate(SNAPSHOT_EVAL))) as Snapshot;
+      const before = s.snapshot;
+      s.snapshot = now;
+      text = before ? formatSceneDiff(diffSnapshots(before, now)) : `kept a snapshot of ${Object.keys(now).length} object(s); call op diff again after a change to see what was added, removed or changed`;
       break;
     }
     case "look": {

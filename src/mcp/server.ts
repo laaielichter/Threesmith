@@ -1319,9 +1319,9 @@ export function createServer(options: ServerOptions = {}): McpServer {
     {
       title: "Look at and drive the live page",
       description:
-        "Work with the page three_session started, without reloading it. op eval runs JS in the page and returns the value as compact JSON (vectors as [x,y,z], colours as hex, objects as type/name/position), with `scene`, `camera`, `renderer` (the last ones rendered), `$('name')` (getObjectByName), `$$('Type')` and `THREE` (when global) in scope; a single expression is returned, statements need `return`. op steps runs interactions (click, press, drag, wheel, wait, wait-for); op frames waits n animation frames; op until waits until a JS expression is true; op screenshot returns the picture; op inspect reads the scene graph and why objects are not visible; op look measures the frame as text (as three_look, with expect claims and annotate); op reload loads edited files (state starts over); op errors lists the errors so far. Every answer ends with the new console and page errors.",
+        "Work with the page three_session started, without reloading it. op eval runs JS in the page and returns the value as compact JSON (vectors as [x,y,z], colours as hex, objects as type/name/position), with `scene`, `camera`, `renderer` (the last ones rendered), `$('name')` (getObjectByName), `$$('Type')` and `THREE` (when global) in scope; a single expression is returned, statements need `return`. op steps runs interactions (click, press, drag, wheel, wait, wait-for); op frames waits n animation frames; op until waits until a JS expression is true; op screenshot returns the picture; op inspect reads the scene graph and why objects are not visible; op look measures the frame as text (as three_look, with expect claims and annotate); op textures lists every texture with its slot, size, colour space and GPU memory, and the mistakes (a colour map read as linear, a data map read as sRGB, too big); op diff compares the scene with the last op diff (added, removed, moved, hidden, new material); op reload loads edited files (state starts over); op errors lists the errors so far. Every answer ends with the new console and page errors.",
       inputSchema: {
-        op: z.enum(["eval", "steps", "frames", "until", "screenshot", "inspect", "look", "reload", "errors"]),
+        op: z.enum(["eval", "steps", "frames", "until", "screenshot", "inspect", "look", "textures", "diff", "reload", "errors"]),
         name: z.string().optional(),
         js: z.string().optional().describe("for eval and until, e.g. $('player').position or scene.children.length"),
         steps: stepSchema,
@@ -1344,6 +1344,7 @@ export function createServer(options: ServerOptions = {}): McpServer {
           op = { op: "steps", steps: parseSteps(JSON.stringify(a.steps)) };
         } else if (a.op === "frames") op = { op: "frames", n: a.n ?? 1 };
         else if (a.op === "inspect") op = { op: "inspect", ...(a.max_nodes ? { maxNodes: a.max_nodes } : {}) };
+        else if (a.op === "textures" || a.op === "diff") op = { op: a.op };
         else if (a.op === "look") op = { op: "look", ...(a.expect ? { expect: a.expect } : {}), ...(a.annotate ? { annotate: true } : {}) };
         else op = { op: a.op };
         const r = await pageOp(op, a.name ?? "main");
