@@ -81,7 +81,7 @@ brief of the project.
 
 | Client | How |
 | --- | --- |
-| **Claude Code** | `/plugin install threesmith@threesmith` after `/plugin marketplace add laaielichter/Threesmith` (MCP server, hooks incl. protected paths, 8 skills, 2 subagents, settings for tool sets and read-only) |
+| **Claude Code** | `/plugin install threesmith@threesmith` after `/plugin marketplace add laaielichter/Threesmith` (MCP server, hooks incl. protected paths, 9 skills, 3 subagents, settings for tool sets and read-only) |
 | **Claude Code, MCP only** | `claude mcp add threesmith -- npx -y threesmith mcp` |
 | **Codex** | `codex mcp add threesmith -- npx -y threesmith mcp --tier premium` |
 | **Cursor, VS Code** | the buttons at the top |
@@ -95,7 +95,7 @@ project. The browser tools need `playwright-core` and a Chromium (`npx playwrigh
 
 Clients without the plugin still get its workflows: the server offers the prompts `threesmith-doctor` (start with
 the doctor, fix in its order) and `threesmith-<skill>` for each skill (`debug`, `review`, `perf`, `ship`, `model`,
-`upgrade`, `learn`), and every skill as a resource (`threesmith://skills/<name>`, Markdown).
+`upgrade`, `webgpu`, `learn`), and every skill as a resource (`threesmith://skills/<name>`, Markdown).
 
 ### Made for agents: cheap calls, exact answers
 
@@ -106,7 +106,7 @@ the doctor, fix in its order) and `threesmith-<skill>` for each skill (`debug`, 
   that are loaded.
 - **Lean mode.** `--lean` offers two tools instead of 32: `three` runs any tool by name
   (`{"tool": "review", "args": {"only_new": true}}`) and `three_help` gives a tool's parameters when they are needed.
-  Same tools, same results, same read-only refusals; the tool list drops from about 14,100 to about 1,700 tokens
+  Same tools, same results, same read-only refusals; the tool list drops from about 14,200 to about 1,800 tokens
   (estimated at 4 characters per token; `threesmith mcp --stats` prints the numbers for your options).
 - **Fix loops that cost less.** `three_review` with `only_new: true` shows new findings in full, the ones the agent
   already saw as one short line, and how many are fixed. `code` + `file` reviews code before it is saved.
@@ -132,7 +132,7 @@ the doctor, fix in its order) and `threesmith-<skill>` for each skill (`debug`, 
 | core | `three_review` | Scored review (0-100) with 98 rules pinned to the installed release; `code` + `file` for unsaved code, `only_new` in a fix loop, `files` to focus |
 | core | `three_types` | The project's own `tsc --noEmit`, with each three.js type error answered from the installed release (the member that exists, the real import path) |
 | core | `three_fix` | The renames that mean exactly the same, dry run first, undoable |
-| core | `three_migrate` | Plan a three.js upgrade (r120 to r188): the breaking changes per release that apply to this code with file:line, a TO DO list with the replacement checked against the installed API, and what will look different; `write: true` makes the exact rewrites (the `three_fix` renames plus the migration's own) as one undoable step; `from` read from CDN URLs, package files or git history |
+| core | `three_migrate` | Plan a three.js upgrade (r120 to r188): the breaking changes per release that apply to this code with file:line, a TO DO list with the replacement checked against the installed API, and what will look different; `webgpu: true` adds a WebGPU readiness report with a TSL draft per `ShaderMaterial` and `onBeforeCompile`; `write: true` makes the exact rewrites (the `three_fix` renames plus the migration's own) as one undoable step; `from` read from CDN URLs, package files or git history |
 | core | `three_explain` | Cause and fix of a console, build or test message (35 kinds), with the right import path for the installed release |
 | core | `three_lessons` | 100 lessons from real three.js and react-three-fiber projects (symptom, cause, fix, test) by error message, words, rule or topic |
 | core | `three_lesson_add` | Keep a lesson learned here, scrubbed of names, paths and code; it comes back under the same error |

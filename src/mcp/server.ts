@@ -322,15 +322,16 @@ export function createServer(options: ServerOptions = {}): McpServer {
         from: z.string().optional().describe("release the code was written for, e.g. r150 (default auto)"),
         to: z.string().optional().describe("release to move to, e.g. r188 (default: the installed one)"),
         files: z.array(z.string()).optional().describe("only these files, relative to the project"),
+        webgpu: z.boolean().optional().describe("also the WebGPU readiness: blockers (GLSL materials, onBeforeCompile, EffectComposer, WebGL-only code), the steps, a score, and a TSL draft module per ShaderMaterial / onBeforeCompile"),
         write: z.boolean().optional().describe("make the exact rewrites (the three_fix renames and the migration's own) as one undoable step; default false shows the plan and what it would rewrite"),
         detail: detailParam,
         three: threeParam,
       },
       annotations: WRITES,
     },
-    async ({ path, from, to, files, write, detail, three }) =>
+    async ({ path, from, to, files, webgpu, write, detail, three }) =>
       guard(() => {
-        const w = migrateWrite({ path: where(path), ...(from ? { from } : {}), ...(to ? { to } : {}), ...(files ? { files } : {}), ...(three ? { three } : {}) });
+        const w = migrateWrite({ path: where(path), ...(from ? { from } : {}), ...(to ? { to } : {}), ...(files ? { files } : {}), ...(three ? { three } : {}), ...(webgpu ? { webgpu: true } : {}) });
         if (!write) return text(`${formatMigrate(w.plan, { detail: detail ?? profile.detail })}\n\n${formatMigrateWrite(w, false)}`);
         const id = w.total ? writeFiles(w.plan.root, "three_migrate", `migrate r${w.plan.from} -> r${w.plan.to}: ${w.total} rewrite(s)`, w.files.map((f) => ({ file: f.rootFile, data: f.data }))) : 0;
         return text(formatMigrateWrite(w, !!id, id || undefined));

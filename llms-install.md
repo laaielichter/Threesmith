@@ -42,7 +42,7 @@ Start with `three_doctor` in a project you do not know: it says what is wrong an
 ## Prompts and resources
 
 The server also offers MCP prompts: `threesmith-doctor` (optional `path` and `symptom`) and one `threesmith-<skill>`
-per plugin skill (`debug`, `review`, `perf`, `ship`, `model`, `upgrade`, `learn`; optional `arguments`). Every skill
+per plugin skill (`debug`, `review`, `perf`, `ship`, `model`, `upgrade`, `webgpu`, `learn`; optional `arguments`). Every skill
 is a resource too, at `threesmith://skills/<name>` (Markdown). Clients without the Claude Code plugin get the same
 workflows this way.
 

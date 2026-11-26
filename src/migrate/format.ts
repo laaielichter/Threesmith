@@ -1,4 +1,5 @@
 import type { MigratePlan } from "./migrate.js";
+import { formatReadiness } from "./webgpu.js";
 
 /** The plan as compact text: one line per change, the TO DO list with file:line, what will look different. */
 export function formatMigrate(p: MigratePlan, opts: { detail?: "brief" | "full" } = {}): string {
@@ -11,6 +12,7 @@ export function formatMigrate(p: MigratePlan, opts: { detail?: "brief" | "full" 
   if (p.from < p.data.min) out.push(`note: the migration data starts at r${p.data.min}; changes before it are not listed. Move in steps of about 10 releases.`);
   if (!changes) {
     out.push(`No change between r${p.from} and r${p.to} shows in this code (${p.filesScanned} file(s) scanned, ${p.notFound.length} change(s) checked).`);
+    if (p.webgpu) out.push(...formatReadiness(p.webgpu, { drafts: full ? Number.POSITIVE_INFINITY : 3 }));
     return out.join("\n");
   }
   const kinds = Object.entries(p.counts).filter(([, n]) => n).map(([k, n]) => `${k} ${n}`).join(", ");
@@ -45,5 +47,6 @@ export function formatMigrate(p: MigratePlan, opts: { detail?: "brief" | "full" 
     out.push("", "Sources:");
     for (const r of p.releases) for (const e of r.entries) out.push(`  [${e.id}] ${e.source}`);
   }
+  if (p.webgpu) out.push(...formatReadiness(p.webgpu, { drafts: full ? Number.POSITIVE_INFINITY : 3 }));
   return out.join("\n");
 }
