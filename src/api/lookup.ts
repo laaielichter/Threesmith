@@ -64,6 +64,8 @@ export function resolve(index: ApiIndex, name: string): Resolved | undefined {
 export interface LookupResult {
   found: boolean;
   text: string;
+  /** For a miss: the names the installed three suggested, best first. */
+  suggestions?: string[];
 }
 
 function importLine(e: ApiEntry): string {
@@ -93,6 +95,7 @@ export function lookup(index: ApiIndex, query: string, opts: { inherited?: boole
     return {
       found: false,
       text: `\`${clsName}\` is not exported by ${header}.${s.length ? ` Did you mean: ${s.map((x) => `\`${x}\``).join(", ")}?` : ""}`,
+      suggestions: s,
     };
   }
   const e = r.entry;
@@ -104,6 +107,7 @@ export function lookup(index: ApiIndex, query: string, opts: { inherited?: boole
       return {
         found: false,
         text: `\`${e.name}\` has no documented member \`${memberName}\` in ${header}.${near.length ? ` Did you mean: ${near.map((x) => `\`${x}\``).join(", ")}?` : ""}`,
+        suggestions: near.map((x) => `${e.name}.${x}`),
       };
     }
     const lines = [`# ${e.name}.${memberName} (${header})`, ""];

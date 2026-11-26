@@ -20,6 +20,7 @@ const CHEAP: string[] = [
   "When the code was written for an older three release, or the user wants to move to a newer one, call three_migrate first: the changes per release that apply to this code, the TO DO list and what will look different; write: true makes the exact rewrites (undoable). With webgpu: true it also lists what stops WebGPURenderer and writes a TSL draft per ShaderMaterial and onBeforeCompile.",
   "If a three_fix write made things worse, call three_undo.",
   "If you verified that a review finding is a false alarm, pass it to three_feedback with verdict wrong.",
+  "When the session start says a dream is due, or the user asks what was learned, call three_dream, show the proposals and apply only the numbers the user approves.",
   "When a model is Draco, KTX2 or meshopt compressed (or a decoder 404s), call three_decoders: write: true copies the installed three's decoder files and sets them up on the GLTFLoader.",
   "When a model from elsewhere misbehaves, call three_gltf op validate; to make a model smaller, three_gltf op optimize| (then three_decoders for the decoder it adds).",
   "Before you load a model or texture, call three_assets (or read the assets part of three_scan): a wrong path is a 404 that GLTFLoader reports as a parse error.",
@@ -58,6 +59,7 @@ const PREMIUM: string[] = [
   "- three_device runs the page as on a phone, tablet or low-end laptop (pixel ratio, touch, CPU slow-down, WebGL limits clamped): textures over the limit or resized, texture memory, an uncapped pixel ratio, a missing viewport meta, frame times.",
   "- three_build runs the project's build, checks the output (two copies of three, missing assets, absolute paths that break under a sub-path, case) and opens the built page headless.",
   "{three_model_brief three_model_identify three_model_spec three_model_build three_model_view three_model_lint three_model_inspect}- 3D models without Blender:| three_model_brief is one page before you build;| three_model_identify says what a thing is (parts, pivots, size);| three_model_spec explains the JSON spec;| three_model_build makes a clean .glb from a kind or a spec;| three_model_view draws a .glb as text views for agents that cannot see pictures;| three_model_lint scores a .glb (and checks it against what it should be);| three_model_inspect lists what is in a .glb and which three.js loaders and decoders it needs.",
+  "- three_dream looks back at what agents ran into on this machine (API names that were not there, messages nothing explained, misleading or duplicate lessons, noisy rules, undone writes) and proposes project hints and lesson changes with their evidence; apply only what the user approves.",
   "- three_undo undoes the last Threesmith writes, newest first; a file changed by hand since is left alone.",
   "Work in reviewed steps: look up the API, write, review (only_new), fix, then check the page before you finish.| When a fix was hard, keep the lesson (three_lesson_add).",
 ];
