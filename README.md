@@ -33,7 +33,8 @@ three.js ships a release almost every month and removes old APIs. Coding agents 
 `THREE.Geometry`, `outputEncoding`, `three/examples/js` and import paths that no longer exist, and they cannot see the
 canvas they draw on. Threesmith is the check between the agent and your project: the API of **the three version you
 have installed**, a scored review, the assets and decoders the code needs, the live scene in headless Chromium, and
-safe, undoable edits. Everything runs locally; nothing leaves the machine.
+safe, undoable edits. Everything runs locally; nothing leaves the machine (`three_compare` fetches another three
+release from npm, only when you ask for one).
 
 ## Without and with
 
@@ -47,6 +48,7 @@ safe, undoable edits. Everything runs locally; nothing leaves the machine.
 | gets a black screen | guesses: more light? move the camera? | `three_inspect` reads the live scene and says why each object is not visible |
 | fixes a bug | cannot show it was there, or that it is gone | `three_play` runs steps and judges claims frame by frame; `three_scenario` keeps it as a regression test |
 | makes it fast | changes things and hopes | `three_perf` counts draw calls, triangles and programs against a budget and the last run; `three_leaks` names what is never disposed |
+| upgrades three | merges the "bump three" PR blind | `three_compare` runs your page on both releases and says what changed (console, scene, draw calls, light per object), each change with the migration note that explains it |
 | ships it | builds once, deploys, sees a 404 | `three_build` builds, finds two copies of three, missing assets and sub-path URLs, then opens the built page |
 | needs a 3D model | needs Blender or a placeholder cube | `three_model_build` makes a clean `.glb` from one of 110 kinds, then shows it as text views and lints it |
 | does not know the project | reads twenty files | `three_scan` and `three_doctor` give the map and the order to fix things in one call |
@@ -104,9 +106,9 @@ the doctor, fix in its order) and `threesmith-<skill>` for each skill (`debug`, 
 - **Tool sets.** `--tools core` loads 15 tools; add `run`, `live`, `build`, `model` when you need them, or name single
   tools. A tool list the client pays for in every turn stays small. The server instructions only ever name tools
   that are loaded.
-- **Lean mode.** `--lean` offers two tools instead of 35: `three` runs any tool by name
+- **Lean mode.** `--lean` offers two tools instead of 36: `three` runs any tool by name
   (`{"tool": "review", "args": {"only_new": true}}`) and `three_help` gives a tool's parameters when they are needed.
-  Same tools, same results, same read-only refusals; the tool list drops from about 15,800 to about 1,900 tokens
+  Same tools, same results, same read-only refusals; the tool list drops from about 16,700 to about 2,000 tokens
   (estimated at 4 characters per token; `threesmith mcp --stats` prints the numbers for your options).
 - **Fix loops that cost less.** `three_review` with `only_new: true` shows new findings in full, the ones the agent
   already saw as one short line, and how many are fixed. `code` + `file` reviews code before it is saved.
@@ -118,7 +120,7 @@ the doctor, fix in its order) and `threesmith-<skill>` for each skill (`debug`, 
 - **It learns, locally.** A finding marked as a false alarm with `three_feedback` is hidden from then on; lessons kept
   with `three_lesson_add` come back under the same error. Only hashes, counters and scrubbed text, on this machine.
 
-## The 35 tools
+## The 36 tools
 
 <details open>
 <summary>All MCP tools (most are also CLI commands)</summary>
@@ -147,6 +149,7 @@ the doctor, fix in its order) and `threesmith-<skill>` for each skill (`debug`, 
 | run | `three_perf` | Draw calls, triangles, programs, geometries, textures (exact) and frame-time percentiles with the slowest frames and their cause, against a budget and the last run |
 | run | `three_device` | The page as on a phone, tablet or low-end laptop (or your own `.json` profile): its pixel ratio, touch and a CPU slow-down, with the WebGL texture and renderbuffer limits clamped; textures uploaded over the limit, textures three had to resize, texture memory against the profile budget, an uncapped pixel ratio, no viewport meta, and frame times; `lose_context: true` loses and restores the WebGL context and checks the scene comes back. Profiles are presets to test against, not real devices |
 | run | `three_leaks` | Repeat a cycle of steps with garbage collection and report what grows per cycle, down to the GPU resources never disposed, by type |
+| run | `three_compare` | The same page on two three.js releases (installed and `with`: `r186`, `next`, `previous`, `latest` or a folder; from npm into `$THREESMITH_HOME/three`, `node_modules` untouched), both with the deterministic clock, compared by meaning: new console errors and warnings, objects lost, hidden or resized, `renderer.info` deltas, changed pixels and the mean luminance per object on screen. Each change names the migration entry that explains it ("expected: r188 AmbientLight ... specular"); one with no entry is a probable regression. The page must load three through an import map, `node_modules/three`, a CDN `three@x` URL or a copied build file |
 | live | `three_session` | Keep a headless page open between calls (start, status, stop) |
 | live | `three_page` | Drive that page without reloading: eval JS against the live scene, steps, frames, until, screenshot, inspect, reload, new errors after every answer |
 | build | `three_assets` | Every asset path resolved like the dev server and a static host: missing files, wrong capitals, decoder folders, glTF decoders the code never sets up, huge textures, unused files |
@@ -164,7 +167,7 @@ the doctor, fix in its order) and `threesmith-<skill>` for each skill (`debug`, 
 </details>
 
 CLI: `threesmith doctor | scan | api | search | review | types | fix | rules | undo | lessons | assets | decoders | gltf | check |
-inspect | play | scenario | perf | device | leaks | build | model <inspect|needs|view|lint|identify|brief|spec|kinds|recipes|build>
+inspect | play | scenario | perf | device | leaks | compare | build | model <inspect|needs|view|lint|identify|brief|spec|kinds|recipes|build>
 | explain | ci | hook | mcp`. `threesmith <command> --help` lists the options.
 
 ### The review

@@ -1,27 +1,14 @@
-import { cpSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { cpSync, mkdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { findChromium } from "../src/check/browser.js";
 import { openRunPage } from "../src/check/play.js";
 import { fetchRelease, localRelease, obtainRelease, onePerRelease, publishedVersions, releasesHome, resolveVersion, swapPath, versionsBetween } from "../src/compare/releases.js";
 import { project, THREE_DIR } from "./helpers.js";
-import { gamePage } from "./run-helpers.js";
+import { fakeRelease, gamePage } from "./run-helpers.js";
 
 const have = !!findChromium();
 const VERSIONS = ["0.150.0", "0.150.1", "0.183.0", "0.183.2", "0.184.0", "0.185.0", "0.185.1", "0.186.0-dev", "0.186.0", "0.187.0"];
-
-/** A copy of the installed three with its REVISION changed: a stand-in for another release, no network needed. */
-export function fakeRelease(revision: string): string {
-  const dir = project({});
-  mkdirSync(join(dir, "build"), { recursive: true });
-  for (const f of ["three.module.js", "three.core.js"]) cpSync(join(THREE_DIR, "build", f), join(dir, "build", f));
-  const core = readFileSync(join(dir, "build", "three.core.js"), "utf8");
-  const patched = core.replace(/^const REVISION = '\d+';/m, `const REVISION = '${revision}';`);
-  if (patched === core) throw new Error("REVISION not found in three.core.js");
-  writeFileSync(join(dir, "build", "three.core.js"), patched);
-  writeFileSync(join(dir, "package.json"), JSON.stringify({ name: "three", version: `0.${revision}.0` }));
-  return dir;
-}
 
 describe("three releases", () => {
   it("resolves r186, exact versions, next, previous and latest from the published list", () => {

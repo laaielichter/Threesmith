@@ -24,4 +24,8 @@ Bring the project (or $ARGUMENTS) up to the installed three release.
 6. `three_review` with `only_new: true` after each file until no `api` errors are left; `three_types` in TypeScript.
 7. `three_check` on the page before and after; with a `baseline` from before the upgrade, the diff shows what changed
    on screen (colours and light levels usually do after r152 and r155: say so, do not hide it).
-8. End with the counts before and after, the hand-made changes, and what looks different now.
+8. Before moving the installed release, or to check a bump: `three_compare` with `with` set to the target (`next`, `r188`)
+   on the unchanged code. It runs the page on both releases with the deterministic clock and lists each change
+   (console, lost or moved objects, `renderer.info`, luminance per object) with the migration note that explains it;
+   a change with no note is a probable regression: report it, do not explain it away.
+9. End with the counts before and after, the hand-made changes, and what looks different now.

@@ -37,6 +37,7 @@ import { formatScenarios, loadScenarios, runScenarios, saveScenario } from "../c
 import { formatPerf, perf, type PerfBudget } from "../check/perf.js";
 import { device, formatDevice, PROFILES as DEVICE_PROFILES } from "../check/device.js";
 import { formatLeaks, leaks, type LeakBudget } from "../check/leaks.js";
+import { compare, formatCompare } from "../compare/compare.js";
 import { buildCheck, formatBuild } from "../check/build.js";
 import {
   EXAMPLE_SPEC,
@@ -771,6 +772,40 @@ export function createServer(options: ServerOptions = {}): McpServer {
           ...(a.lose_context ? { loseContext: true } : {}),
         });
         return text(formatDevice(r), !r.ok);
+      }),
+  );
+
+  tool(
+    "three_compare",
+    {
+      title: "Run the page on two three.js releases and compare",
+      description:
+        "Run the same page headless on two three.js releases (the installed one and `with`: r186, 0.186.1, next, previous, latest, or a folder with a three package; a release from npm is fetched once into $THREESMITH_HOME/three, nothing in node_modules changes) with the deterministic clock, and compare by meaning: new and gone console errors and warnings, objects lost, hidden or resized in the scene graph, renderer.info (calls, triangles, programs, textures), and the pixels with the mean luminance per object box on screen. Each change is annotated with the migration entry of the releases in between that explains it (\"expected: r188 AmbientLight ... specular\"), the ones this code uses first; a change no entry explains is flagged as a probable regression. Works when the page loads three through an import map, node_modules/three, a CDN three@x URL or a copied build file (not a bundled build).",
+      inputSchema: {
+        ...pageParams,
+        with: z.string().describe("the release to compare with: r186, 0.186.1, next, previous, latest, or a folder with a three package"),
+        base: z.string().optional().describe("the release of the first run (default installed)"),
+        wait: z.number().int().min(0).max(30000).optional().describe("ms (frames under the clock) before the capture, default 1500"),
+        steps: playStep,
+        seed: seedParam,
+        fixed_dt: dtParam,
+        tolerance: z.number().min(0).max(1).optional().describe("share of changed pixels that counts as a change (default 0.005)"),
+      },
+      annotations: { ...WRITES, openWorldHint: true },
+    },
+    async (a) =>
+      guard(async () => {
+        const r = await compare({
+          ...pageOpts(a),
+          with: /[\\/]/.test(a.with) ? where(a.with) : a.with,
+          ...(a.base ? { base: /[\\/]/.test(a.base) ? where(a.base) : a.base } : {}),
+          ...(a.wait !== undefined ? { wait: a.wait } : {}),
+          ...(a.steps ? { steps: parsePlaySteps(a.steps) } : {}),
+          ...(a.seed !== undefined ? { seed: a.seed } : {}),
+          ...(a.fixed_dt !== undefined ? { fixedDt: a.fixed_dt } : {}),
+          ...(a.tolerance !== undefined ? { tolerance: a.tolerance } : {}),
+        });
+        return text(formatCompare(r), !r.ok);
       }),
   );
 
