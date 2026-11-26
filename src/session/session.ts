@@ -30,6 +30,16 @@ export interface SessionOptions {
   webgpu?: boolean;
   /** Stop after this many ms without a call. Default 10 minutes. */
   idleMs?: number;
+  /**
+   * Attach to a browser that already runs (your own Chrome, with its real GPU, extensions and sign-ins) through its
+   * DevTools endpoint, such as http://127.0.0.1:9222, instead of starting a headless one. The tab whose URL contains
+   * `match` (default: the target) is reloaded once so Threesmith's hooks are in before three loads; without such a
+   * tab one is opened at the target.
+   */
+  cdp?: string;
+  match?: string;
+  /** The project folder of an attached page (for three_tune op save). */
+  project?: string;
 }
 
 interface LiveError {
@@ -52,6 +62,8 @@ interface Session {
   idleMs: number;
   /** The page's folder on disk (not for a dev server URL). */
   folder?: string;
+  /** Attached to a browser that runs outside Threesmith: stop only disconnects. */
+  attached?: boolean;
 }
 
 const sessions = new Map<string, Session>();
@@ -134,12 +146,17 @@ export interface StartResult {
   objects: number;
   errors: LiveError[];
   replaced: boolean;
+  /** Attached to a running browser (op start with cdp). */
+  attached?: boolean;
+  /** The attached tab was reloaded to install the hooks. */
+  reloaded?: boolean;
 }
 
 export async function startSession(opts: SessionOptions, name = "main"): Promise<StartResult> {
   const replaced = sessions.has(name);
   if (replaced) await stopSession(name);
   const pw = await loadPlaywright();
+  if (opts.cdp) return attachSession(pw, opts, name, replaced);
   const isUrl = /^https?:\/\//.test(opts.target);
   const folder = isUrl ? process.cwd() : resolve(opts.target);
   const serveRoot = opts.root ? resolve(opts.root) : folder;
@@ -149,7 +166,26 @@ export async function startSession(opts: SessionOptions, name = "main"): Promise
   const executablePath = findChromium();
   const browser = await pw.chromium.launch({ headless: true, ...(executablePath ? { executablePath } : {}), args: [...WEBGL_ARGS, ...(opts.webgpu ? WEBGPU_ARGS : [])] });
   const page = await browser.newPage({ viewport: { width: opts.width ?? 800, height: opts.height ?? 600 }, deviceScaleFactor: 1 });
-  const s: Session = { name, url, browser, page, ...(server ? { server } : {}), ...(isUrl ? {} : { folder }), errors: [], seen: 0, started: Date.now(), idleMs: opts.idleMs ?? 10 * 60_000 };
+  const s: Session = { name, url, browser, page, ...(server ? { server } : {}), ...(isUrl ? (opts.project ? { folder: resolve(opts.project) } : {}) : { folder }), errors: [], seen: 0, started: Date.now(), idleMs: opts.idleMs ?? 10 * 60_000 };
+  listen(s, page);
+  await page.addInitScript(INSPECT_INIT);
+  await page.addInitScript(RUN_INIT);
+  await page.addInitScript(HELPERS);
+  sessions.set(name, s);
+  try {
+    await page.goto(url, { waitUntil: "load", timeout: 30_000 });
+  } catch (e) {
+    await stopSession(name);
+    throw new Error(`Could not open ${url}: ${(e as Error).message.split("\n")[0]}`);
+  }
+  await page.waitForTimeout(opts.wait ?? 1500);
+  touch(s);
+  const info = await sceneInfo(page);
+  return { name, url, threeRevision: info.rev, canvases: info.canvases, frames: info.frames, objects: info.objects, errors: drain(s), replaced };
+}
+
+/** Collects page errors, console errors and three warnings, and failed requests of a live page. */
+function listen(s: Session, page: Page): void {
   const add = (kind: string, text: string) => {
     if (s.errors.length > 500) return;
     const ex = explain(text)[0];
@@ -164,25 +200,54 @@ export async function startSession(opts: SessionOptions, name = "main"): Promise
     if (r.status() >= 400) add("request-failed", `${r.url()} -> HTTP ${r.status()}`);
   });
   page.on("requestfailed", (r) => add("request-failed", `${r.url()} (${r.failure()?.errorText ?? "failed"})`));
-  await page.addInitScript(INSPECT_INIT);
-  await page.addInitScript(RUN_INIT);
-  await page.addInitScript(HELPERS);
+}
+
+const sceneInfo = async (page: Page) =>
+  (await page.evaluate(`(() => { const ts = window.__threesmith; let n = 0; if (ts && ts.scene) ts.scene.traverse(() => n++); return { rev: window.__THREE__ || null, canvases: document.querySelectorAll('canvas').length, frames: (window.__tsScene && window.__tsScene.renders) || 0, objects: n }; })()`)) as { rev: string | null; canvases: number; frames: number; objects: number };
+
+/** Attach to a running browser over CDP: find (or open) the tab, install the hooks, reload once. */
+async function attachSession(pw: Awaited<ReturnType<typeof loadPlaywright>>, opts: SessionOptions, name: string, replaced: boolean): Promise<StartResult> {
+  let browser: Browser;
+  try {
+    browser = (await pw.chromium.connectOverCDP(opts.cdp!, { timeout: 10_000 })) as unknown as Browser;
+  } catch (e) {
+    throw new Error(
+      `Could not reach a browser at ${opts.cdp}: ${(e as Error).message.split("\n")[0]}. Start Chrome with remote debugging, e.g. chrome --remote-debugging-port=9222 --user-data-dir=<a separate profile folder> (Chrome 136 and later refuse remote debugging on the default profile), then pass cdp: "http://127.0.0.1:9222".`,
+    );
+  }
+  const ctx = (browser as unknown as { contexts(): Array<{ pages(): Page[]; newPage(): Promise<Page>; addInitScript(s: string): Promise<void> }> }).contexts()[0];
+  if (!ctx) {
+    await browser.close().catch(() => undefined);
+    throw new Error(`The browser at ${opts.cdp} has no window to attach to.`);
+  }
+  await ctx.addInitScript(INSPECT_INIT);
+  await ctx.addInitScript(RUN_INIT);
+  await ctx.addInitScript(HELPERS);
+  const match = opts.match ?? opts.target;
+  let page = ctx.pages().find((p) => p.url().includes(match));
+  const opened = !page;
+  if (!page) {
+    if (!/^https?:\/\//.test(opts.target)) {
+      await browser.close().catch(() => undefined);
+      throw new Error(`No tab in that browser has "${match}" in its URL; pass match (part of the tab's URL) or target as the page URL to open.`);
+    }
+    page = await ctx.newPage();
+  }
+  const s: Session = { name, url: opts.target, browser, page, attached: true, ...(opts.project ? { folder: resolve(opts.project) } : {}), errors: [], seen: 0, started: Date.now(), idleMs: opts.idleMs ?? 30 * 60_000 };
+  listen(s, page);
   sessions.set(name, s);
   try {
-    await page.goto(url, { waitUntil: "load", timeout: 30_000 });
+    if (opened) await page.goto(opts.target, { waitUntil: "load", timeout: 30_000 });
+    else await page.reload({ waitUntil: "load", timeout: 30_000 });
   } catch (e) {
     await stopSession(name);
-    throw new Error(`Could not open ${url}: ${(e as Error).message.split("\n")[0]}`);
+    throw new Error(`Could not load ${opts.target}: ${(e as Error).message.split("\n")[0]}`);
   }
+  s.url = page.url();
   await page.waitForTimeout(opts.wait ?? 1500);
   touch(s);
-  const info = (await page.evaluate(`(() => { const ts = window.__threesmith; let n = 0; if (ts.scene) ts.scene.traverse(() => n++); return { rev: window.__THREE__ || null, canvases: document.querySelectorAll('canvas').length, frames: (window.__tsScene && window.__tsScene.renders) || 0, objects: n }; })()`)) as {
-    rev: string | null;
-    canvases: number;
-    frames: number;
-    objects: number;
-  };
-  return { name, url, threeRevision: info.rev, canvases: info.canvases, frames: info.frames, objects: info.objects, errors: drain(s), replaced };
+  const info = await sceneInfo(page);
+  return { name, url: s.url, threeRevision: info.rev, canvases: info.canvases, frames: info.frames, objects: info.objects, errors: drain(s), replaced, attached: true, reloaded: !opened };
 }
 
 export async function stopSession(name = "main"): Promise<boolean> {
@@ -199,8 +264,8 @@ export async function stopAll(): Promise<void> {
   await Promise.all([...sessions.keys()].map((n) => stopSession(n)));
 }
 
-export function listSessions(): { name: string; url: string; minutes: number }[] {
-  return [...sessions.values()].map((s) => ({ name: s.name, url: s.url, minutes: Math.round((Date.now() - s.started) / 60000) }));
+export function listSessions(): { name: string; url: string; minutes: number; attached: boolean }[] {
+  return [...sessions.values()].map((s) => ({ name: s.name, url: s.url, minutes: Math.round((Date.now() - s.started) / 60000), attached: s.attached === true }));
 }
 
 /** The folder of a live page (undefined for a dev server URL), or throws when there is no such page. */

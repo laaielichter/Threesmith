@@ -9,7 +9,9 @@ argument-hint: "[what should look different, optional]"
 Guessing numbers in an edit-reload loop is slow and every reload loses the state. Tune in a live page instead, and
 write the values into the code once they are right.
 
-1. **Start the page once:** `three_session` op start with the page folder or the dev server URL.
+1. **Start the page once:** `three_session` op start with the page folder or the dev server URL. To tune on the
+   real GPU (the user's own Chrome, started with `--remote-debugging-port=9222` and its own `--user-data-dir`), pass
+   `cdp: "http://127.0.0.1:9222"` and `match` with part of the tab's URL; `project` names the folder to save into.
 2. **Measure first:** `three_look` (or `three_page` op look): how dark the frame is, what is in view, how much of the
    frame each object shows, what is cut or hidden. Say in one sentence what should change ($ARGUMENTS or the user's
    words) in those numbers ("the frame is near black: mean luma 12/255").

@@ -59,4 +59,5 @@ Next:
 - [ ] Action input `compare: next`: a `three_compare` receipt on every three bump pull request.
 - [ ] Run the benchmark with real agents (N >= 10 per arm) and publish outputs and results.
 - [ ] More rules from the migration guide as three releases (each verified in the source).
+- [x] Attach to the user's own Chrome (`three_session` with `cdp`): the real GPU and state, every live tool on it.
 - [ ] Best-effort WebGPU runs on runners with a usable adapter; GPU-based baselines.
