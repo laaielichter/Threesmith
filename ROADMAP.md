@@ -50,6 +50,8 @@ Done since (unreleased, each has tests):
   that loads a `.glb` with its decoders, named parts, materials and animation actions, checked in a real page.
 - [x] Animation (`three_animation`): clips of a file; every live AnimationMixer with what is wrong; play, pose and
   sweep a clip for the lowest point and node positions per step.
+- [x] Capture (`three_capture`, `threesmith capture`): frames 1/fps apart on the deterministic clock, a contact
+  sheet, still scenes and pops, an `.mp4` with ffmpeg.
 
 Next:
 
