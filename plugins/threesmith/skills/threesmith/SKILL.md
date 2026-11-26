@@ -19,16 +19,19 @@ and look at the page before you say it works.
    then `write: true`; `three_undo` if needed). A verified false alarm goes to `three_feedback`.
 4. **Loading models or textures:** `three_assets`: every path must resolve with exact capitals, and Draco, meshopt or
    KTX2 files need their decoder set up on the GLTFLoader: `three_decoders` (then `write: true`) wires them with the
-   installed three's decoder files. `three_model_inspect` says what a `.glb` needs.
+   installed three's decoder files. `three_model_inspect` says what a `.glb` needs; `three_gltf` validates and
+   optimizes it.
 5. **Before saying it works:** `three_check` on the page (a folder with `index.html` or the dev server URL) and look at
    the screenshot. Black, empty or wrong: `three_inspect` says why per object.
 6. **Proving behaviour:** `three_play` with `steps`, `watch` and `expect`; keep a passing run with `three_scenario`
    op save. For a state that is slow to reach, `three_session` once and `three_page` to drive it.
 7. **Errors you do not understand:** `three_explain` with the message as printed, `three_lessons` with it as `error`.
    When a fix took more than one try, `three_lesson_add`.
-8. **Speed and memory:** `three_perf` before and after a change; `three_leaks` with the steps of one cycle.
-9. **Before deploying:** `three_build`. **Before a three upgrade:** `three_compare` with `with: next` (or the target
-   release): the page on both releases, every change with the migration note that explains it.
+8. **Speed and memory:** `three_perf` before and after a change; `three_leaks` with the steps of one cycle;
+   `three_device` with `profile: phone` for phones and low-end laptops.
+9. **Before deploying:** `three_build`. **Old code or a three upgrade:** `three_migrate` gives the plan per release
+   (`write: true` makes the exact rewrites); `three_compare` with `with: next` (or the target release) runs the page
+   on both releases, every change with the migration note that explains it.
 10. **3D models:** `three_model_brief`, `three_model_build`, `three_model_view` (text views), `three_model_lint`.
 
 ## Rules of thumb

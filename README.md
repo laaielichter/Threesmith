@@ -166,7 +166,7 @@ the doctor, fix in its order) and `threesmith-<skill>` for each skill (`debug`, 
 
 </details>
 
-CLI: `threesmith doctor | scan | api | search | review | types | fix | rules | undo | lessons | assets | decoders | gltf | check |
+CLI: `threesmith doctor | scan | api | search | review | types | fix | migrate | rules | undo | lessons | assets | decoders | gltf | check |
 inspect | play | scenario | perf | device | leaks | compare | build | model <inspect|needs|view|lint|identify|brief|spec|kinds|recipes|build>
 | explain | ci | hook | mcp`. `threesmith <command> --help` lists the options.
 

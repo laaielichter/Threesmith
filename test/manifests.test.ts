@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { ALL_TOOLS } from "../src/mcp/toolsets.js";
 import { LEAN_TOOLS } from "../src/mcp/lean.js";
 import { HOOK_EVENTS } from "../src/hooks/hooks.js";
+import { buildProgram } from "../src/program.js";
 
 const plugin = (dir: string): string[] => readdirSync(`plugins/threesmith/${dir}`).filter((f) => !f.startsWith("."));
 
@@ -46,5 +47,29 @@ describe("manifests", () => {
   it("gives every skill and agent valid front matter", () => {
     for (const d of plugin("skills")) expect(readFileSync(`plugins/threesmith/skills/${d}/SKILL.md`, "utf8"), d).toMatch(new RegExp(`^---\\nname: ${d}\\ndescription: .+`));
     for (const f of plugin("agents")) expect(readFileSync(`plugins/threesmith/agents/${f}`, "utf8"), f).toMatch(new RegExp(`^---\\nname: ${f.replace(/\.md$/, "")}\\n`));
+  });
+
+  it("states the real tool count everywhere it is written", () => {
+    const n = ALL_TOOLS.length;
+    const places: [string, RegExp][] = [
+      ["README.md", /## The (\d+) tools/],
+      ["README.md", /two tools instead of (\d+)/],
+      ["docs/index.html", /(\d+) MCP tools, one CLI/],
+      ["plugins/threesmith/.claude-plugin/plugin.json", /Empty means all (\d+)\./],
+      ["plugins/threesmith/README.md", /MCP server \((\d+) tools/],
+      ["plugins/threesmith/README.md", /empty means all (\d+)\)/],
+    ];
+    for (const [file, re] of places) expect(Number(re.exec(readFileSync(file, "utf8"))?.[1]), `${file} ${re}`).toBe(n);
+  });
+
+  it("names every CLI command in the README and llms.txt command lists", () => {
+    const commands = buildProgram().commands.map((c) => c.name());
+    const readme = /CLI: `threesmith ([^`]+)`/.exec(readFileSync("README.md", "utf8"))?.[1] ?? "";
+    const llms = /- CLI: threesmith (.+)/.exec(readFileSync("docs/llms.txt", "utf8"))?.[1] ?? "";
+    // a command as its own item of the list ("| migrate |", "model <inspect|...>")
+    const listed = (text: string, c: string) => new RegExp(`(?:^|[\\s|])${c}(?=$|[\\s|<])`).test(text);
+    // hook is for the plugin's hooks, not for people
+    for (const c of commands) expect(listed(readme, c), `README CLI list lacks ${c}`).toBe(true);
+    for (const c of commands.filter((x) => x !== "hook")) expect(listed(llms, c), `llms.txt CLI list lacks ${c}`).toBe(true);
   });
 });

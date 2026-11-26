@@ -3,7 +3,7 @@
   "name": "threesmith",
   "display_name": "Threesmith",
   "version": "0.0.0",
-  "description": "three.js tools for Claude: the API of your installed three, a review pinned to it, asset checks, headless runs with screenshots, and 3D models.",
+  "description": "three.js tools for Claude: the API of your installed three, a review pinned to it, upgrade plans, your page compared on two three releases, asset checks, headless runs with screenshots, and 3D models.",
   "long_description": "Threesmith gives Claude checked three.js knowledge for your project: the API of the three version you have installed (read from node_modules, not from memory), a scored review that catches removed APIs, wrong import paths, black scenes, shadows that never draw, per-frame allocations and missing cleanup, and a headless Chromium check that opens your page with software WebGL, reports console errors and blank frames and returns a screenshot. Choose your project folder in the settings; tools also accept a path. The browser check needs playwright-core and Chromium in the project (npm i -D playwright-core).",
   "author": {
     "name": "laaielichter",
