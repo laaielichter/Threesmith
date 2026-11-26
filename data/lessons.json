@@ -189,6 +189,26 @@
       ]
     },
     {
+      "id": "rendering/context-restored-on-demand",
+      "topic": "rendering",
+      "title": "After a lost WebGL context, a page that renders on demand must draw again itself",
+      "symptom": "On a phone, the scene is blank after the tab comes back from the background, until the user touches it; a page with an animation loop comes back by itself.",
+      "cause": "Mobile browsers drop the WebGL context of pages in the background. WebGLRenderer prevents the default on webglcontextlost and rebuilds its state on webglcontextrestored, and uploads geometry and textures again on the next render. A page that only renders on input or on a controls change event never makes that next render.",
+      "fix": "Listen for webglcontextrestored on the renderer's canvas and render once there. Also rebuild, in the same handler, what was made only once: a render target drawn at start-up, or a texture whose image was freed.",
+      "test": "In a test, lose the context on purpose and restore it: after the restore the page must draw again and show the same picture.",
+      "tags": [
+        "context lost",
+        "webglcontextrestored",
+        "mobile",
+        "background",
+        "render on demand",
+        "blank"
+      ],
+      "rules": [
+        "no-context-loss-handler"
+      ]
+    },
+    {
       "id": "rendering/context-create-failed",
       "topic": "rendering",
       "title": "WebGL 2 must be available: WebGLRenderer dropped WebGL 1 in r163",

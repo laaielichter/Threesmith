@@ -17,6 +17,8 @@ Make sure what works in the dev server also works where it is hosted ($ARGUMENTS
 4. `three_check` on the built folder with a `baseline` you approved, so the deploy shows the same picture. Read its
    `backend` line: for a `WebGPURenderer` page, `WebGL 2 (WebGPU fallback)` means the WebGPU path was not tested
    (pass `webgpu: true`, or check on a machine where `threesmith doctor --env` finds an adapter).
-5. In CI: the GitHub Action posts the review and the check as a receipt on every pull request.
+5. `three_device` with `profile: phone` and `lose_context: true`: no texture over the phone's limit, a capped pixel
+   ratio, a viewport meta, and the scene back after the WebGL context is lost (phones do that to background tabs).
+6. In CI: the GitHub Action posts the review and the check as a receipt on every pull request.
 
 End with: the build result, the problems found and fixed, and the screenshot of the built page.

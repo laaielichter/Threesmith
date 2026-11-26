@@ -26,7 +26,7 @@ const CHEAP: string[] = [
   "When you fixed something that took more than one try, keep the lesson with three_lesson_add (general words, no names or code).",
   "To prove an interaction works, call three_play with steps, watch and expect|; when it passes, keep it with three_scenario op save|.",
   "Measure with three_perf before and after a performance change (draw calls and triangles are exact; frame times are relative).",
-  "Before you ship to phones, call three_device with profile phone: pixel ratio, texture limits and memory, frame times with the CPU slowed down.",
+  "Before you ship to phones, call three_device with profile phone and lose_context: true: pixel ratio, texture limits and memory, frame times with the CPU slowed down, and the scene back after a lost WebGL context.",
   "When memory grows while the user switches levels or opens and closes things, call three_leaks with the steps of one cycle.",
   "Before you call a build done, call three_build: it builds, checks the output (two copies of three, missing assets, base path) and opens it headless.",
   "{three_model_brief three_model_identify three_model_build three_model_view three_model_lint three_model_inspect}To make or check a 3D model (.glb):| three_model_brief first (one page with everything).| three_model_identify says what the thing is: parts, size, pivots.| three_model_spec shows the spec format.| three_model_build builds it.| three_model_view shows it as text (you cannot see pictures).| three_model_lint checks it.| three_model_inspect says what is in any .glb, and which loaders and decoders three.js needs for it.",

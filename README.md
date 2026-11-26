@@ -39,7 +39,7 @@ safe, undoable edits. Everything runs locally; nothing leaves the machine.
 
 | Your agent... | On its own | With Threesmith |
 | --- | --- | --- |
-| writes three.js | `Geometry`, `outputEncoding`, `BoxBufferGeometry`, `examples/js`: old habits | 100 rules pinned to the installed release flag each line with the fix; `fix` does the 23 pure renames |
+| writes three.js | `Geometry`, `outputEncoding`, `BoxBufferGeometry`, `examples/js`: old habits | 101 rules pinned to the installed release flag each line with the fix; `fix` does the 23 pure renames |
 | calls an API | guesses a name or an import path from memory | `three_api` reads `node_modules/three`: signature, deprecation and the right `three/addons/...` path |
 | writes a shader | `#include <encodings_fragment>`, `gl_FragColor` with GLSL3, a `.replace()` on a chunk that is gone | includes checked against the installed `ShaderChunk`, patches that silently do nothing found, renames fixed |
 | loads a model | `/models/Car.glb` that is a 404 on Linux, Draco without a decoder | `three_assets` resolves every path like the server does; `three_decoders` wires the decoders from the installed three |
@@ -106,7 +106,7 @@ the doctor, fix in its order) and `threesmith-<skill>` for each skill (`debug`, 
   that are loaded.
 - **Lean mode.** `--lean` offers two tools instead of 35: `three` runs any tool by name
   (`{"tool": "review", "args": {"only_new": true}}`) and `three_help` gives a tool's parameters when they are needed.
-  Same tools, same results, same read-only refusals; the tool list drops from about 15,700 to about 1,900 tokens
+  Same tools, same results, same read-only refusals; the tool list drops from about 15,800 to about 1,900 tokens
   (estimated at 4 characters per token; `threesmith mcp --stats` prints the numbers for your options).
 - **Fix loops that cost less.** `three_review` with `only_new: true` shows new findings in full, the ones the agent
   already saw as one short line, and how many are fixed. `code` + `file` reviews code before it is saved.
@@ -129,12 +129,12 @@ the doctor, fix in its order) and `threesmith-<skill>` for each skill (`debug`, 
 | core | `three_scan` | Map the project: bundler and framework, three vs `@types/three` vs package.json, the libraries around it, pages and import maps, every file that uses three with what it creates and where its loop is, renderer settings, assets |
 | core | `three_api` | Exact API of a class, member or constant in the installed three: signature, deprecation, import path; did-you-mean for unknown names |
 | core | `three_search` | Find classes, constants and members by part of a name |
-| core | `three_review` | Scored review (0-100) with 100 rules pinned to the installed release; `code` + `file` for unsaved code, `only_new` in a fix loop, `files` to focus |
+| core | `three_review` | Scored review (0-100) with 101 rules pinned to the installed release; `code` + `file` for unsaved code, `only_new` in a fix loop, `files` to focus |
 | core | `three_types` | The project's own `tsc --noEmit`, with each three.js type error answered from the installed release (the member that exists, the real import path) |
 | core | `three_fix` | The renames that mean exactly the same, dry run first, undoable |
 | core | `three_migrate` | Plan a three.js upgrade (r120 to r188): the breaking changes per release that apply to this code with file:line, a TO DO list with the replacement checked against the installed API, and what will look different; `webgpu: true` adds a WebGPU readiness report with a TSL draft per `ShaderMaterial` and `onBeforeCompile`; `write: true` makes the exact rewrites (the `three_fix` renames plus the migration's own) as one undoable step; `from` read from CDN URLs, package files or git history |
 | core | `three_explain` | Cause and fix of a console, build or test message (35 kinds), with the right import path for the installed release |
-| core | `three_lessons` | 102 lessons from real three.js and react-three-fiber projects (symptom, cause, fix, test) by error message, words, rule or topic |
+| core | `three_lessons` | 103 lessons from real three.js and react-three-fiber projects (symptom, cause, fix, test) by error message, words, rule or topic |
 | core | `three_lesson_add` | Keep a lesson learned here, scrubbed of names, paths and code; it comes back under the same error |
 | core | `three_rules` | Every review rule with its category, release gating and fix |
 | core | `three_feedback` | Mark a finding as a false alarm (hidden from then on) or right |
@@ -145,7 +145,7 @@ the doctor, fix in its order) and `threesmith-<skill>` for each skill (`debug`, 
 | run | `three_play` | Steps (click, press, hold, drag, wheel, frames, eval, until), watched values per frame and step, claims judged at the end, any moment or every frame; `seed` (+ `fixed_dt`) pauses the clock and seeds `Math.random`, so every run gives the same frames, values and pixels (also on `three_check` and scenarios) |
 | run | `three_scenario` | Keep a passing play run as a regression test in `.threesmith/scenarios/`; `ci` runs them and writes JUnit |
 | run | `three_perf` | Draw calls, triangles, programs, geometries, textures (exact) and frame-time percentiles with the slowest frames and their cause, against a budget and the last run |
-| run | `three_device` | The page as on a phone, tablet or low-end laptop (or your own `.json` profile): its pixel ratio, touch and a CPU slow-down, with the WebGL texture and renderbuffer limits clamped; textures uploaded over the limit, textures three had to resize, texture memory against the profile budget, an uncapped pixel ratio, no viewport meta, and frame times. Profiles are presets to test against, not real devices |
+| run | `three_device` | The page as on a phone, tablet or low-end laptop (or your own `.json` profile): its pixel ratio, touch and a CPU slow-down, with the WebGL texture and renderbuffer limits clamped; textures uploaded over the limit, textures three had to resize, texture memory against the profile budget, an uncapped pixel ratio, no viewport meta, and frame times; `lose_context: true` loses and restores the WebGL context and checks the scene comes back. Profiles are presets to test against, not real devices |
 | run | `three_leaks` | Repeat a cycle of steps with garbage collection and report what grows per cycle, down to the GPU resources never disposed, by type |
 | live | `three_session` | Keep a headless page open between calls (start, status, stop) |
 | live | `three_page` | Drive that page without reloading: eval JS against the live scene, steps, frames, until, screenshot, inspect, reload, new errors after every answer |
@@ -183,7 +183,8 @@ an older one; a rule whose replacement does not exist yet in your release stays 
   `useFrame`, objects made in render.
 - **performance** (10): allocations and heavy objects per frame, scene traversal per frame, uncapped pixel ratio, huge
   shadow maps, many meshes that should be instanced.
-- **lifecycle** (3): no resize handling, removed objects never disposed, `dispose()` without `super.dispose()`.
+- **lifecycle** (4): no resize handling, removed objects never disposed, `dispose()` without `super.dispose()`, a
+  page that renders on demand and never draws again after a lost WebGL context.
 - **color** (8): colour textures without `colorSpace`, colour management off, EffectComposer without OutputPass or with
   double gamma, `envMapIntensity` that has no effect.
 

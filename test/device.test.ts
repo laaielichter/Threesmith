@@ -3,7 +3,7 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { findChromium } from "../src/check/browser.js";
 import { device, formatDevice, loadProfile, PROFILES } from "../src/check/device.js";
-import { project } from "./helpers.js";
+import { ids, project, reviewFiles } from "./helpers.js";
 import { gamePage } from "./run-helpers.js";
 
 const have = !!findChromium();
@@ -43,6 +43,15 @@ describe("device profiles", () => {
   });
 });
 
+describe("no-context-loss-handler", () => {
+  it("stays quiet with an animation loop and in R3F, fires for an on-demand page", () => {
+    const T = "import * as THREE from 'three';\nconst renderer = new THREE.WebGLRenderer();\n";
+    expect(ids(reviewFiles({ "a.js": `${T}function render() { renderer.render(scene, camera); }\nwindow.addEventListener('resize', render);\n` }))).toContain("no-context-loss-handler");
+    expect(ids(reviewFiles({ "a.js": `${T}renderer.setAnimationLoop(() => renderer.render(scene, camera));\n` }))).not.toContain("no-context-loss-handler");
+    expect(ids(reviewFiles({ "a.js": `${T}function tick() { renderer.render(scene, camera); requestAnimationFrame(tick); }\ntick();\n` }))).not.toContain("no-context-loss-handler");
+  });
+});
+
 describe.skipIf(!have)("three_device (needs Chromium)", () => {
   it("names a texture over the phone's limit, the one three resized, and an uncapped pixel ratio", async () => {
     const dir = gamePage(scene({ ratio: "window.devicePixelRatio", big: true }));
@@ -75,5 +84,48 @@ describe.skipIf(!have)("three_device (needs Chromium)", () => {
     const slow = await device({ target: dir, profile: "low-end-laptop", seconds: 1.5, wait: 500 });
     // compare the ratio, not absolute times (SwiftShader, shared CI machines)
     expect(slow.script.p50).toBeGreaterThan(fast.script.p50 * 1.5);
+  });
+});
+
+const still = (mode: "loop" | "demand" | "demand-handled") => `import * as THREE from 'three';
+const renderer = new THREE.WebGLRenderer();
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.body.appendChild(renderer.domElement);
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x335577);
+const c = document.createElement('canvas'); c.width = c.height = 64;
+const g = c.getContext('2d'); g.fillStyle = '#e04020'; g.fillRect(0, 0, 64, 64);
+scene.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(c) })));
+const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 10);
+camera.position.z = 2.5;
+const render = () => renderer.render(scene, camera);
+${mode === "loop" ? "renderer.setAnimationLoop(render);" : "render();\nwindow.addEventListener('pointermove', render);"}
+${mode === "demand-handled" ? "renderer.domElement.addEventListener('webglcontextrestored', render);" : ""}
+`;
+
+describe.skipIf(!have)("three_device lose_context (needs Chromium)", () => {
+  const run = async (mode: "loop" | "demand" | "demand-handled") => {
+    const dir = gamePage(still(mode), { "index.html": META, "quick.json": JSON.stringify({ extends: "low-end-laptop", cpuThrottle: 1, width: 400, height: 300 }) });
+    return device({ target: dir, profile: join(dir, "quick.json"), seconds: 0.5, wait: 600, loseContext: true });
+  };
+
+  it("three brings an animated scene back by itself", async () => {
+    const r = await run("loop");
+    expect(r.contextLoss).toMatchObject({ lost: true, restored: true, blankAfter: false, still: true, recovered: true });
+    expect(r.contextLoss!.drawsAfter).toBeGreaterThan(0);
+    expect(r.findings).toEqual([]);
+    expect(r.ok).toBe(true);
+    expect(formatDevice(r)).toContain("context loss: lost and restored");
+  });
+
+  it("an on-demand page without a handler stays blank; with a webglcontextrestored handler it comes back", async () => {
+    const bad = await run("demand");
+    expect(bad.contextLoss).toMatchObject({ lost: true, restored: true, drawsAfter: 0, blankAfter: true, recovered: false });
+    expect(bad.ok).toBe(false);
+    expect(bad.findings.find((f) => f.kind === "context-loss")?.message).toMatch(/nothing was drawn and the canvas is blank/);
+    const good = await run("demand-handled");
+    expect(good.contextLoss).toMatchObject({ lost: true, restored: true, blankAfter: false, recovered: true });
+    expect(good.contextLoss!.changed).toBeLessThanOrEqual(0.01);
+    expect(good.ok).toBe(true);
   });
 });
