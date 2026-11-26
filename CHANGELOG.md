@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- **Look:** an object is now the whole thing a person would name: a loaded model with named parts counts as one (the first named object from the top of the scene that does not hold everything drawn), so a frame with a house, a car and a robot reports three objects, not two hundred parts.
+- **Site and README:** a "New in 0.4" section with a real annotated frame, the new tools in the tables, a shorter tool list per set, and a FAQ on using your own browser and GPU.
+
 ## 0.4.0
 
 - **CI and the Action:** `ci --compare <release>` (input `compare`) runs the check page on another three release too and puts each change, with the migration note that explains it, in the receipt; a page that breaks fails it. `ci --impact <ref>` (input `impact`) adds what the change touches and the checks that prove it.
