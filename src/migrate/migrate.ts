@@ -8,6 +8,7 @@ import { review } from "../review/review.js";
 import { collect, lineOf, lineText, type SourceFile } from "../review/source.js";
 import { projectRootOf } from "../scan/scan.js";
 import { migrations, type MigrationEntry, type MigrationKind } from "./data.js";
+import { appearanceNote } from "./appearance.js";
 import { detectFrom, releaseNumber, type FromEvidence } from "./from.js";
 
 /**
@@ -43,6 +44,8 @@ export interface AppliedEntry extends MigrationEntry {
   fix: boolean;
   /** For a replacement name: does it exist in the installed three? */
   replacementExists?: boolean;
+  /** For a change in the look: what it touches in this code, measured (counts, values, where). */
+  note?: string;
 }
 
 export interface TodoItem extends Place {
@@ -188,7 +191,11 @@ export function migratePlan(opts: MigrateOptions): MigratePlan {
       const a: AppliedEntry = { ...entry, release: rel.release, where, fix, ...(entry.replacement && index ? { replacementExists: hasSymbol(index, entry.replacement) } : {}) };
       applied.push(a);
       plan.counts[entry.kind]++;
-      if (entry.kind === "appearance") plan.appearance.push(a);
+      if (entry.kind === "appearance") {
+        const note = appearanceNote(entry.id, files);
+        if (note) a.note = note;
+        plan.appearance.push(a);
+      }
       else
         for (const p of where) {
           if (p.fix) {

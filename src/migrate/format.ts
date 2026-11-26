@@ -32,7 +32,8 @@ export function formatMigrate(p: MigratePlan, opts: { detail?: "brief" | "full" 
   }
   if (p.appearance.length) {
     out.push("", "Will look different:");
-    for (const a of p.appearance.slice(0, cap(12))) out.push(`  r${a.release} [${a.id}] ${a.title}: ${a.where.length} place(s), e.g. ${a.where[0]!.file}:${a.where[0]!.line}. ${a.todo}`);
+    for (const a of p.appearance.slice(0, cap(12))) out.push(`  r${a.release} [${a.id}] ${a.title}. ${a.note ?? `${a.where.length} place(s), e.g. ${a.where[0]!.file}:${a.where[0]!.line}.`} ${a.todo}`);
+    out.push("  Take a three_check baseline before the upgrade and compare after it: these changes are expected, not regressions.");
   }
   if (p.fixable) out.push("", "Next: three_migrate with write: true for the exact rewrites (undoable); then the TO DO list, with three_api for every replacement; then three_review.");
   else out.push("", "Next: the TO DO list, with three_api for every replacement; then three_review.");

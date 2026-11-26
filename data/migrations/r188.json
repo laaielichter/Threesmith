@@ -20,7 +20,7 @@
         "pattern": "\\b(?:AmbientLight|HemisphereLight)\\b",
         "also": "\\bMesh(?:Standard|Physical)Material\\b|GLTFLoader"
       },
-      "todo": "Metals no longer render black without an environment map and rough surfaces get brighter at grazing angles. With scene.environment set too, the fill now reflects: lower its intensity.",
+      "todo": "Metals and rough surfaces get brighter under a fill light; where scene.environment is set too, lower the fill intensity.",
       "source": "https://github.com/mrdoob/three.js/pull/35580"
     },
     {

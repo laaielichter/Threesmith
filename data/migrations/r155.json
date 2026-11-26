@@ -35,14 +35,14 @@
     },
     {
       "id": "tone-mapping-to-screen",
-      "kind": "behaviour",
-      "title": "Inline tone mapping only applies when rendering to the screen",
+      "kind": "appearance",
+      "title": "Inline tone mapping and the colour space conversion only apply when rendering to the screen",
       "detect": {
         "rules": [
           "composer-no-output-pass"
         ]
       },
-      "todo": "Add an OutputPass at the end of the EffectComposer.",
+      "todo": "With an EffectComposer the picture loses its tone mapping and sRGB output: add an OutputPass as the last pass.",
       "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#154--155"
     },
     {

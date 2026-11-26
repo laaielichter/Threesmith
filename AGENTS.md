@@ -39,7 +39,7 @@ node dist/cli.js --help
 - `src/learn/feedback.ts`: false-alarm feedback (hashes and counters only) in `$THREESMITH_HOME`.
 - `src/migrate/`: `three_migrate`. `data.ts` loads `data/migrations/r{N}.json` (the changes of release N, written from
   the three.js migration guide, a source link each; a release number on an entry only when verified, as for rules),
-  `from.ts` finds the release the code was written for, `migrate.ts` builds the plan, `write.ts` the exact rewrites (`rewrite` in the data, applied
+  `from.ts` finds the release the code was written for, `migrate.ts` builds the plan, `appearance.ts` the measured "will look different" notes, `write.ts` the exact rewrites (`rewrite` in the data, applied
   after the `three_fix` renames; pure, the caller writes through the journal), `format.ts` prints it. Every
   fixture in `test/fixtures/migrate/` has its expected plan in `test/migrate.test.ts`.
 - `src/project/journal.ts`: every write Threesmith makes to a project goes through `writeFiles`/`JournalWriter`
