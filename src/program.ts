@@ -1,3 +1,4 @@
+import { formatLook, look } from "./check/look.js";
 import { formatImpact, impact } from "./impact/impact.js";
 import { applyDream, apiHintFor, dream, formatApply, formatDream, markDreamed } from "./dream/dream.js";
 import { recordApiMiss, recordUnexplained } from "./dream/signals.js";
@@ -279,6 +280,33 @@ export function buildProgram(): Command {
         ...clockFrom(o),
       });
       out(o.json ? JSON.stringify(r, null, 2) : formatCheck(r));
+      if (!r.ok) process.exitCode = 1;
+    });
+
+  program
+    .command("look")
+    .description("The frame as text: brightness, background, and per object how much of the frame it shows, where, cut by the edge, hidden by what; claims judged on the same numbers")
+    .argument("<target>", "folder with the page, or an http(s) URL")
+    .option("--entry <file>", "HTML file inside the folder", "index.html")
+    .option("--root <dir>", "folder to serve, when the page needs files above its own folder")
+    .option("--wait <ms>", "let the scene run this long", "1500")
+    .option("--steps <json>", "steps before measuring, as JSON (see play)")
+    .option("--expect <claim...>", 'claims: "car visible >= 5%" "car centered" "car not cut" "frame not dark"')
+    .option("--size <px>", "width of the measuring frame (64..320)", "160")
+    .option("--seed <n>", "deterministic clock: seed for Math.random")
+    .option("--json", "JSON output")
+    .action(async (target: string, o: { entry: string; root?: string; wait: string; steps?: string; expect?: string[]; size: string; seed?: string; json?: boolean }) => {
+      const r = await look({
+        target,
+        entry: o.entry,
+        ...(o.root ? { root: o.root } : {}),
+        wait: positiveInt("--wait", o.wait),
+        size: positiveInt("--size", o.size),
+        ...(o.steps ? { steps: parsePlaySteps(JSON.parse(o.steps)) } : {}),
+        ...(o.expect?.length ? { expect: o.expect } : {}),
+        ...(o.seed !== undefined ? { seed: positiveInt("--seed", o.seed) } : {}),
+      });
+      out(o.json ? JSON.stringify({ ok: r.ok, report: r.report, verdicts: r.verdicts, claims: r.claims }, null, 2) : formatLook(r));
       if (!r.ok) process.exitCode = 1;
     });
 

@@ -1,3 +1,4 @@
+import { formatLook, judge, lookEval, verdicts, type LookReport } from "../check/look.js";
 import { join, relative, resolve, sep } from "node:path";
 import { findChromium, loadPlaywright, WEBGL_ARGS, WEBGPU_ARGS } from "../check/browser.js";
 import { blankness } from "../check/diff.js";
@@ -214,6 +215,7 @@ export type PageOp =
   | { op: "until"; js: string; timeout?: number }
   | { op: "screenshot" }
   | { op: "inspect"; maxNodes?: number }
+  | { op: "look"; expect?: string[] }
   | { op: "reload"; wait?: number }
   | { op: "errors" };
 
@@ -311,6 +313,14 @@ export async function pageOp(op: PageOp, name = "main"): Promise<PageAnswer> {
       image = await page.screenshot({ type: "png" });
       const b = blankness(decodePng(image));
       text = b.blank ? `screenshot: ${(b.dominant * 100).toFixed(1)}% one colour, nothing visible drawn` : `screenshot: ${(100 - b.dominant * 100).toFixed(1)}% of the picture is not the background colour`;
+      break;
+    }
+    case "look": {
+      const report = (await page.evaluate(lookEval(160, 40))) as LookReport;
+      const claims = judge(report, op.expect ?? []);
+      const v = verdicts(report);
+      text = formatLook({ report, verdicts: v, claims });
+      ok = report.found && claims.every((c) => c.ok);
       break;
     }
     case "inspect": {

@@ -23,7 +23,7 @@ export const TOOLSETS = {
     "three_undo",
     "three_version",
   ],
-  run: ["three_check", "three_inspect", "three_play", "three_scenario", "three_perf", "three_device", "three_leaks", "three_compare"],
+  run: ["three_check", "three_inspect", "three_look", "three_play", "three_scenario", "three_perf", "three_device", "three_leaks", "three_compare"],
   live: ["three_session", "three_page"],
   build: ["three_assets", "three_decoders", "three_gltf", "three_build"],
   model: ["three_model_brief", "three_model_identify", "three_model_spec", "three_model_build", "three_model_view", "three_model_lint", "three_model_inspect"],

@@ -36,6 +36,9 @@ Done since (unreleased, each has tests):
   lessons to retire or merge, noisy rules. Applied only when approved; hints are undoable.
 - [x] The whole change (`three_impact`, `threesmith impact`): changed files to the scene areas they touch, the import
   graph to the pages, scenarios and baselines that run them, and the checks that prove the change.
+- [x] The frame as text (`three_look`, `threesmith look`, `three_page` op `look`): per object the share of the frame
+  it really shows, place, cut by the edge, hidden by what, and the frame's light, measured by rendering with and
+  without each object; verdicts and claims on the same numbers.
 
 Next:
 

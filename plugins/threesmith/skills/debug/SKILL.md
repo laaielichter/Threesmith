@@ -14,7 +14,9 @@ step answers from the project, from the installed three or from the running page
 2. **Get the exact message.** `three_check` on the page (a folder with `index.html`, or the dev server URL) prints
    every console and page error with its likely cause, failed requests and a screenshot; shader errors name your file
    and line. A blank or wrong picture: `three_inspect` says per object why it is not visible (no light, camera inside,
-   beyond `far`, zero scale, NaN, layers, invisible material).
+   beyond `far`, zero scale, NaN, layers, invisible material). `three_look` measures what the frame really shows:
+   per object the share of the frame, its place, cut by the edge, hidden behind what, and whether the frame is too
+   dark or blown out.
 3. **Ask what real projects learned.** `three_lessons` with the message as `error`, or with words for the symptom
    ("model too dark", "shadows cut off", "click hits nothing"). `three_explain` gives the cause of one message.
 4. **Reproduce in a live page** when the state is hard to reach: `three_session` op start once, then `three_page`
@@ -28,7 +30,7 @@ step answers from the project, from the installed three or from the running page
    the usual cause.
 6. **Fix the cause, not the symptom.** No `if (!model) return` around a model that should be loaded: await the
    loader. No brighter lights to hide a colour space bug. `three_review` with `only_new: true` after the change.
-7. **Prove it.** The same `three_check`, `three_inspect` or `three_play` with `expect`, before and after. Keep a
+7. **Prove it.** The same `three_check`, `three_inspect`, `three_look` or `three_play` with `expect`, before and after. Keep a
    `three_play` proof as a regression test with `three_scenario` op save. Pass a `seed` (and `fixed_dt` when the
    frame length matters) when the scene animates or uses `Math.random`: the clock is paused and moves one fixed frame
    at a time, so before and after are the same frames and a scenario does not flake. Loads still take real time:

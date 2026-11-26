@@ -106,7 +106,7 @@ the doctor, fix in its order) and `threesmith-<skill>` for each skill (`debug`, 
 - **Tool sets.** `--tools core` loads 17 tools; add `run`, `live`, `build`, `model` when you need them, or name single
   tools. A tool list the client pays for in every turn stays small. The server instructions only ever name tools
   that are loaded.
-- **Lean mode.** `--lean` offers two tools instead of 38: `three` runs any tool by name
+- **Lean mode.** `--lean` offers two tools instead of 39: `three` runs any tool by name
   (`{"tool": "review", "args": {"only_new": true}}`) and `three_help` gives a tool's parameters when they are needed.
   Same tools, same results, same read-only refusals; the tool list drops from about 16,900 to about 2,000 tokens
   (estimated at 4 characters per token; `threesmith mcp --stats` prints the numbers for your options).
@@ -121,7 +121,7 @@ the doctor, fix in its order) and `threesmith-<skill>` for each skill (`debug`, 
   with `three_lesson_add` come back under the same error. `three_dream` looks back at past sessions and proposes
   project hints and lesson changes, each with its evidence. Only hashes, counters and scrubbed text, on this machine.
 
-## The 38 tools
+## The 39 tools
 
 <details open>
 <summary>All MCP tools (most are also CLI commands)</summary>
@@ -147,6 +147,7 @@ the doctor, fix in its order) and `threesmith-<skill>` for each skill (`debug`, 
 | core | `three_version` | Which three release is installed |
 | run | `three_check` | Headless Chromium (software WebGL 2): console and page errors with causes, shader errors at your file and line, failed requests, no context, lost context, blank frames, screenshot, baselines with a diff, interaction steps |
 | run | `three_inspect` | The live scene graph, camera, draw calls, GPU memory growth, and why each object is not visible |
+| run | `three_look` | The frame as text, measured with the scene's own renderer by rendering with and without each object: mean luma, near-black and near-white share, background share, and per object (named objects, or the meshes in them) the share of the frame it really shows, its place (top left .. centre .. bottom right), whether the frame edge cuts it, how much of it is hidden and by which object; verdicts (nothing visible, too dark, blown out, tiny, mostly hidden) and `expect` claims (`"car visible >= 5%"`, `"car centered"`, `"car not cut"`, `"car not hidden"`, `"frame not dark"`) on the same numbers. For agents that cannot see pictures, and as numbers for those that can; also `three_page` op `look` |
 | run | `three_play` | Steps (click, press, hold, drag, wheel, frames, eval, until), watched values per frame and step, claims judged at the end, any moment or every frame; `seed` (+ `fixed_dt`) pauses the clock and seeds `Math.random`, so every run gives the same frames, values and pixels (also on `three_check` and scenarios) |
 | run | `three_scenario` | Keep a passing play run as a regression test in `.threesmith/scenarios/`; `ci` runs them and writes JUnit |
 | run | `three_perf` | Draw calls, triangles, programs, geometries, textures (exact) and frame-time percentiles with the slowest frames and their cause, against a budget and the last run |
@@ -170,7 +171,7 @@ the doctor, fix in its order) and `threesmith-<skill>` for each skill (`debug`, 
 </details>
 
 CLI: `threesmith doctor | scan | api | search | review | types | fix | impact | migrate | rules | dream | undo | lessons | assets | decoders | gltf | check |
-inspect | play | scenario | perf | device | leaks | compare | build | model <inspect|needs|view|lint|identify|brief|spec|kinds|recipes|build>
+inspect | look | play | scenario | perf | device | leaks | compare | build | model <inspect|needs|view|lint|identify|brief|spec|kinds|recipes|build>
 | explain | ci | hook | mcp`. `threesmith <command> --help` lists the options.
 
 ### The review
