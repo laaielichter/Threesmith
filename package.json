@@ -1,6 +1,6 @@
 {
   "name": "threesmith",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "mcpName": "io.github.laaielichter/threesmith",
   "description": "MCP server and CLI that makes coding agents better at three.js: the API of your installed three version, a scored review pinned to it (104 rules incl. shaders and R3F), upgrade plans per release and the page compared on two three releases, asset and decoder checks, the page run headless with the live scene read back, play with claims, perf, device and leak checks, build checks, and 3D models built without Blender.",
   "license": "MIT",
