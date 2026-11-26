@@ -1,0 +1,67 @@
+{
+  "release": 188,
+  "guide": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#187--188",
+  "entries": [
+    {
+      "id": "light-probe-deprecated",
+      "kind": "behaviour",
+      "title": "LightProbe is deprecated and no longer lights anything",
+      "detect": {
+        "pattern": "\\b(?:LightProbe|LightProbeGenerator|LightProbeHelper)\\b(?!Grid)"
+      },
+      "todo": "Use scene.environment, or a LightProbeGrid (LightProbeGridWebGL with WebGLRenderer) sized to cover the area it should light. LightProbeGenerator and LightProbeHelper do nothing any more.",
+      "source": "https://github.com/mrdoob/three.js/pull/35615"
+    },
+    {
+      "id": "ambient-hemisphere-specular",
+      "kind": "appearance",
+      "title": "AmbientLight and HemisphereLight add specular reflections to PBR materials",
+      "detect": {
+        "pattern": "\\b(?:AmbientLight|HemisphereLight)\\b",
+        "also": "\\bMesh(?:Standard|Physical)Material\\b|GLTFLoader"
+      },
+      "todo": "Metals no longer render black without an environment map and rough surfaces get brighter at grazing angles. With scene.environment set too, the fill now reflects: lower its intensity.",
+      "source": "https://github.com/mrdoob/three.js/pull/35580"
+    },
+    {
+      "id": "multi-bounce-ao",
+      "kind": "appearance",
+      "title": "Multi-bounce ambient occlusion weakens AO on bright and metallic surfaces",
+      "detect": {
+        "pattern": "\\baoMap\\b|\\bGTAONode\\b|\\bSSAONode\\b|\\bao\\s*\\("
+      },
+      "todo": "Increase the strength of screen-space AO (GTAONode scale, SSAONode intensity), or re-bake or darken the aoMap. Keep aoMapIntensity at or below 1.",
+      "source": "https://github.com/mrdoob/three.js/pull/35586"
+    },
+    {
+      "id": "ibl-irradiance-removed",
+      "kind": "removed",
+      "title": "iblIrradiance was removed from the shaders",
+      "detect": {
+        "pattern": "\\biblIrradiance\\b"
+      },
+      "todo": "Environment irradiance is added to `irradiance` now and RE_IndirectSpecular() lost its irradiance parameter: update the patched shader code.",
+      "source": "https://github.com/mrdoob/three.js/pull/35570"
+    },
+    {
+      "id": "float16-array",
+      "kind": "behaviour",
+      "title": "Float16BufferAttribute relies on Float16Array",
+      "detect": {
+        "pattern": "\\bFloat16BufferAttribute\\b"
+      },
+      "todo": "Make sure the browsers you support have Float16Array (or load a polyfill).",
+      "source": "https://github.com/mrdoob/three.js/pull/35507"
+    },
+    {
+      "id": "xr-estimated-light-probe",
+      "kind": "removed",
+      "title": "XREstimatedLight.lightProbe is a LightProbeGridWebGL without `sh`",
+      "detect": {
+        "pattern": "\\.lightProbe\\.sh\\b"
+      },
+      "todo": "Read the estimated spherical harmonics from the grid's texture instead of lightProbe.sh.",
+      "source": "https://github.com/mrdoob/three.js/pull/35619"
+    }
+  ]
+}

@@ -37,6 +37,10 @@ node dist/cli.js --help
 - `src/lessons/`: `data/lessons.json` (bundled lessons), `search.ts`, `local.ts` (lessons kept on this machine),
   `anonymize.ts` (bundled lessons must pass it unchanged; `test/lessons.test.ts` checks it), `hints.ts`, `format.ts`.
 - `src/learn/feedback.ts`: false-alarm feedback (hashes and counters only) in `$THREESMITH_HOME`.
+- `src/migrate/`: `three_migrate`. `data.ts` loads `data/migrations/r{N}.json` (the changes of release N, written from
+  the three.js migration guide, a source link each; a release number on an entry only when verified, as for rules),
+  `from.ts` finds the release the code was written for, `migrate.ts` builds the plan, `format.ts` prints it. Every
+  fixture in `test/fixtures/migrate/` has its expected plan in `test/migrate.test.ts`.
 - `src/project/journal.ts`: every write Threesmith makes to a project goes through `writeFiles`/`JournalWriter`
   (undo, protected paths from `protect.ts`). Never `writeFileSync` into a project from a tool.
 - `src/check/`: besides `check.ts`: `page.ts` opens a page, `steps.ts` runs steps, `clock.ts` the deterministic clock (`seed`, `fixed_dt`), `runtime.ts` is the in-page code

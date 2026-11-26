@@ -1,0 +1,63 @@
+{
+  "release": 180,
+  "guide": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#179--180",
+  "entries": [
+    {
+      "id": "dof-node-new-api",
+      "kind": "behaviour",
+      "title": "DepthOfFieldNode has a new implementation and API",
+      "detect": {
+        "pattern": "\\bDepthOfFieldNode\\b|\\bdof\\s*\\(",
+        "also": "three/(?:tsl|webgpu)"
+      },
+      "todo": "Follow the webgpu_postprocessing_dof example of the target release.",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#179--180"
+    },
+    {
+      "id": "rgbe-loader-renamed",
+      "kind": "rename",
+      "title": "RGBELoader is now HDRLoader",
+      "detect": {
+        "rules": [
+          "rgbe-loader-deprecated"
+        ]
+      },
+      "todo": "import { HDRLoader } from 'three/addons/loaders/HDRLoader.js' (three_fix does it).",
+      "replacement": "HDRLoader",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#179--180"
+    },
+    {
+      "id": "rgbm-loader-removed",
+      "kind": "removed",
+      "title": "RGBMLoader was removed",
+      "detect": {
+        "pattern": "\\bRGBMLoader\\b"
+      },
+      "todo": "Use EXRLoader, HDRLoader, HDRCubeTextureLoader or UltraHDRLoader with another HDR format.",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#179--180"
+    },
+    {
+      "id": "resolution-scale-nodes",
+      "kind": "rename",
+      "title": "ReflectorNode, AnamorphicNode and GaussianBlurNode `resolution` is a scalar `resolutionScale`",
+      "detect": {
+        "pattern": "\\.resolution\\b",
+        "also": "\\b(?:ReflectorNode|AnamorphicNode|GaussianBlurNode)\\b|\\breflector\\s*\\("
+      },
+      "todo": "Use resolutionScale with a number instead of a Vector2 resolution.",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#179--180"
+    },
+    {
+      "id": "depth-defines-renamed",
+      "kind": "rename",
+      "title": "USE_LOGDEPTHBUF / USE_REVERSEDEPTHBUF were renamed",
+      "detect": {
+        "rules": [
+          "shader-depth-define-renamed"
+        ]
+      },
+      "todo": "USE_LOGARITHMIC_DEPTH_BUFFER and USE_REVERSED_DEPTH_BUFFER (three_fix does it).",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#179--180"
+    }
+  ]
+}

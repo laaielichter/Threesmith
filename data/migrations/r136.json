@@ -1,0 +1,27 @@
+{
+  "release": 136,
+  "guide": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#135--136",
+  "entries": [
+    {
+      "id": "encodings-removed-136",
+      "kind": "removed",
+      "title": "RGBEEncoding, RGBM*, RGBDEncoding, GammaEncoding and gammaFactor were removed",
+      "detect": {
+        "pattern": "\\b(?:RGBEEncoding|RGBEFormat|RGBM7Encoding|RGBM16Encoding|RGBDEncoding|GammaEncoding|gammaFactor)\\b"
+      },
+      "todo": "Load HDR as half float; use a gamma correction pass for a special gamma.",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#135--136"
+    },
+    {
+      "id": "data-texture-needs-update",
+      "kind": "behaviour",
+      "title": "A DataTexture needs needsUpdate = true when its data is ready",
+      "detect": {
+        "pattern": "\\bnew\\s+(?:[\\w$]+\\.)?Data(?:Texture|ArrayTexture|3DTexture|Texture2DArray|Texture3D)\\s*\\(",
+        "unless": "\\bneedsUpdate\\s*=\\s*true"
+      },
+      "todo": "texture.needsUpdate = true;",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#135--136"
+    }
+  ]
+}

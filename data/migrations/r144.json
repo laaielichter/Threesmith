@@ -1,0 +1,46 @@
+{
+  "release": 144,
+  "guide": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#143--144",
+  "entries": [
+    {
+      "id": "geometry-merge-removed",
+      "kind": "removed",
+      "title": "BufferGeometry.merge() was removed",
+      "detect": {
+        "pattern": "\\b[\\w$]*(?:[gG]eometry|[gG]eo|[gG]eom)\\w*\\.merge\\s*\\("
+      },
+      "todo": "Use BufferGeometryUtils.mergeGeometries( [a, b] ).",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#143--144"
+    },
+    {
+      "id": "copy-arrays-removed",
+      "kind": "removed",
+      "title": "BufferAttribute copyColorsArray() and friends were removed",
+      "detect": {
+        "pattern": "\\.copy(?:Colors|Vector2s|Vector3s|Vector4s)Array\\s*\\("
+      },
+      "todo": "Write the numbers into attribute.array, or use setXYZ().",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#143--144"
+    },
+    {
+      "id": "lambert-per-fragment",
+      "kind": "appearance",
+      "title": "MeshLambertMaterial shades per fragment",
+      "detect": {
+        "pattern": "\\bMeshLambertMaterial\\b"
+      },
+      "todo": "Highlights look smoother; per-vertex shading needs MeshGouraudMaterial (deprecated since r173).",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#143--144"
+    },
+    {
+      "id": "scene-auto-update",
+      "kind": "rename",
+      "title": "Scene.autoUpdate is Object3D.matrixWorldAutoUpdate",
+      "detect": {
+        "pattern": "\\b[\\w$]*[sS]cene\\w*\\.autoUpdate\\b"
+      },
+      "todo": "scene.matrixWorldAutoUpdate = false.",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#143--144"
+    }
+  ]
+}

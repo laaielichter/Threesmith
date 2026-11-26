@@ -1,0 +1,93 @@
+{
+  "release": 186,
+  "guide": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#185--186",
+  "entries": [
+    {
+      "id": "object3d-dispose-super",
+      "kind": "behaviour",
+      "title": "Object3D has a dispose() method",
+      "detect": {
+        "pattern": "\\bextends\\s+(?:[\\w$]+\\.)?(?:Object3D|Mesh|Group|Points|Line|LineSegments|Sprite|SkinnedMesh|InstancedMesh|BatchedMesh)\\b",
+        "also": "\\bdispose\\s*\\(\\s*\\)\\s*\\{",
+        "unless": "\\bsuper\\.dispose\\s*\\("
+      },
+      "todo": "Call super.dispose() in the dispose() of your own Object3D subclasses.",
+      "source": "https://github.com/mrdoob/three.js/pull/34141"
+    },
+    {
+      "id": "gtao-distance-deprecated",
+      "kind": "removed",
+      "title": "GTAONode distanceExponent and distanceFallOff have no effect",
+      "detect": {
+        "pattern": "\\bdistance(?:Exponent|FallOff)\\b",
+        "also": "\\bGTAONode\\b|\\bao\\s*\\("
+      },
+      "todo": "Remove them; tune radius and scale instead.",
+      "source": "https://github.com/mrdoob/three.js/pull/33895"
+    },
+    {
+      "id": "to-triangles-in-place",
+      "kind": "behaviour",
+      "title": "toTrianglesDrawMode() changes the geometry in place",
+      "detect": {
+        "pattern": "\\btoTrianglesDrawMode\\s*\\("
+      },
+      "todo": "clone() the geometry first if the original must stay as it was.",
+      "source": "https://github.com/mrdoob/three.js/pull/33878"
+    },
+    {
+      "id": "light-probe-grid-webgl",
+      "kind": "rename",
+      "title": "LightProbeGrid is now LightProbeGridWebGL (WebGLRenderer)",
+      "detect": {
+        "pattern": "\\bLightProbeGrid(?:Helper)?\\b(?!WebGL)"
+      },
+      "todo": "With WebGLRenderer use LightProbeGridWebGL and LightProbeGridHelperWebGL; the plain names are the WebGPURenderer versions.",
+      "source": "https://github.com/mrdoob/three.js/pull/33911"
+    },
+    {
+      "id": "pcf-soft-shadow-webgpu",
+      "kind": "removed",
+      "title": "PCFSoftShadowMap was removed from WebGPURenderer",
+      "detect": {
+        "pattern": "\\bPCFSoftShadowMap\\b",
+        "also": "three/webgpu|WebGPURenderer"
+      },
+      "todo": "renderer.shadowMap.type = THREE.PCFShadowMap; (soft as well).",
+      "replacement": "PCFShadowMap",
+      "source": "https://github.com/mrdoob/three.js/pull/33987"
+    },
+    {
+      "id": "simplify-modifier-async",
+      "kind": "behaviour",
+      "title": "SimplifyModifier.modify() is async and gives a different mesh",
+      "detect": {
+        "pattern": "\\bSimplifyModifier\\b"
+      },
+      "todo": "await modifier.modify( geometry, count ); check the simplified result again.",
+      "source": "https://github.com/mrdoob/three.js/pull/34021"
+    },
+    {
+      "id": "source-renamed",
+      "kind": "rename",
+      "title": "Source is now TextureSource",
+      "detect": {
+        "pattern": "\\b(?:THREE\\.|new\\s+)Source\\b|import\\s*\\{[^}]*\\bSource\\b[^}]*\\}\\s*from\\s*['\\\"]three"
+      },
+      "todo": "Use TextureSource.",
+      "replacement": "TextureSource",
+      "source": "https://github.com/mrdoob/three.js/pull/34202"
+    },
+    {
+      "id": "sky-up-removed",
+      "kind": "removed",
+      "title": "The `up` uniform of Sky and SkyMesh was removed",
+      "detect": {
+        "pattern": "uniforms\\s*\\[\\s*['\\\"]up['\\\"]\\s*\\]|\\.up\\.value\\b",
+        "also": "\\bSky(?:Mesh)?\\b"
+      },
+      "todo": "Remove it: the sky always assumes +Y up.",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#185--186"
+    }
+  ]
+}

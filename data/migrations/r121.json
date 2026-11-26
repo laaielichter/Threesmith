@@ -1,0 +1,16 @@
+{
+  "release": 121,
+  "guide": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#r120--r121",
+  "entries": [
+    {
+      "id": "light-shadow-private",
+      "kind": "removed",
+      "title": "LightShadow left the public API",
+      "detect": {
+        "pattern": "\\bTHREE\\.LightShadow\\b|\\bnew\\s+(?:[\\w$]+\\.)?(?:LightShadow|SpotLightShadow|DirectionalLightShadow)\\s*\\("
+      },
+      "todo": "Configure light.shadow instead (SpotLightShadow.focus for spot lights).",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#r120--r121"
+    }
+  ]
+}

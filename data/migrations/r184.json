@@ -1,0 +1,68 @@
+{
+  "release": 184,
+  "guide": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#183--184",
+  "entries": [
+    {
+      "id": "env-rotation-aligned",
+      "kind": "appearance",
+      "title": "Background and environment rotation follow object rotation now",
+      "detect": {
+        "pattern": "\\b(?:backgroundRotation|environmentRotation)\\b"
+      },
+      "todo": "Check the rotation values: they may need to be negated to keep the old look.",
+      "source": "https://github.com/mrdoob/three.js/pull/33077"
+    },
+    {
+      "id": "first-person-controls",
+      "kind": "behaviour",
+      "title": "FirstPersonControls has a new interaction model",
+      "detect": {
+        "pattern": "\\bFirstPersonControls\\b"
+      },
+      "todo": "Check the controls by hand (mouse and touch).",
+      "source": "https://github.com/mrdoob/three.js/pull/33124"
+    },
+    {
+      "id": "pixel-storei",
+      "kind": "behaviour",
+      "title": "Pixel storage goes through renderer.state.pixelStorei()",
+      "detect": {
+        "pattern": "\\bgl\\.pixelStorei\\s*\\(|getContext\\s*\\(\\s*\\)\\.pixelStorei\\s*\\("
+      },
+      "todo": "Call renderer.state.pixelStorei( ... ) instead of the raw context.",
+      "source": "https://github.com/mrdoob/three.js/pull/33227"
+    },
+    {
+      "id": "fbx-z-up",
+      "kind": "behaviour",
+      "title": "FBXLoader converts +Z-up models to +Y-up",
+      "detect": {
+        "pattern": "\\bFBXLoader\\b"
+      },
+      "todo": "Remove rotations your code added to stand FBX models up.",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#183--184"
+    },
+    {
+      "id": "vtk-loader-deprecated",
+      "kind": "removed",
+      "title": "VTKLoader is deprecated",
+      "detect": {
+        "pattern": "\\bVTKLoader\\b"
+      },
+      "todo": "Convert the data to glTF or another supported format.",
+      "source": "https://github.com/mrdoob/three.js/pull/33363"
+    },
+    {
+      "id": "file-loader-no-return",
+      "kind": "behaviour",
+      "title": "FileLoader.load() and ImageBitmapLoader.load() return nothing",
+      "detect": {
+        "rules": [
+          "file-loader-no-return"
+        ]
+      },
+      "todo": "Use the onLoad callback or loadAsync().",
+      "source": "https://github.com/mrdoob/three.js/pull/33380"
+    }
+  ]
+}

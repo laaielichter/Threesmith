@@ -1,0 +1,16 @@
+{
+  "release": 158,
+  "guide": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#157--158",
+  "entries": [
+    {
+      "id": "bump-scale-invariant",
+      "kind": "appearance",
+      "title": "bumpScale no longer depends on the UV scale",
+      "detect": {
+        "pattern": "\\bbumpScale\\b"
+      },
+      "todo": "Tune bumpScale again to get the old look.",
+      "source": "https://github.com/mrdoob/three.js/pull/26899"
+    }
+  ]
+}

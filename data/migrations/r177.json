@@ -1,0 +1,26 @@
+{
+  "release": 177,
+  "guide": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#176--177",
+  "entries": [
+    {
+      "id": "color-management-renamed",
+      "kind": "rename",
+      "title": "ColorManagement fromWorkingColorSpace() / toWorkingColorSpace() are workingToColorSpace() / colorSpaceToWorking()",
+      "detect": {
+        "pattern": "\\bColorManagement\\.(?:fromWorkingColorSpace|toWorkingColorSpace)\\s*\\("
+      },
+      "todo": "Rename the calls.",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#176--177"
+    },
+    {
+      "id": "peppers-ghost-removed",
+      "kind": "removed",
+      "title": "PeppersGhostEffect was removed",
+      "detect": {
+        "pattern": "\\bPeppersGhostEffect\\b"
+      },
+      "todo": "Keep a copy of the effect in your project if you need it.",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#176--177"
+    }
+  ]
+}

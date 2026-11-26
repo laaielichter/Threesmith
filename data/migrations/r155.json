@@ -1,0 +1,52 @@
+{
+  "release": 155,
+  "guide": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#154--155",
+  "entries": [
+    {
+      "id": "legacy-lights-off",
+      "kind": "appearance",
+      "title": "Physically correct lighting is the default (useLegacyLights false)",
+      "detect": {
+        "pattern": "\\b(?:PointLight|SpotLight|DirectionalLight|AmbientLight|HemisphereLight|RectAreaLight)\\b",
+        "unless": "\\buseLegacyLights\\s*=\\s*false|\\bphysicallyCorrectLights\\s*=\\s*true"
+      },
+      "todo": "Light intensities are physical now: Point and Spot lights in candela with decay 2. Scale intensities (often by about PI) until the scene looks as before.",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#154--155"
+    },
+    {
+      "id": "use-legacy-lights-removed",
+      "kind": "removed",
+      "title": "renderer.useLegacyLights is deprecated (removed in r165)",
+      "detect": {
+        "rules": [
+          "legacy-lights"
+        ]
+      },
+      "todo": "Delete it and scale light intensities.",
+      "removedIn": 165,
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#154--155"
+    },
+    {
+      "id": "tone-mapping-to-screen",
+      "kind": "behaviour",
+      "title": "Inline tone mapping only applies when rendering to the screen",
+      "detect": {
+        "rules": [
+          "composer-no-output-pass"
+        ]
+      },
+      "todo": "Add an OutputPass at the end of the EffectComposer.",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#154--155"
+    },
+    {
+      "id": "output-pass-no-params",
+      "kind": "behaviour",
+      "title": "OutputPass takes no parameters",
+      "detect": {
+        "pattern": "\\bnew\\s+(?:[\\w$]+\\.)?OutputPass\\s*\\(\\s*[^)\\s]"
+      },
+      "todo": "new OutputPass(); it reads tone mapping and colour space from the renderer.",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#154--155"
+    }
+  ]
+}

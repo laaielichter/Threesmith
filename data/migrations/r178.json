@@ -1,0 +1,17 @@
+{
+  "release": 178,
+  "guide": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#177--178",
+  "entries": [
+    {
+      "id": "multiply-blending-premultiplied",
+      "kind": "behaviour",
+      "title": "MultiplyBlending and SubtractiveBlending need premultipliedAlpha: true",
+      "detect": {
+        "pattern": "\\b(?:MultiplyBlending|SubtractiveBlending)\\b",
+        "unless": "\\bpremultipliedAlpha\\s*(?::|=)\\s*true"
+      },
+      "todo": "Set premultipliedAlpha: true on those materials.",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#177--178"
+    }
+  ]
+}

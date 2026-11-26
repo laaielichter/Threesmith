@@ -1,0 +1,57 @@
+{
+  "release": 175,
+  "guide": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#174--175",
+  "entries": [
+    {
+      "id": "parse-animation-deprecated",
+      "kind": "removed",
+      "title": "AnimationClip.parseAnimation() is deprecated",
+      "detect": {
+        "pattern": "\\bAnimationClip\\.parseAnimation\\s*\\("
+      },
+      "todo": "Build the clip from tracks, or load glTF animations.",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#174--175"
+    },
+    {
+      "id": "parametric-functions",
+      "kind": "rename",
+      "title": "ParametricGeometries is ParametricFunctions (functions only)",
+      "detect": {
+        "pattern": "\\bParametricGeometries\\b"
+      },
+      "todo": "import { ParametricFunctions } from 'three/addons/geometries/ParametricFunctions.js' and pass a function to ParametricGeometry.",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#174--175"
+    },
+    {
+      "id": "lut-image-loader-ctor",
+      "kind": "behaviour",
+      "title": "LUTImageLoader takes only a loading manager",
+      "detect": {
+        "pattern": "\\bnew\\s+(?:[\\w$]+\\.)?LUTImageLoader\\s*\\(\\s*(?:true|false)\\b"
+      },
+      "todo": "new LUTImageLoader(); loader.flip = true; to flip vertically.",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#174--175"
+    },
+    {
+      "id": "smaa-halftone-ctor",
+      "kind": "behaviour",
+      "title": "SMAAPass and HalftonePass constructors lost width and height",
+      "detect": {
+        "pattern": "\\bnew\\s+(?:[\\w$]+\\.)?(?:SMAAPass\\s*\\(\\s*[^)\\s]|HalftonePass\\s*\\([^)]*,)"
+      },
+      "todo": "new SMAAPass(); new HalftonePass( params );",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#174--175"
+    },
+    {
+      "id": "controls-connect-element",
+      "kind": "behaviour",
+      "title": "Controls.connect() needs a DOM element",
+      "detect": {
+        "pattern": "\\.connect\\s*\\(\\s*\\)",
+        "also": "Controls\\b"
+      },
+      "todo": "controls.connect( renderer.domElement );",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#174--175"
+    }
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "release": 157,
+  "guide": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#156--157",
+  "entries": [
+    {
+      "id": "light-probes-removed",
+      "kind": "removed",
+      "title": "AmbientLightProbe and HemisphereLightProbe were removed",
+      "detect": {
+        "pattern": "\\b(?:AmbientLightProbe|HemisphereLightProbe)\\b"
+      },
+      "todo": "Use AmbientLight or HemisphereLight.",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#156--157"
+    },
+    {
+      "id": "geometric-context-removed",
+      "kind": "removed",
+      "title": "The GLSL struct GeometricContext was removed",
+      "detect": {
+        "pattern": "\\bGeometricContext\\b"
+      },
+      "todo": "Update patched shader code as in the PR (geometryPosition, geometryNormal, geometryViewDir).",
+      "source": "https://github.com/mrdoob/three.js/pull/26805"
+    },
+    {
+      "id": "array-slice-removed",
+      "kind": "removed",
+      "title": "AnimationUtils.arraySlice() was removed",
+      "detect": {
+        "pattern": "\\.arraySlice\\s*\\("
+      },
+      "todo": "Use TypedArray.slice().",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#156--157"
+    }
+  ]
+}

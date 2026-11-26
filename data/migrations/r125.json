@@ -1,0 +1,72 @@
+{
+  "release": 125,
+  "guide": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#r124--r125",
+  "entries": [
+    {
+      "id": "geometry-out-of-core",
+      "kind": "removed",
+      "title": "Geometry left the core; geometry generators make BufferGeometry",
+      "detect": {
+        "rules": [
+          "geometry-class",
+          "geometry-vertices",
+          "compute-face-normals"
+        ]
+      },
+      "todo": "Use BufferGeometry with attributes.",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#r124--r125"
+    },
+    {
+      "id": "teapot-rounded-box",
+      "kind": "rename",
+      "title": "TeapotBufferGeometry / RoundedBoxBufferGeometry are TeapotGeometry / RoundedBoxGeometry",
+      "detect": {
+        "pattern": "\\b(?:Teapot|RoundedBox)BufferGeometry\\b"
+      },
+      "todo": "Rename them.",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#r124--r125"
+    },
+    {
+      "id": "convex-buffer-geometry-removed",
+      "kind": "rename",
+      "title": "ConvexBufferGeometry was removed",
+      "detect": {
+        "pattern": "\\bConvexBufferGeometry\\b"
+      },
+      "todo": "Use ConvexGeometry (a BufferGeometry now).",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#r124--r125"
+    },
+    {
+      "id": "orbit-keys",
+      "kind": "behaviour",
+      "title": "OrbitControls no longer listens to keys by default",
+      "detect": {
+        "pattern": "\\b[\\w$]*[cC]ontrols\\w*\\.keys\\b",
+        "also": "\\bOrbitControls\\b",
+        "unless": "\\.listenToKeyEvents\\s*\\("
+      },
+      "todo": "controls.listenToKeyEvents( window );",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#r124--r125"
+    },
+    {
+      "id": "compute-tangents-core",
+      "kind": "rename",
+      "title": "BufferGeometryUtils.computeTangents() is BufferGeometry.computeTangents()",
+      "detect": {
+        "pattern": "\\bBufferGeometryUtils\\.computeTangents\\s*\\("
+      },
+      "todo": "geometry.computeTangents();",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#r124--r125"
+    },
+    {
+      "id": "removed-125",
+      "kind": "removed",
+      "title": "SubdivisionModifier, OBJLoader2 and RectAreaLightHelper.update() were removed",
+      "detect": {
+        "pattern": "\\b(?:SubdivisionModifier|OBJLoader2)\\b"
+      },
+      "todo": "Remove them.",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#r124--r125"
+    }
+  ]
+}

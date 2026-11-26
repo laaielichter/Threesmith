@@ -1,0 +1,190 @@
+{
+  "release": 185,
+  "guide": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#184--185",
+  "entries": [
+    {
+      "id": "webgpu-premultiplied-alpha",
+      "kind": "appearance",
+      "title": "WebGPURenderer changed how premultiplied alpha works",
+      "detect": {
+        "pattern": "\\balpha\\s*:\\s*true\\b|\\bsetClearAlpha\\s*\\(|\\bsetClearColor\\s*\\([^()]*,\\s*0(?:\\.\\d+)?\\s*\\)",
+        "also": "three/webgpu|WebGPURenderer"
+      },
+      "todo": "If blending looks wrong, set an opaque scene.background or clear colour; keep transparency only when the page must show through.",
+      "source": "https://github.com/mrdoob/three.js/issues/33369"
+    },
+    {
+      "id": "ssaa-clear-color-removed",
+      "kind": "removed",
+      "title": "SSAAPassNode clearColor / clearAlpha were removed",
+      "detect": {
+        "pattern": "\\b(?:clearColor|clearAlpha)\\b",
+        "also": "\\bSSAAPassNode\\b|\\bssaaPass\\s*\\("
+      },
+      "todo": "Set the clear colour on the renderer.",
+      "source": "https://github.com/mrdoob/three.js/pull/33478"
+    },
+    {
+      "id": "svg-create-shapes",
+      "kind": "rename",
+      "title": "SVGLoader.createShapes() is deprecated",
+      "detect": {
+        "pattern": "\\bSVGLoader\\.createShapes\\s*\\("
+      },
+      "todo": "const shapes = shapePath.toShapes( true );",
+      "source": "https://github.com/mrdoob/three.js/pull/33503"
+    },
+    {
+      "id": "anamorphic-removed",
+      "kind": "removed",
+      "title": "AnamorphicNode was removed",
+      "detect": {
+        "pattern": "\\bAnamorphicNode\\b|\\banamorphic\\s*\\("
+      },
+      "todo": "Use BloomNode (bloom()).",
+      "source": "https://github.com/mrdoob/three.js/pull/33600"
+    },
+    {
+      "id": "draco-decoder-config",
+      "kind": "removed",
+      "title": "DRACOLoader.setDecoderConfig() is deprecated",
+      "detect": {
+        "pattern": "\\.setDecoderConfig\\s*\\("
+      },
+      "todo": "Remove it: DRACOLoader will always use WASM.",
+      "source": "https://github.com/mrdoob/three.js/pull/33602"
+    },
+    {
+      "id": "ply-float64",
+      "kind": "behaviour",
+      "title": "PLYLoader keeps the PLY data types (float64 stays Float64Array)",
+      "detect": {
+        "pattern": "\\bPLYLoader\\b"
+      },
+      "todo": "If the files hold double fields, convert those attributes to Float32BufferAttribute before rendering.",
+      "source": "https://github.com/mrdoob/three.js/pull/33622"
+    },
+    {
+      "id": "gtao-darker",
+      "kind": "appearance",
+      "title": "GTAONode is more physically correct: darker and wider AO",
+      "detect": {
+        "pattern": "\\bGTAONode\\b|\\bao\\s*\\(",
+        "also": "three/(?:tsl|webgpu)"
+      },
+      "todo": "Lower radius and scale to compensate.",
+      "source": "https://github.com/mrdoob/three.js/pull/33654"
+    },
+    {
+      "id": "lwo-loader-deprecated",
+      "kind": "removed",
+      "title": "LWOLoader is deprecated",
+      "detect": {
+        "pattern": "\\bLWOLoader\\b"
+      },
+      "todo": "Convert the models to glTF and load them with GLTFLoader.",
+      "source": "https://github.com/mrdoob/three.js/pull/33621"
+    },
+    {
+      "id": "position-local-skinning",
+      "kind": "behaviour",
+      "title": "positionLocal in positionNode no longer follows skinning",
+      "detect": {
+        "pattern": "\\bpositionNode\\s*=[^;]*\\bpositionLocal\\b"
+      },
+      "todo": "Use positionGeometry for the pre-transformed vertices.",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#184--185"
+    },
+    {
+      "id": "tsl-pack-normal",
+      "kind": "rename",
+      "title": "directionToColor / colorToDirection are packNormalToRGB / unpackRGBToNormal",
+      "detect": {
+        "pattern": "\\b(?:directionToColor|colorToDirection)\\b",
+        "rules": [
+          "tsl-renamed"
+        ]
+      },
+      "todo": "Rename them (three_fix does it).",
+      "source": "https://github.com/mrdoob/three.js/pull/33715"
+    },
+    {
+      "id": "inverse-transform-direction",
+      "kind": "rename",
+      "title": "inverseTransformDirection() is deprecated in the WebGL shaders",
+      "detect": {
+        "pattern": "\\binverseTransformDirection\\s*\\(",
+        "rules": [
+          "shader-inverse-transform-direction"
+        ]
+      },
+      "todo": "Use transformNormalByInverseViewMatrix() for normals and transformDirectionByInverseViewMatrix() for directions.",
+      "source": "https://github.com/mrdoob/three.js/pull/33351"
+    },
+    {
+      "id": "update-world-matrix-flag",
+      "kind": "behaviour",
+      "title": "updateWorldMatrix() honours matrixWorldNeedsUpdate",
+      "detect": {
+        "pattern": "\\bmatrixAutoUpdate\\s*=\\s*false\\b",
+        "also": "\\.matrix\\.(?:copy|set|compose|multiply|premultiply|makeRotation\\w*|makeTranslation)\\s*\\(",
+        "unless": "\\bmatrixWorldNeedsUpdate\\s*=\\s*true"
+      },
+      "todo": "After changing object.matrix by hand, set object.matrixWorldNeedsUpdate = true.",
+      "source": "https://github.com/mrdoob/three.js/pull/33746"
+    },
+    {
+      "id": "tiled-lighting-removed",
+      "kind": "removed",
+      "title": "TiledLighting was removed",
+      "detect": {
+        "pattern": "\\bTiledLighting\\b"
+      },
+      "todo": "Use ClusteredLighting.",
+      "source": "https://github.com/mrdoob/three.js/pull/33751"
+    },
+    {
+      "id": "matrix3-transform-deprecated",
+      "kind": "removed",
+      "title": "Matrix3.translate(), scale() and rotate() are deprecated",
+      "detect": {
+        "pattern": "\\b[\\w$]*(?:[mM]atrix3|[mM]at3|uvTransform|[tT]ransform3)\\w*\\.(?:translate|scale|rotate)\\s*\\("
+      },
+      "todo": "Build the matrix with makeTranslation(), makeScale() and makeRotation() and multiply, or use setUvTransform().",
+      "source": "https://github.com/mrdoob/three.js/pull/33757"
+    },
+    {
+      "id": "draco-exporter-async",
+      "kind": "rename",
+      "title": "DRACOExporter.parse() is parseAsync()",
+      "detect": {
+        "pattern": "\\.parse\\s*\\(",
+        "also": "\\bDRACOExporter\\b"
+      },
+      "todo": "const data = await exporter.parseAsync( mesh, options );",
+      "source": "https://github.com/mrdoob/three.js/pull/33789"
+    },
+    {
+      "id": "ssr-node-api",
+      "kind": "behaviour",
+      "title": "The SSRNode API changed (optional denoiser)",
+      "detect": {
+        "pattern": "\\bSSRNode\\b|\\bssr\\s*\\(",
+        "also": "three/(?:tsl|webgpu)"
+      },
+      "todo": "Check the setup against the webgpu_postprocessing_ssr example of the target release.",
+      "source": "https://github.com/mrdoob/three.js/pull/33843"
+    },
+    {
+      "id": "ssgi-node-target",
+      "kind": "behaviour",
+      "title": "SSGINode uses an RG11B10 render target",
+      "detect": {
+        "pattern": "\\bSSGINode\\b|\\bssgi\\s*\\(",
+        "also": "three/(?:tsl|webgpu)"
+      },
+      "todo": "Update the node setup as in the SSGI example of the target release.",
+      "source": "https://github.com/mrdoob/three.js/pull/33822"
+    }
+  ]
+}

@@ -1,0 +1,70 @@
+{
+  "release": 179,
+  "guide": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#178--179",
+  "entries": [
+    {
+      "id": "timer-in-core",
+      "kind": "rename",
+      "title": "Timer moved into the core",
+      "detect": {
+        "pattern": "['\\\"]three/(?:addons|examples/jsm)/misc/Timer\\.js['\\\"]"
+      },
+      "todo": "import { Timer } from 'three' and drop the addon import.",
+      "replacement": "Timer",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#178--179"
+    },
+    {
+      "id": "usdz-loader-deprecated",
+      "kind": "rename",
+      "title": "USDZLoader is deprecated",
+      "detect": {
+        "pattern": "\\bUSDZLoader\\b"
+      },
+      "todo": "Use USDLoader.",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#178--179"
+    },
+    {
+      "id": "traa-node",
+      "kind": "rename",
+      "title": "TRAAPassNode is TRAANode with a new setup",
+      "detect": {
+        "pattern": "\\bTRAAPassNode\\b|\\btraaPass\\s*\\("
+      },
+      "todo": "Follow the webgpu_postprocessing_traa example of the target release.",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#178--179"
+    },
+    {
+      "id": "reversed-depth-buffer",
+      "kind": "rename",
+      "title": "reverseDepthBuffer is reversedDepthBuffer",
+      "detect": {
+        "rules": [
+          "reverse-depth-buffer-option"
+        ]
+      },
+      "todo": "Rename the renderer option (three_fix does it).",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#178--179"
+    },
+    {
+      "id": "tsl-label",
+      "kind": "rename",
+      "title": "TSL label() is setName()",
+      "detect": {
+        "pattern": "\\.label\\s*\\(\\s*['\\\"]",
+        "also": "three/(?:tsl|webgpu)"
+      },
+      "todo": "Rename .label( name ) to .setName( name ).",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#178--179"
+    },
+    {
+      "id": "gaussian-blur-sigma",
+      "kind": "appearance",
+      "title": "GaussianBlurNode blurs less blocky: custom sigma values must be doubled",
+      "detect": {
+        "pattern": "\\bgaussianBlur\\s*\\(|\\bGaussianBlurNode\\b"
+      },
+      "todo": "Double custom sigma values to keep the old strength.",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#178--179"
+    }
+  ]
+}

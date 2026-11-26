@@ -1,0 +1,17 @@
+{
+  "release": 146,
+  "guide": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#145--146",
+  "entries": [
+    {
+      "id": "cube-shader-uniforms",
+      "kind": "rename",
+      "title": "ShaderLib.cube uniforms are tCube / tFlip",
+      "detect": {
+        "pattern": "\\b(?:envMap|flipEnvMap)\\b",
+        "also": "ShaderLib\\s*(?:\\.\\s*cube|\\[\\s*['\\\"]cube['\\\"]\\s*\\])"
+      },
+      "todo": "Use uniforms.tCube and uniforms.tFlip.",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#145--146"
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "release": 161,
+  "guide": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#r160--r161",
+  "entries": [
+    {
+      "id": "build-three-js-removed",
+      "kind": "removed",
+      "title": "build/three.js and build/three.min.js were removed",
+      "detect": {
+        "pattern": "['\\\"][^'\\\"]*\\bbuild/three(?:\\.min)?\\.js['\\\"]"
+      },
+      "todo": "Load build/three.module.js as an ES module with an import map.",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#r160--r161"
+    },
+    {
+      "id": "grounded-skybox",
+      "kind": "rename",
+      "title": "GroundProjectedSkybox is GroundedSkybox",
+      "detect": {
+        "pattern": "\\bGroundProjectedSkybox\\b"
+      },
+      "todo": "import { GroundedSkybox } from 'three/addons/objects/GroundedSkybox.js'.",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#r160--r161"
+    }
+  ]
+}

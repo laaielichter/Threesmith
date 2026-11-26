@@ -1,0 +1,27 @@
+{
+  "release": 162,
+  "guide": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#r161--r162",
+  "entries": [
+    {
+      "id": "multiple-render-targets",
+      "kind": "removed",
+      "title": "WebGLMultipleRenderTargets was removed",
+      "detect": {
+        "pattern": "\\bWebGLMultipleRenderTargets\\b"
+      },
+      "todo": "new WebGLRenderTarget( width, height, { count: n } ) and read renderTarget.textures.",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#r161--r162"
+    },
+    {
+      "id": "interactive-group-api",
+      "kind": "behaviour",
+      "title": "InteractiveGroup needs listenToPointerEvents() / listenToXRControllerEvents()",
+      "detect": {
+        "pattern": "\\bInteractiveGroup\\b",
+        "unless": "\\.listenTo(?:Pointer|XRController)Events\\s*\\("
+      },
+      "todo": "group.listenToPointerEvents( renderer, camera ); group.listenToXRControllerEvents( controller );",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#r161--r162"
+    }
+  ]
+}

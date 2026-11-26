@@ -1,0 +1,16 @@
+{
+  "release": 123,
+  "guide": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#r122--r123",
+  "entries": [
+    {
+      "id": "matrix-invert",
+      "kind": "rename",
+      "title": "Matrix getInverse() and Quaternion.inverse() are invert()",
+      "detect": {
+        "pattern": "\\.getInverse\\s*\\(|\\b[\\w$]*[qQ]uat\\w*\\.inverse\\s*\\("
+      },
+      "todo": "m.copy( other ).invert(); q.invert();",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#r122--r123"
+    }
+  ]
+}

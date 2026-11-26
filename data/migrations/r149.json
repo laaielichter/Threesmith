@@ -1,0 +1,26 @@
+{
+  "release": 149,
+  "guide": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#148--149",
+  "entries": [
+    {
+      "id": "static-constants-renamed",
+      "kind": "rename",
+      "title": "Euler.DefaultOrder and the Object3D.Default* statics were renamed",
+      "detect": {
+        "pattern": "\\b(?:Euler\\.DefaultOrder|Euler\\.RotationOrders|Object3D\\.Default(?:Up|MatrixAutoUpdate|MatrixWorldAutoUpdate))\\b"
+      },
+      "todo": "Euler.DEFAULT_ORDER, Object3D.DEFAULT_UP, DEFAULT_MATRIX_AUTO_UPDATE, DEFAULT_MATRIX_WORLD_AUTO_UPDATE.",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#148--149"
+    },
+    {
+      "id": "two-pass-double-side-removed",
+      "kind": "removed",
+      "title": "TwoPassDoubleSide was removed",
+      "detect": {
+        "pattern": "\\bTwoPassDoubleSide\\b"
+      },
+      "todo": "Use DoubleSide: transparent double-sided materials draw in two passes by default.",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#148--149"
+    }
+  ]
+}

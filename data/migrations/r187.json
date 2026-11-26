@@ -1,0 +1,78 @@
+{
+  "release": 187,
+  "guide": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#186--187",
+  "entries": [
+    {
+      "id": "cube-uv-reflection-mapping-removed",
+      "kind": "removed",
+      "title": "CubeUVReflectionMapping was removed",
+      "detect": {
+        "pattern": "\\bCubeUVReflectionMapping\\b"
+      },
+      "todo": "PMREMs are cube render targets now: drop the mapping and use the PMREM texture as it comes.",
+      "source": "https://github.com/mrdoob/three.js/pull/34585"
+    },
+    {
+      "id": "pmrem-cube",
+      "kind": "appearance",
+      "title": "PMREMs are cube based and of higher quality",
+      "detect": {
+        "pattern": "\\bPMREMGenerator\\b"
+      },
+      "todo": "Materials lit by a PMREM look slightly different: compare a screenshot from before.",
+      "source": "https://github.com/mrdoob/three.js/pull/34585"
+    },
+    {
+      "id": "viewport-render-target",
+      "kind": "behaviour",
+      "title": "setViewport() and setScissor() no longer scale by pixel ratio when a render target is bound",
+      "detect": {
+        "pattern": "\\.set(?:Viewport|Scissor)\\s*\\(",
+        "also": "\\.setRenderTarget\\s*\\("
+      },
+      "todo": "Where a render target is bound, pass the size in render target pixels (multiply by the pixel ratio yourself if the old code relied on it).",
+      "source": "https://github.com/mrdoob/three.js/pull/34460"
+    },
+    {
+      "id": "pixelation-pass-number",
+      "kind": "behaviour",
+      "title": "pixelationPass() takes pixelSize as a number",
+      "detect": {
+        "pattern": "\\bpixelationPass\\s*\\("
+      },
+      "todo": "Pass a plain number for pixelSize; node objects are not supported any more.",
+      "source": "https://github.com/mrdoob/three.js/pull/34543"
+    },
+    {
+      "id": "light-node-register",
+      "kind": "removed",
+      "title": "renderer.library.addLight() was replaced by Light.registerNode()",
+      "detect": {
+        "pattern": "\\.library\\.addLight\\s*\\("
+      },
+      "todo": "CustomLight.registerNode( CustomLightNode );",
+      "source": "https://github.com/mrdoob/three.js/pull/34622"
+    },
+    {
+      "id": "tsl-struct-storage",
+      "kind": "behaviour",
+      "title": "Struct storage buffers are always arrays in TSL",
+      "detect": {
+        "pattern": "\\bstorage\\s*\\([^()]*,\\s*[\\w$.]*[sS]truct\\w*",
+        "also": "three/(?:tsl|webgpu)"
+      },
+      "todo": "Replace storage.get( 'member' ) with storage.element( 0 ).get( 'member' ).",
+      "source": "https://github.com/mrdoob/three.js/pull/34807"
+    },
+    {
+      "id": "iridescence-thickness-range",
+      "kind": "rename",
+      "title": "iridescenceThicknessRange is now iridescenceThicknessMinimum / Maximum",
+      "detect": {
+        "pattern": "\\biridescenceThicknessRange\\b"
+      },
+      "todo": "material.iridescenceThicknessMinimum = min; material.iridescenceThicknessMaximum = max;",
+      "source": "https://github.com/mrdoob/three.js/pull/35039"
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "release": 170,
+  "guide": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#169--170",
+  "entries": [
+    {
+      "id": "material-type-static",
+      "kind": "behaviour",
+      "title": "Material.type is static and cannot be changed",
+      "detect": {
+        "pattern": "\\b[\\w$]*[mM]at(?:erial)?\\w*\\.type\\s*=(?!=)"
+      },
+      "todo": "Do not set material.type to force uniforms; use customProgramCacheKey() or needsUpdate.",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#169--170"
+    },
+    {
+      "id": "mmd-deprecated",
+      "kind": "removed",
+      "title": "The MMD modules are deprecated",
+      "detect": {
+        "pattern": "\\b(?:MMDLoader|MMDAnimationHelper|MMDPhysics)\\b"
+      },
+      "todo": "Move to the three-mmd-loader package.",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#169--170"
+    },
+    {
+      "id": "copy-texture-3d-deprecated",
+      "kind": "rename",
+      "title": "copyTextureToTexture3D() is deprecated",
+      "detect": {
+        "pattern": "\\.copyTextureToTexture3D\\s*\\("
+      },
+      "todo": "Use copyTextureToTexture() (it handles 3D and array textures).",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#169--170"
+    },
+    {
+      "id": "cinematic-camera-removed",
+      "kind": "removed",
+      "title": "CinematicCamera was removed",
+      "detect": {
+        "pattern": "\\bCinematicCamera\\b"
+      },
+      "todo": "Use a depth of field pass instead.",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#169--170"
+    }
+  ]
+}

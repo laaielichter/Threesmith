@@ -1,0 +1,27 @@
+{
+  "release": 174,
+  "guide": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#173--174",
+  "entries": [
+    {
+      "id": "timer-page-visibility",
+      "kind": "behaviour",
+      "title": "Timer no longer listens to page visibility by itself",
+      "detect": {
+        "pattern": "\\bnew\\s+(?:[\\w$]+\\.)?Timer\\s*\\(",
+        "unless": "\\.connect\\s*\\(\\s*document\\s*\\)"
+      },
+      "todo": "timer.connect( document ); keeps the delta small after a hidden tab.",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#173--174"
+    },
+    {
+      "id": "render-target-clone",
+      "kind": "behaviour",
+      "title": "RenderTarget.clone() no longer shares textures",
+      "detect": {
+        "pattern": "\\b[\\w$]*(?:[rR]enderTarget|RT)\\w*\\.clone\\s*\\("
+      },
+      "todo": "Dispose the clone's textures too; it owns them now.",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#173--174"
+    }
+  ]
+}

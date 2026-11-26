@@ -1,0 +1,81 @@
+{
+  "release": 151,
+  "guide": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#150--151",
+  "entries": [
+    {
+      "id": "apply-bone-transform",
+      "kind": "rename",
+      "title": "SkinnedMesh.boneTransform() is applyBoneTransform()",
+      "detect": {
+        "pattern": "\\.boneTransform\\s*\\("
+      },
+      "todo": "Rename it.",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#150--151"
+    },
+    {
+      "id": "instanced-frustum-culled",
+      "kind": "behaviour",
+      "title": "InstancedMesh is frustum culled by default",
+      "detect": {
+        "pattern": "\\.setMatrixAt\\s*\\(",
+        "also": "\\bInstancedMesh\\b",
+        "unless": "\\bcomputeBoundingSphere\\s*\\(|frustumCulled\\s*=\\s*false"
+      },
+      "todo": "Call mesh.computeBoundingSphere() after moving instances, or instances may vanish at the edges.",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#150--151"
+    },
+    {
+      "id": "map-controls-module",
+      "kind": "rename",
+      "title": "MapControls has its own module",
+      "detect": {
+        "pattern": "import\\s*\\{[^}]*\\bMapControls\\b[^}]*\\}\\s*from\\s*['\\\"][^'\\\"]*OrbitControls"
+      },
+      "todo": "import { MapControls } from 'three/addons/controls/MapControls.js'.",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#150--151"
+    },
+    {
+      "id": "triangle-get-uv",
+      "kind": "rename",
+      "title": "Triangle.getUV() is getInterpolation()",
+      "detect": {
+        "pattern": "\\.getUV\\s*\\("
+      },
+      "todo": "Rename it.",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#150--151"
+    },
+    {
+      "id": "ground-projected-env",
+      "kind": "rename",
+      "title": "GroundProjectedEnv is GroundProjectedSkybox (GroundedSkybox since r161)",
+      "detect": {
+        "pattern": "\\bGroundProjectedEnv\\b"
+      },
+      "todo": "Use GroundedSkybox.",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#150--151"
+    },
+    {
+      "id": "merge-geometries",
+      "kind": "rename",
+      "title": "mergeBufferGeometries / mergeBufferAttributes are mergeGeometries / mergeAttributes",
+      "detect": {
+        "rules": [
+          "merge-buffer-geometries"
+        ]
+      },
+      "todo": "Rename them (three_fix does it).",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#150--151"
+    },
+    {
+      "id": "ao-light-map-channel",
+      "kind": "behaviour",
+      "title": "aoMap and lightMap no longer use uv2 by themselves",
+      "detect": {
+        "pattern": "\\b(?:aoMap|lightMap)\\b",
+        "also": "['\\\"]uv2['\\\"]"
+      },
+      "todo": "Set map.channel = 1 to read the second UV set.",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#150--151"
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "release": 124,
+  "guide": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#r123--r124",
+  "entries": [
+    {
+      "id": "get-clear-color-target",
+      "kind": "behaviour",
+      "title": "getClearColor() needs a target",
+      "detect": {
+        "pattern": "\\.getClearColor\\s*\\(\\s*\\)"
+      },
+      "todo": "renderer.getClearColor( new THREE.Color() ).",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#r123--r124"
+    }
+  ]
+}

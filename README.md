@@ -101,10 +101,10 @@ the doctor, fix in its order) and `threesmith-<skill>` for each skill (`debug`, 
 
 - **Two profiles.** `--tier cheap` (the default) gives short, capped output and numbered step-by-step instructions, so
   small models follow the right order; `--tier premium` gives full detail for large models.
-- **Tool sets.** `--tools core` loads 14 tools; add `run`, `live`, `build`, `model` when you need them, or name single
+- **Tool sets.** `--tools core` loads 15 tools; add `run`, `live`, `build`, `model` when you need them, or name single
   tools. A tool list the client pays for in every turn stays small. The server instructions only ever name tools
   that are loaded.
-- **Lean mode.** `--lean` offers two tools instead of 31: `three` runs any tool by name
+- **Lean mode.** `--lean` offers two tools instead of 32: `three` runs any tool by name
   (`{"tool": "review", "args": {"only_new": true}}`) and `three_help` gives a tool's parameters when they are needed.
   Same tools, same results, same read-only refusals; the tool list drops from about 13,300 to about 1,600 tokens
   (estimated at 4 characters per token; `threesmith mcp --stats` prints the numbers for your options).
@@ -118,7 +118,7 @@ the doctor, fix in its order) and `threesmith-<skill>` for each skill (`debug`, 
 - **It learns, locally.** A finding marked as a false alarm with `three_feedback` is hidden from then on; lessons kept
   with `three_lesson_add` come back under the same error. Only hashes, counters and scrubbed text, on this machine.
 
-## The 31 tools
+## The 32 tools
 
 <details open>
 <summary>All MCP tools (most are also CLI commands)</summary>
@@ -132,6 +132,7 @@ the doctor, fix in its order) and `threesmith-<skill>` for each skill (`debug`, 
 | core | `three_review` | Scored review (0-100) with 98 rules pinned to the installed release; `code` + `file` for unsaved code, `only_new` in a fix loop, `files` to focus |
 | core | `three_types` | The project's own `tsc --noEmit`, with each three.js type error answered from the installed release (the member that exists, the real import path) |
 | core | `three_fix` | The renames that mean exactly the same, dry run first, undoable |
+| core | `three_migrate` | Plan a three.js upgrade (r120 to r188): the breaking changes per release that apply to this code with file:line, a TO DO list with the replacement checked against the installed API, what `three_fix` renames, and what will look different; `from` read from CDN URLs, package files or git history |
 | core | `three_explain` | Cause and fix of a console, build or test message (35 kinds), with the right import path for the installed release |
 | core | `three_lessons` | 100 lessons from real three.js and react-three-fiber projects (symptom, cause, fix, test) by error message, words, rule or topic |
 | core | `three_lesson_add` | Keep a lesson learned here, scrubbed of names, paths and code; it comes back under the same error |
