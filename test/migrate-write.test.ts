@@ -1,5 +1,6 @@
 import { cpSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { pathToFileURL } from "node:url";
 import { describe, expect, it } from "vitest";
 import { findChromium } from "../src/check/browser.js";
 import { check } from "../src/check/check.js";
@@ -43,17 +44,22 @@ describe("migrate rewrites", () => {
     expect(readFileSync(join(dir, "scene.js"), "utf8")).toBe(before);
   });
 
-  it("r170-tsl: the TSL and WebGPURenderer renames, imports included, strings left alone", () => {
+  it("r170-tsl: the TSL and WebGPURenderer renames, imports included, strings left alone", async () => {
     const dir = fixture("r170-tsl");
     write(dir);
     const after = readFileSync(join(dir, "main.js"), "utf8");
-    expect(after).toContain("import { color, uniform, toVarying, positionLocal, sin, TWO_PI, texture, uv } from 'three/tsl';");
+    expect(after).toContain("import { color, uniform, positionLocal, sin, TWO_PI, texture, uv } from 'three/tsl';");
+    expect(after).toContain("const wave = sin(positionLocal.x.mul(TWO_PI).add(time)).toVarying();");
     expect(after).toContain("new THREE.WebGPURenderer({ outputBufferType: THREE.HalfFloatType })");
     expect(after).toContain("texture(map).sample(uv().mul(2))");
     expect(after).toContain("new THREE.RenderPipeline(renderer)");
     expect(after).toContain(".setName('red')");
     expect(after).toContain("THREE.PCFShadowMap;");
     expect(apiErrors(dir)).toEqual([]);
+    // every name the rewritten file imports exists in the installed three
+    const tsl = await import(pathToFileURL(join(THREE_DIR, "build", "three.tsl.js")).href);
+    const names = /import \{([^}]*)\} from 'three\/tsl'/.exec(after)![1]!.split(",").map((s) => s.trim());
+    expect(names.filter((n) => !(n in tsl))).toEqual([]);
     const left = migratePlan({ path: dir, three: THREE_DIR });
     expect(left.todo.map((t) => t.id).sort()).toEqual(["webgpu-async-deprecated"]);
   });
@@ -90,8 +96,8 @@ describe("read-only", () => {
 
 describe("applyRewrites", () => {
   it("renames code only, keeps comments, groups and lookaheads, and deletes whole lines", () => {
-    const code = "const a = varying(x); // varying(y)\nconst s = 'varying(z)';\nconst gl = `varying vec2 vUv;`;\n";
-    expect(applyRewrites(code, [{ find: String.raw`(?<![\w$.])varying(?![\w$])`, replace: "toVarying", code: true }])).toEqual({ text: code.replace("= varying(x)", "= toVarying(x)"), count: 1 });
+    const code = "const a = x.varying(); // x.varying()\nconst s = 'x.varying()';\nconst gl = `varying vec2 vUv;`;\n";
+    expect(applyRewrites(code, [{ find: String.raw`\.varying(?=\s*\()`, replace: ".toVarying", code: true }])).toEqual({ text: code.replace("= x.varying()", "= x.toVarying()"), count: 1 });
     expect(applyRewrites("a.label( 'n' ); a.label(n);", [{ find: String.raw`\.label(?=\s*\(\s*['"])`, replace: ".setName", code: true }]).text).toBe("a.setName( 'n' ); a.label(n);");
     expect(applyRewrites("myScene.autoUpdate = false;", [{ find: String.raw`\b([\w$]*[sS]cene\w*)\.autoUpdate\b`, replace: "$1.matrixWorldAutoUpdate", code: true }]).text).toBe("myScene.matrixWorldAutoUpdate = false;");
     expect(applyRewrites("a();\n  renderer.useLegacyLights = false;\nb();\n", [{ find: String.raw`^[ \t]*[\w$.]+\.useLegacyLights\s*=\s*false\s*;?[ \t]*\r?\n`, replace: "", code: true }]).text).toBe("a();\nb();\n");
