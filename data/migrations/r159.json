@@ -10,6 +10,13 @@
         "pattern": "\\.applyGeometry\\s*\\("
       },
       "todo": "Rename it.",
+      "rewrite": [
+        {
+          "find": "\\.applyGeometry(?=\\s*\\()",
+          "replace": ".addGeometry",
+          "code": true
+        }
+      ],
       "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#r158--r159"
     },
     {

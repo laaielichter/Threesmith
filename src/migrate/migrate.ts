@@ -32,14 +32,14 @@ export interface Place {
   file: string;
   line: number;
   snippet: string;
-  /** three_fix makes this change here (a rename with the same meaning). */
+  /** write: true makes this change here (a three_fix rename or an exact rewrite). */
   fix?: boolean;
 }
 
 export interface AppliedEntry extends MigrationEntry {
   release: number;
   where: Place[];
-  /** Every place is a rename three_fix makes. */
+  /** write: true rewrites every place (a three_fix rename or an exact rewrite of the migration data). */
   fix: boolean;
   /** For a replacement name: does it exist in the installed three? */
   replacementExists?: boolean;
@@ -57,6 +57,8 @@ export interface TodoItem extends Place {
 }
 
 export interface MigratePlan {
+  /** The project root (where the journal lives). */
+  root: string;
   from: number;
   to: number;
   installed: number | null;
@@ -69,7 +71,7 @@ export interface MigratePlan {
   todo: TodoItem[];
   /** Changes that make the scene look different, with where they apply. */
   appearance: AppliedEntry[];
-  /** Places three_fix makes (rename with the same meaning). */
+  /** Places write: true rewrites. */
   fixable: number;
   /** Changes between the two releases that this code does not show. */
   notFound: { release: number; id: string; title: string }[];
@@ -79,6 +81,11 @@ export interface MigratePlan {
 }
 
 const MAX_PLACES = 50;
+
+/** Does one of the entry's own rewrites change this line, with the new name in the installed release? */
+function rewrites(entry: MigrationEntry, line: string, installed: number, release: number): boolean {
+  return installed >= release && !!entry.rewrite?.some((r) => new RegExp(r.find, "m").test(`${line}\n`));
+}
 
 /** Does three_fix (without rewrites) change this line for one of these rules, on this release? */
 function fixedBy(rules: string[] | undefined, line: string, release: number): boolean {
@@ -156,7 +163,7 @@ export function migratePlan(opts: MigrateOptions): MigratePlan {
     index = undefined;
   }
 
-  const plan: MigratePlan = { from, to, installed: install?.release ?? null, fromEvidence, releases: [], counts: { rename: 0, removed: 0, behaviour: 0, appearance: 0 }, todo: [], appearance: [], fixable: 0, notFound: [], data, filesScanned: files.length };
+  const plan: MigratePlan = { root, from, to, installed: install?.release ?? null, fromEvidence, releases: [], counts: { rename: 0, removed: 0, behaviour: 0, appearance: 0 }, todo: [], appearance: [], fixable: 0, notFound: [], data, filesScanned: files.length };
   for (const rel of all) {
     const applied: AppliedEntry[] = [];
     for (const entry of rel.entries) {
@@ -175,7 +182,8 @@ export function migratePlan(opts: MigrateOptions): MigratePlan {
         continue;
       }
       const where = [...places.values()].sort((a, b) => a.file.localeCompare(b.file) || a.line - b.line).slice(0, MAX_PLACES);
-      if (entry.kind === "rename") for (const p of where) if (fixedBy(entry.detect.rules, p.snippet, install?.release ?? to)) p.fix = true;
+      const have = install?.release ?? to;
+      if (entry.kind !== "appearance") for (const p of where) if ((entry.kind === "rename" && fixedBy(entry.detect.rules, p.snippet, have)) || rewrites(entry, p.snippet, have, rel.release)) p.fix = true;
       const fix = where.every((p) => p.fix);
       const a: AppliedEntry = { ...entry, release: rel.release, where, fix, ...(entry.replacement && index ? { replacementExists: hasSymbol(index, entry.replacement) } : {}) };
       applied.push(a);

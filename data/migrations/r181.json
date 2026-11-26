@@ -99,6 +99,18 @@
         "also": "\\bpass\\s*\\(|\\bPassNode\\b"
       },
       "todo": "Rename the calls.",
+      "rewrite": [
+        {
+          "find": "\\.setResolution(?=\\s*\\()",
+          "replace": ".setResolutionScale",
+          "code": true
+        },
+        {
+          "find": "\\.getResolution(?=\\s*\\()",
+          "replace": ".getResolutionScale",
+          "code": true
+        }
+      ],
       "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#180--181"
     },
     {

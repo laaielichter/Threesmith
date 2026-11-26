@@ -64,7 +64,7 @@ describe("migrate plan", () => {
     expect(lines(p)).toEqual([
       "r125 geometry-out-of-core x4",
       "r129 skinning-flag-removed x1",
-      "r132 buffer-geometry-utils-import x1",
+      "r132 buffer-geometry-utils-import x1 fix",
       "r132 rough-less-shiny x1",
       "r145 buffer-geometry-aliases x2 fix",
       "r147 light-decay-2 x1",
@@ -75,17 +75,17 @@ describe("migrate plan", () => {
       "r181 pbr-indirect-specular x1",
       "r181 rough-pbr-brighter x1",
     ]);
-    expect(p.fixable).toBe(4);
+    expect(p.fixable).toBe(5);
     expect(p.todo.map((t) => `${t.file}:${t.line} ${t.id}`)).toContain("main.js:14 geometry-out-of-core");
     expect(p.appearance.map((a) => a.id)).toContain("legacy-lights-off");
   });
 
-  it("r150-colour: from the CDN URL; renames three_fix makes, Clock to do, the look after r152 and r181", () => {
+  it("r150-colour: from the CDN URL; renames write: true makes, Clock to do, the look after r152 and r181", () => {
     const p = migratePlan({ path: fixture("r150-colour"), three: THREE_DIR });
     expect(p.from).toBe(150);
     expect(p.fromEvidence).toEqual([{ release: 150, from: "CDN URL in index.html (three@0.150.1)" }]);
     expect(lines(p)).toEqual([
-      "r150 physically-correct-lights x1",
+      "r150 physically-correct-lights x1 fix",
       "r152 output-color-space x1 fix",
       "r152 texture-color-space x1 fix",
       "r152 color-management-on x2",
@@ -110,16 +110,16 @@ describe("migrate plan", () => {
   it("r160-onbeforecompile: deprecations whose removal is still ahead count", () => {
     const p = migratePlan({ path: fixture("r160-onbeforecompile"), three: THREE_DIR });
     expect(p.from).toBe(160);
-    expect(lines(p)).toEqual(["r155 use-legacy-lights-removed x1", "r159 update-ranges x1", "r181 pbr-indirect-specular x1", "r181 rough-pbr-brighter x1", "r183 clock-deprecated x1"]);
+    expect(lines(p)).toEqual(["r155 use-legacy-lights-removed x1 fix", "r159 update-ranges x1", "r181 pbr-indirect-specular x1", "r181 rough-pbr-brighter x1", "r183 clock-deprecated x1"]);
   });
 
   it("r170-tsl: the TSL and WebGPURenderer renames, only where the code has them", () => {
     const p = migratePlan({ path: fixture("r170-tsl"), three: THREE_DIR });
     expect(p.fromEvidence[0]!.from).toBe("three ^0.170.0 in package.json");
     expect(lines(p)).toEqual([
-      "r172 texture-node-sample x1",
-      "r173 tsl-to-varying x1",
-      "r179 tsl-label x1",
+      "r172 texture-node-sample x1 fix",
+      "r173 tsl-to-varying x1 fix",
+      "r179 tsl-label x1 fix",
       "r181 webgpu-async-deprecated x1",
       "r181 tsl-pi2 x2 fix",
       "r182 pcf-soft-shadow x1 fix",

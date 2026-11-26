@@ -76,6 +76,13 @@
       },
       "todo": "Use TextureSource.",
       "replacement": "TextureSource",
+      "rewrite": [
+        {
+          "find": "\\bTHREE\\.Source\\b",
+          "replace": "THREE.TextureSource",
+          "code": true
+        }
+      ],
       "source": "https://github.com/mrdoob/three.js/pull/34202"
     },
     {

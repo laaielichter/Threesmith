@@ -132,7 +132,7 @@ the doctor, fix in its order) and `threesmith-<skill>` for each skill (`debug`, 
 | core | `three_review` | Scored review (0-100) with 98 rules pinned to the installed release; `code` + `file` for unsaved code, `only_new` in a fix loop, `files` to focus |
 | core | `three_types` | The project's own `tsc --noEmit`, with each three.js type error answered from the installed release (the member that exists, the real import path) |
 | core | `three_fix` | The renames that mean exactly the same, dry run first, undoable |
-| core | `three_migrate` | Plan a three.js upgrade (r120 to r188): the breaking changes per release that apply to this code with file:line, a TO DO list with the replacement checked against the installed API, what `three_fix` renames, and what will look different; `from` read from CDN URLs, package files or git history |
+| core | `three_migrate` | Plan a three.js upgrade (r120 to r188): the breaking changes per release that apply to this code with file:line, a TO DO list with the replacement checked against the installed API, and what will look different; `write: true` makes the exact rewrites (the `three_fix` renames plus the migration's own) as one undoable step; `from` read from CDN URLs, package files or git history |
 | core | `three_explain` | Cause and fix of a console, build or test message (35 kinds), with the right import path for the installed release |
 | core | `three_lessons` | 100 lessons from real three.js and react-three-fiber projects (symptom, cause, fix, test) by error message, words, rule or topic |
 | core | `three_lesson_add` | Keep a lesson learned here, scrubbed of names, paths and code; it comes back under the same error |

@@ -40,6 +40,13 @@
         "pattern": "\\b[\\w$]*[sS]cene\\w*\\.autoUpdate\\b"
       },
       "todo": "scene.matrixWorldAutoUpdate = false.",
+      "rewrite": [
+        {
+          "find": "\\b([\\w$]*[sS]cene\\w*)\\.autoUpdate\\b",
+          "replace": "$1.matrixWorldAutoUpdate",
+          "code": true
+        }
+      ],
       "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#143--144"
     }
   ]

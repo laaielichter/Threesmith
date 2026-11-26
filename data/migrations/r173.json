@@ -32,6 +32,18 @@
         "also": "three/(?:tsl|webgpu)"
       },
       "todo": "Rename the calls.",
+      "rewrite": [
+        {
+          "find": "(?<![\\w$.])varying(?![\\w$])",
+          "replace": "toVarying",
+          "code": true
+        },
+        {
+          "find": "(?<![\\w$.])vertexStage(?![\\w$])",
+          "replace": "toVertexStage",
+          "code": true
+        }
+      ],
       "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#172--173"
     }
   ]
