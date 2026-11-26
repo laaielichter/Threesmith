@@ -1,0 +1,1 @@
+{ "name": "r160-shadermaterial", "private": true, "dependencies": { "three": "^0.187.0" }, "devDependencies": { "@types/three": "^0.160.0" } }

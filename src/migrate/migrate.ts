@@ -9,6 +9,7 @@ import { collect, lineOf, lineText, type SourceFile } from "../review/source.js"
 import { projectRootOf } from "../scan/scan.js";
 import { migrations, type MigrationEntry, type MigrationKind } from "./data.js";
 import { appearanceNote } from "./appearance.js";
+import { webgpuReadiness, type WebgpuReadiness } from "./webgpu.js";
 import { detectFrom, releaseNumber, type FromEvidence } from "./from.js";
 
 /**
@@ -27,6 +28,8 @@ export interface MigrateOptions {
   three?: string;
   /** Only these files (relative to the project). */
   files?: string[];
+  /** Also the WebGPU readiness report and a TSL draft per GLSL material. */
+  webgpu?: boolean;
 }
 
 export interface Place {
@@ -80,6 +83,8 @@ export interface MigratePlan {
   notFound: { release: number; id: string; title: string }[];
   /** The releases the data covers. */
   data: { min: number; max: number };
+  /** With webgpu: what stops WebGPURenderer, the steps, and the TSL drafts. */
+  webgpu?: WebgpuReadiness;
   filesScanned: number;
 }
 
@@ -207,5 +212,6 @@ export function migratePlan(opts: MigrateOptions): MigratePlan {
     }
     if (applied.length) plan.releases.push({ release: rel.release, guide: rel.guide, entries: applied });
   }
+  if (opts.webgpu) plan.webgpu = webgpuReadiness(files, install?.release ?? to);
   return plan;
 }
