@@ -720,18 +720,22 @@ export function buildProgram(): Command {
     .option("--wait <ms>", "ms to run the scene for --check", "2000")
     .option("--disable <rules>", "comma separated rule ids to skip")
     .option("--no-scenarios", "do not run the scenarios in .threesmith/scenarios")
+    .option("--compare <release>", "also run the --check page on another three release (previous, r186, a folder) and say what changed")
+    .option("--impact <ref>", "also say what the change touches against this git ref (e.g. origin/main)")
     .option("--junit <file>", "write the scenario results as JUnit XML")
     .option("--sarif <file>", "write the review findings as SARIF 2.1.0")
     .option("--summary <file>", "append the markdown receipt to this file (use $GITHUB_STEP_SUMMARY)")
     .option("--out <file>", "write the markdown receipt to this file")
     .option("--json", "JSON output")
-    .action(async (path: string, o: { three?: string; minScore?: string; failOn: string; check?: string; entry: string; root?: string; baseline?: string; updateBaseline?: boolean; wait: string; disable?: string; scenarios: boolean; junit?: string; sarif?: string; summary?: string; out?: string; json?: boolean }) => {
+    .action(async (path: string, o: { three?: string; minScore?: string; failOn: string; check?: string; entry: string; root?: string; baseline?: string; updateBaseline?: boolean; wait: string; disable?: string; scenarios: boolean; compare?: string; impact?: string; junit?: string; sarif?: string; summary?: string; out?: string; json?: boolean }) => {
       existingPath(path);
       const disable = o.disable ? parseRuleList(o.disable, "--disable") : undefined;
       const r = await ci({
         path,
         scenarios: o.scenarios,
         failOn: o.failOn as Severity | "none",
+        ...(o.compare ? { compare: o.compare } : {}),
+        ...(o.impact ? { impact: o.impact } : {}),
         ...(o.three ? { three: o.three } : {}),
         ...(o.minScore !== undefined ? { minScore: Number(o.minScore) } : {}),
         ...(disable ? { disable } : {}),

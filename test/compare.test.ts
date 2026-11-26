@@ -91,6 +91,20 @@ describe.skipIf(!have)("three_compare (needs Chromium)", () => {
     expect(formatCompare(r)).toContain("no migration entry explains this: probable regression");
   });
 
+  it("puts the comparison and the impact in the ci receipt", async () => {
+    const { ci } = await import("../src/ci.js");
+    const dir = gamePage(PBR);
+    const r = await ci({ path: dir, three: THREE_DIR, failOn: "none", scenarios: false, check: { target: dir, wait: 300 }, compare: brighterAmbient(), impact: "HEAD" });
+    expect(r.compare?.verdict).toBe("explained");
+    expect(r.markdown).toContain("### Three release compare");
+    expect(r.markdown).toContain("every change is explained by a migration note");
+    expect(r.markdown).toMatch(/✔ Scene > Floor: .*r188: AmbientLight and HemisphereLight add specular/);
+    expect(r.markdown).toContain("### What the change touches (against `HEAD`)");
+    expect(r.markdown).toMatch(/Not worked out: .*not in a git repository|No changes against HEAD/);
+    const none = await ci({ path: dir, three: THREE_DIR, failOn: "none", scenarios: false, compare: "previous" });
+    expect(none.reasons).toContain("compare needs check (the page to run on both releases)");
+  });
+
   it("says when the page loads no three it can swap", async () => {
     const r = await compare({ target: project({ "index.html": "<!doctype html><canvas></canvas>" }), base: THREE_DIR, with: THREE_DIR });
     expect(r.ok).toBe(false);
