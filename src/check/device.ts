@@ -1,5 +1,7 @@
 import { readFileSync } from "node:fs";
 import type { Issue } from "./check.js";
+import { blankness, diff } from "./diff.js";
+import { decodePng } from "./png.js";
 import type { PageOptions } from "./page.js";
 import { summarize, TIMING_NOTE, type Stats } from "./perf.js";
 import { openRunPage } from "./play.js";
@@ -63,7 +65,13 @@ export function loadProfile(spec: string = "phone"): DeviceProfile {
 export function deviceInit(p: DeviceProfile): string {
   return `(() => {
   const L = { tex: ${Math.floor(p.maxTextureSize)}, rb: ${Math.floor(p.maxRenderbufferSize)} };
-  const rec = (window.__tsDevice = { over: [], bytes: 0, uploads: 0, contexts: [] });
+  const rec = (window.__tsDevice = { over: [], bytes: 0, uploads: 0, draws: 0, contexts: [] });
+  const gc = HTMLCanvasElement.prototype.getContext;
+  HTMLCanvasElement.prototype.getContext = function (type, ...rest) {
+    const ctx = gc.call(this, type, ...rest);
+    if (ctx && /^(?:webgl2?|experimental-webgl)$/.test(type) && !rec.contexts.includes(ctx)) rec.contexts.push(ctx);
+    return ctx;
+  };
   const size = (args) => {
     if (typeof args[3] === 'number' && typeof args[4] === 'number' && args.length >= 8) return [args[3], args[4]];
     const s = args[5] || args[3];
@@ -92,6 +100,10 @@ export function deviceInit(p: DeviceProfile): string {
       const ts = P.texStorage2D;
       P.texStorage2D = function (...a) { note('texStorage2D', a[3], a[4]); return ts.apply(this, a); };
     }
+    for (const name of ['drawArrays', 'drawElements', 'drawArraysInstanced', 'drawElementsInstanced', 'drawRangeElements']) {
+      const f = P[name];
+      if (f) P[name] = function (...a) { rec.draws++; return f.apply(this, a); };
+    }
     const ct = P.compressedTexImage2D;
     P.compressedTexImage2D = function (...a) { if (a[1] === 0) { rec.uploads++; rec.bytes += a[3] * a[4]; if (Math.max(a[3], a[4]) > L.tex && rec.over.length < 20) rec.over.push({ fn: 'compressedTexImage2D', width: a[3], height: a[4] }); } return ct.apply(this, a); };
   }
@@ -105,11 +117,29 @@ export interface DeviceOptions extends PageOptions {
   /** Seconds to measure frames. Default 3. */
   seconds?: number;
   budget?: { frameMs?: number; textureMb?: number };
+  /** Lose the WebGL context (WEBGL_lose_context), restore it, and check that the scene comes back. */
+  loseContext?: boolean;
+  /** Share of changed pixels after the restore that still counts as recovered. Default 0.01. */
+  tolerance?: number;
+}
+
+export interface ContextLossResult {
+  /** The context was lost on request (false: no WebGL context or no WEBGL_lose_context). */
+  lost: boolean;
+  restored: boolean;
+  /** Draw calls in the second after the restore. */
+  drawsAfter: number;
+  /** Share of pixels that differ from the frame before the loss. */
+  changed: number;
+  blankAfter: boolean;
+  /** The picture did not change by itself before the loss, so it is compared pixel for pixel. */
+  still: boolean;
+  recovered: boolean;
 }
 
 export interface DeviceFinding {
   severity: "error" | "warn" | "info";
-  kind: "texture-over-limit" | "texture-resized" | "texture-memory" | "pixel-ratio" | "frame-time" | "viewport-meta";
+  kind: "texture-over-limit" | "texture-resized" | "texture-memory" | "pixel-ratio" | "frame-time" | "viewport-meta" | "context-loss";
   message: string;
   fix: string;
 }
@@ -125,9 +155,36 @@ export interface DeviceResult {
   script: Stats;
   calls: number;
   triangles: number;
+  contextLoss?: ContextLossResult;
   findings: DeviceFinding[];
   issues: Issue[];
   note: string;
+}
+
+/** Loses and restores the page's WebGL context and compares the picture before and after. */
+async function loseAndRestore(o: Awaited<ReturnType<typeof openRunPage>>, tolerance: number): Promise<ContextLossResult> {
+  const before = decodePng(await o.page.screenshot());
+  await o.page.waitForTimeout(200);
+  // a scene that moves by itself cannot be compared pixel for pixel: then only "draws again, not blank" counts
+  const still = diff(before, decodePng(await o.page.screenshot())).ratio <= tolerance;
+  const lost = (await o.page.evaluate(`(() => {
+    const d = window.__tsDevice;
+    const gl = d && d.contexts.find((c) => !c.isContextLost());
+    const ext = gl && gl.getExtension('WEBGL_lose_context');
+    if (!ext) return false;
+    d.lose = { gl, ext };
+    ext.loseContext();
+    return true;
+  })()`)) as boolean;
+  if (!lost) return { lost: false, restored: false, drawsAfter: 0, changed: 0, blankAfter: false, still, recovered: false };
+  await o.page.waitForTimeout(300);
+  await o.page.evaluate("(() => { const d = window.__tsDevice; d.lose.ext.restoreContext(); d.drawsAtRestore = d.draws; })()");
+  await o.page.waitForTimeout(1000);
+  const state = (await o.page.evaluate("(() => { const d = window.__tsDevice; return { restored: !d.lose.gl.isContextLost(), draws: d.draws - d.drawsAtRestore }; })()")) as { restored: boolean; draws: number };
+  const after = decodePng(await o.page.screenshot());
+  const changed = diff(before, after).ratio;
+  const blankAfter = blankness(after).blank && !blankness(before).blank;
+  return { lost: true, restored: state.restored, drawsAfter: state.draws, changed: round(changed, 4), blankAfter, still, recovered: state.restored && !blankAfter && (still ? changed <= tolerance : state.draws > 0) };
 }
 
 export async function device(opts: DeviceOptions): Promise<DeviceResult> {
@@ -140,6 +197,7 @@ export async function device(opts: DeviceOptions): Promise<DeviceResult> {
     extraInit: [deviceInit(profile), ...(opts.extraInit ?? [])],
   });
   let frames: FrameRecord[] = [];
+  let contextLoss: ContextLossResult | undefined;
   let page: { layoutWidth?: number; canvas?: DeviceResult["canvas"]; dev?: { over: DeviceResult["textures"]["over"]; bytes: number; uploads: number } } = {};
   try {
     if (o.loaded) {
@@ -147,6 +205,7 @@ export async function device(opts: DeviceOptions): Promise<DeviceResult> {
       await o.page.evaluate("window.__tsRun.rec = []");
       await o.page.waitForTimeout(Math.min(Math.max(opts.seconds ?? 3, 0.5), 60) * 1000);
       frames = (await o.page.evaluate("(() => { const r = window.__tsRun.rec || []; window.__tsRun.rec = null; return r; })()")) as FrameRecord[];
+      if (opts.loseContext) contextLoss = await loseAndRestore(o, opts.tolerance ?? 0.01);
       page = (await o.page.evaluate(`(() => {
         const r = window.__threesmith && window.__threesmith.renderer;
         const c = (r && r.domElement) || document.querySelector('canvas');
@@ -197,6 +256,21 @@ export async function device(opts: DeviceOptions): Promise<DeviceResult> {
     });
   if (opts.budget?.frameMs !== undefined && s.frame.p95 > opts.budget.frameMs)
     findings.push({ severity: "warn", kind: "frame-time", message: `p95 frame time ${s.frame.p95} ms with the CPU ${profile.cpuThrottle}x slower, over the budget of ${opts.budget.frameMs} ms.`, fix: "three_perf names the slowest frames and their cause; compare before and after on the same machine." });
+  if (contextLoss && !contextLoss.lost)
+    findings.push({ severity: "warn", kind: "context-loss", message: "The context-loss test did not run: the page has no WebGL context with WEBGL_lose_context (WebGPU, or no canvas yet).", fix: "Run it on a WebGLRenderer page, after the scene has started (wait)." });
+  else if (contextLoss && !contextLoss.recovered)
+    findings.push({
+      severity: "error",
+      kind: "context-loss",
+      message: !contextLoss.restored
+        ? "The WebGL context was lost and never came back: the page stays black after a phone backgrounds it."
+        : contextLoss.drawsAfter === 0
+          ? `After the context was restored nothing was drawn${contextLoss.blankAfter ? " and the canvas is blank" : ""}: the page renders on demand (or its loop stopped), and nothing renders again on webglcontextrestored.`
+          : `After the restore the page draws again, but ${Math.round(contextLoss.changed * 100)}% of the picture differs from before${contextLoss.blankAfter ? " (blank)" : ""}: content made once (render targets drawn at start-up, textures whose image was freed, custom GL state) is gone.`,
+      fix: contextLoss.drawsAfter === 0
+        ? "renderer.domElement.addEventListener('webglcontextrestored', () => render()); (three restores its own state; the page has to draw again)"
+        : "On webglcontextrestored, rebuild what was made once (render targets, freed texture images) and render again.",
+    });
   const issues = o.issues.filter((i) => !resized.includes(i));
   if (o.loaded && !frames.length) issues.push({ kind: "no-frames", severity: "warn", message: "No animation frame ran while measuring: the page renders on demand, so there are no frame times." });
   const ok = o.loaded && !issues.some((i) => i.severity === "error") && !findings.some((f) => f.severity === "error");
@@ -206,6 +280,7 @@ export async function device(opts: DeviceOptions): Promise<DeviceResult> {
     profile,
     ...(c ? { canvas: c } : {}),
     textures: { uploads: page.dev?.uploads ?? 0, mb, over },
+    ...(contextLoss ? { contextLoss } : {}),
     frames: s.frames,
     frame: s.frame,
     script: s.script,
@@ -223,6 +298,8 @@ export function formatDevice(r: DeviceResult): string {
   if (r.canvas) out.push(`canvas ${r.canvas.cssWidth}x${r.canvas.cssHeight} CSS at pixel ratio ${round(r.canvas.pixelRatio, 2)} = ${r.canvas.width}x${r.canvas.height} pixels`);
   out.push(`frames ${r.frames}: frame ms p50 ${r.frame.p50} p95 ${r.frame.p95} max ${r.frame.max}, script ms p95 ${r.script.p95} (CPU ${p.cpuThrottle}x slower) · draw calls ${r.calls} · triangles ${r.triangles}`);
   out.push(`textures: ${r.textures.uploads} upload(s), about ${r.textures.mb} MB (budget ${p.textureMb} MB), limit ${p.maxTextureSize}`);
+  const cl = r.contextLoss;
+  if (cl?.lost) out.push(`context loss: lost and ${cl.restored ? "restored" : "NOT restored"}; ${cl.drawsAfter} draw call(s) in the second after; ${Math.round(cl.changed * 1000) / 10}% of the pixels differ from before${cl.blankAfter ? ", blank" : ""}: ${cl.recovered ? "recovered" : "NOT recovered"}`);
   for (const f of r.findings) out.push(`${f.severity} [device-${f.kind}] ${f.message} Fix: ${f.fix}`);
   if (!r.findings.length) out.push("Nothing over this profile's limits.");
   out.push(...formatIssues(r.issues));

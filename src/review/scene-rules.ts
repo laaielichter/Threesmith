@@ -360,6 +360,22 @@ export const SCENE_RULES: Rule[] = [
     },
   },
   {
+    id: "no-context-loss-handler",
+    category: "lifecycle",
+    severity: "info",
+    title: "Renders on demand and never draws again after a lost WebGL context",
+    message: "The page draws only when something changes (no animation loop) and never listens for webglcontextrestored. Phones lose the WebGL context of a page in the background; three restores its own state, but nothing draws again, so the canvas stays blank until the next input.",
+    fix: "renderer.domElement.addEventListener( 'webglcontextrestored', () => render() ); (three_device lose_context: true tests it)",
+    check(ctx, report) {
+      if (ctx.three.some((f) => f.r3f)) return;
+      const re = /new\s+(?:[\w$]+\.)?WebGLRenderer\s*\(/;
+      const f = ctx.three.find((x) => re.test(x.text));
+      if (!f || !/\.render\s*\(/.test(ctx.all)) return;
+      if (/\bsetAnimationLoop\s*\(|\brequestAnimationFrame\s*\(|webglcontext(?:restored|lost)/.test(ctx.all)) return;
+      report(f, f.text.search(re));
+    },
+  },
+  {
     id: "file-loader-no-return",
     category: "api",
     severity: "error",

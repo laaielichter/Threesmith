@@ -29,5 +29,6 @@ Work on $ARGUMENTS (or what the user named). Never optimise without a number bef
    `.json`). It runs the page at the profile's pixel ratio with the CPU slowed down and the WebGL limits clamped, and
    names textures over the limit (black on such a device), textures three had to resize, an uncapped pixel ratio, a
    missing viewport meta and texture memory over budget. Compare its frame times only with its own earlier runs.
+   `lose_context: true` also checks that the scene comes back after a lost WebGL context.
 
 End with a table: change, before, after, kept or dropped.

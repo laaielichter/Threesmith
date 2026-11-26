@@ -439,10 +439,11 @@ export function buildProgram(): Command {
     .option("--profile <name>", `${Object.keys(PROFILES).join(", ")}, or a .json profile`, "phone")
     .option("--seconds <n>", "how long to measure frames", "3")
     .option("--budget <list>", "limits, e.g. frameMs=40,textureMb=128")
+    .option("--lose-context", "lose and restore the WebGL context, and check that the scene comes back")
     .option("--json", "JSON output")
-    .action(async (target: string, o: { profile: string; seconds: string; budget?: string; json?: boolean } & Record<string, string | boolean | undefined>) => {
+    .action(async (target: string, o: { profile: string; seconds: string; budget?: string; loseContext?: boolean; json?: boolean } & Record<string, string | boolean | undefined>) => {
       const budget = budgetFrom(o.budget) as { frameMs?: number; textureMb?: number } | undefined;
-      const r = await device({ ...pageFrom(target, o as never), profile: o.profile, seconds: Number(o.seconds), ...(budget ? { budget } : {}) });
+      const r = await device({ ...pageFrom(target, o as never), profile: o.profile, seconds: Number(o.seconds), ...(budget ? { budget } : {}), ...(o.loseContext ? { loseContext: true } : {}) });
       out(o.json ? JSON.stringify(r, null, 2) : formatDevice(r));
       if (!r.ok) process.exitCode = 1;
     });

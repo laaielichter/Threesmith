@@ -149,6 +149,11 @@ export const CASES: RuleCase[] = [
     quiet: { "a.js": `${T}import { KTX2Loader } from 'three/addons/loaders/KTX2Loader.js';\nconst ktx2 = new KTX2Loader().setTranscoderPath('https://cdn.jsdelivr.net/npm/three@${THREE_VERSION}/examples/jsm/libs/basis/').detectSupport(renderer);\nconst local = new KTX2Loader().setTranscoderPath('/basis/');\n` },
   },
   {
+    id: "no-context-loss-handler",
+    fire: { "a.js": `${GL}const controls = { addEventListener() {} };\nfunction render() { renderer.render(scene, camera); }\ncontrols.addEventListener('change', render);\nrender();\n` },
+    quiet: { "a.js": `${GL}const controls = { addEventListener() {} };\nfunction render() { renderer.render(scene, camera); }\ncontrols.addEventListener('change', render);\nrenderer.domElement.addEventListener('webglcontextrestored', render);\nrender();\n` },
+  },
+  {
     id: "file-loader-no-return",
     fire: { "a.js": `${T}const loader = new THREE.FileLoader();\nconst data = loader.load('a.json');\n` },
     quiet: { "a.js": `${T}const loader = new THREE.FileLoader();\nloader.load('a.json', (data) => {});\nconst tex = new THREE.TextureLoader().load('a.png');\n` },

@@ -746,7 +746,7 @@ export function createServer(options: ServerOptions = {}): McpServer {
     "three_device",
     {
       title: "Run the page as on a phone or a low-end device",
-      description: `Open the page as on a device profile (${Object.keys(DEVICE_PROFILES).join(", ")}, or a .json file with your own): its viewport, pixel ratio, touch and a CPU slow-down, with the WebGL limits clamped to the profile (MAX_TEXTURE_SIZE, renderbuffer, viewport). Reports textures uploaded over the limit (black on such a device), textures three had to resize, texture memory against the profile budget, an uncapped pixel ratio (setPixelRatio(devicePixelRatio) at DPR 3), a page without a viewport meta, and frame and script times under the slow-down. Profiles are presets to test against, not real devices; frame times come from software rendering: compare runs on one machine. Read-only.`,
+      description: `Open the page as on a device profile (${Object.keys(DEVICE_PROFILES).join(", ")}, or a .json file with your own): its viewport, pixel ratio, touch and a CPU slow-down, with the WebGL limits clamped to the profile (MAX_TEXTURE_SIZE, renderbuffer, viewport). Reports textures uploaded over the limit (black on such a device), textures three had to resize, texture memory against the profile budget, an uncapped pixel ratio (setPixelRatio(devicePixelRatio) at DPR 3), a page without a viewport meta, and frame and script times under the slow-down. lose_context loses and restores the WebGL context and checks the scene comes back. Profiles are presets to test against, not real devices; frame times come from software rendering: compare runs on one machine. Read-only.`,
       inputSchema: {
         target: targetParam,
         entry: z.string().optional(),
@@ -756,6 +756,7 @@ export function createServer(options: ServerOptions = {}): McpServer {
         wait: z.number().int().min(0).max(30000).optional(),
         seconds: z.number().min(0.5).max(60).optional().describe("how long to measure frames (default 3)"),
         budget: z.object({ frameMs: z.number().optional(), textureMb: z.number().optional() }).optional().describe("frameMs (p95 under the slow-down), textureMb (default: the profile's)"),
+        lose_context: z.boolean().optional().describe("lose the WebGL context (as a phone does after backgrounding), restore it, and check the scene comes back: draws again, not blank, the same picture for a still scene"),
       },
       annotations: { ...READ, openWorldHint: true },
     },
@@ -767,6 +768,7 @@ export function createServer(options: ServerOptions = {}): McpServer {
           ...(a.wait !== undefined ? { wait: a.wait } : {}),
           ...(a.seconds ? { seconds: a.seconds } : {}),
           ...(a.budget ? { budget: a.budget } : {}),
+          ...(a.lose_context ? { loseContext: true } : {}),
         });
         return text(formatDevice(r), !r.ok);
       }),
