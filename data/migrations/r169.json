@@ -1,0 +1,38 @@
+{
+  "release": 169,
+  "guide": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#168--169",
+  "entries": [
+    {
+      "id": "transform-controls-helper",
+      "kind": "behaviour",
+      "title": "TransformControls is a Controls: add its helper to the scene",
+      "detect": {
+        "rules": [
+          "transform-controls-add"
+        ]
+      },
+      "todo": "scene.add( controls.getHelper() ) (three_fix --rewrites does it).",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#168--169"
+    },
+    {
+      "id": "exporters-async",
+      "kind": "behaviour",
+      "title": "EXRExporter.parse(), KTX2Exporter.parse() and LightProbeGenerator.fromCubeRenderTarget() are async",
+      "detect": {
+        "pattern": "\\b(?:EXRExporter|KTX2Exporter)\\b|\\bfromCubeRenderTarget\\s*\\("
+      },
+      "todo": "await the result.",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#168--169"
+    },
+    {
+      "id": "removed-169",
+      "kind": "removed",
+      "title": "PackedPhongMaterial, SDFGeometryGenerator, TiltLoader and GPUStatsPanel were removed",
+      "detect": {
+        "pattern": "\\b(?:PackedPhongMaterial|SDFGeometryGenerator|TiltLoader|GPUStatsPanel)\\b"
+      },
+      "todo": "Remove them (stats-gl replaces GPUStatsPanel).",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#168--169"
+    }
+  ]
+}

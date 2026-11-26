@@ -1,0 +1,18 @@
+{
+  "release": 166,
+  "guide": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#165--r166",
+  "entries": [
+    {
+      "id": "batched-mesh-add-instance",
+      "kind": "behaviour",
+      "title": "BatchedMesh geometries render only after addInstance()",
+      "detect": {
+        "pattern": "\\.addGeometry\\s*\\(",
+        "also": "\\bBatchedMesh\\b",
+        "unless": "\\.addInstance\\s*\\("
+      },
+      "todo": "const id = mesh.addInstance( mesh.addGeometry( geometry ) );",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#165--r166"
+    }
+  ]
+}

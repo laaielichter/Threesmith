@@ -1,0 +1,96 @@
+{
+  "release": 183,
+  "guide": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#182--183",
+  "entries": [
+    {
+      "id": "post-processing-renamed",
+      "kind": "rename",
+      "title": "PostProcessing is now RenderPipeline",
+      "detect": {
+        "rules": [
+          "post-processing-renamed"
+        ]
+      },
+      "todo": "Rename it (three_fix does it).",
+      "replacement": "RenderPipeline",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#182--183"
+    },
+    {
+      "id": "ssr-blend",
+      "kind": "behaviour",
+      "title": "Blend SSR with additive blending instead of blendColor()",
+      "detect": {
+        "pattern": "\\bblendColor\\s*\\(",
+        "also": "\\bssr\\s*\\(|\\bSSRNode\\b"
+      },
+      "todo": "Add the SSR result to the scene pass instead of blendColor().",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#182--183"
+    },
+    {
+      "id": "clock-deprecated",
+      "kind": "removed",
+      "title": "Clock is deprecated",
+      "detect": {
+        "rules": [
+          "clock-deprecated"
+        ]
+      },
+      "todo": "Use Timer: timer.update( timestamp ) in the loop, then getDelta() / getElapsed().",
+      "replacement": "Timer",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#182--183"
+    },
+    {
+      "id": "webgpu-shadow-bias",
+      "kind": "appearance",
+      "title": "WebGPURenderer shadows improved: old bias values may be too large",
+      "detect": {
+        "pattern": "\\.shadow\\.(?:bias|normalBias)\\s*=",
+        "also": "three/webgpu|WebGPURenderer"
+      },
+      "todo": "Lower or remove shadow bias values that fought acne before.",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#182--183"
+    },
+    {
+      "id": "room-environment-moved",
+      "kind": "appearance",
+      "title": "RoomEnvironment's scene position changed",
+      "detect": {
+        "pattern": "\\bRoomEnvironment\\b"
+      },
+      "todo": "The PMREM made from it lights differently: compare a screenshot from before.",
+      "source": "https://github.com/mrdoob/three.js/pull/32646"
+    },
+    {
+      "id": "sky-gamma",
+      "kind": "appearance",
+      "title": "Sky and SkyMesh lost a legacy gamma correction",
+      "detect": {
+        "pattern": "\\bnew\\s+(?:[\\w$]+\\.)?Sky(?:Mesh)?\\s*\\("
+      },
+      "todo": "The sky looks different and the old look cannot be restored by parameters: tune it again.",
+      "source": "https://github.com/mrdoob/three.js/pull/32677"
+    },
+    {
+      "id": "mesh-post-processing-material-removed",
+      "kind": "removed",
+      "title": "MeshPostProcessingMaterial was removed",
+      "detect": {
+        "pattern": "\\bMeshPostProcessingMaterial\\b"
+      },
+      "todo": "Use a node material with your own output node.",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#182--183"
+    },
+    {
+      "id": "webgl-cube-rt-webgpu",
+      "kind": "rename",
+      "title": "WebGLCubeRenderTarget does not work with WebGPURenderer",
+      "detect": {
+        "pattern": "\\bWebGLCubeRenderTarget\\b",
+        "also": "three/webgpu|WebGPURenderer"
+      },
+      "todo": "Use CubeRenderTarget with WebGPURenderer.",
+      "replacement": "CubeRenderTarget",
+      "source": "https://github.com/mrdoob/three.js/pull/32871"
+    }
+  ]
+}

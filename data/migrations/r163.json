@@ -1,0 +1,53 @@
+{
+  "release": 163,
+  "guide": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#162--r163",
+  "entries": [
+    {
+      "id": "webgl1-removed",
+      "kind": "removed",
+      "title": "WebGLRenderer no longer supports WebGL 1",
+      "detect": {
+        "pattern": "\\bWebGL1Renderer\\b|\\bisWebGL2Available\\s*\\(|getContext\\s*\\(\\s*['\\\"](?:webgl|experimental-webgl)['\\\"]"
+      },
+      "todo": "Use WebGLRenderer (WebGL 2) and drop WebGL 1 code paths.",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#162--r163"
+    },
+    {
+      "id": "stencil-off-by-default",
+      "kind": "behaviour",
+      "title": "The stencil buffer is off by default",
+      "detect": {
+        "rules": [
+          "stencil-not-enabled"
+        ]
+      },
+      "todo": "new WebGLRenderer( { stencil: true } ) when the app uses stencil.",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#162--r163"
+    },
+    {
+      "id": "text-geometry-depth",
+      "kind": "rename",
+      "title": "TextGeometry `height` is `depth`",
+      "detect": {
+        "rules": [
+          "text-geometry-height"
+        ]
+      },
+      "todo": "Rename the option (three_fix does it).",
+      "removedIn": 173,
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#162--r163"
+    },
+    {
+      "id": "environment-intensity",
+      "kind": "behaviour",
+      "title": "envMapIntensity no longer scales scene.environment",
+      "detect": {
+        "rules": [
+          "env-map-intensity-ignored"
+        ]
+      },
+      "todo": "Use scene.environmentIntensity for the scene environment.",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#162--r163"
+    }
+  ]
+}

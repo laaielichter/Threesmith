@@ -1,0 +1,36 @@
+{
+  "release": 138,
+  "guide": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#137--138",
+  "entries": [
+    {
+      "id": "multisample-render-target",
+      "kind": "removed",
+      "title": "WebGLMultisampleRenderTarget was removed",
+      "detect": {
+        "pattern": "\\bWebGLMultisampleRenderTarget\\b"
+      },
+      "todo": "new WebGLRenderTarget( w, h, { samples: 4 } ).",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#137--138"
+    },
+    {
+      "id": "data-texture-renamed",
+      "kind": "rename",
+      "title": "DataTexture3D / DataTexture2DArray are Data3DTexture / DataArrayTexture",
+      "detect": {
+        "pattern": "\\bDataTexture(?:3D|2DArray)\\b"
+      },
+      "todo": "Rename them.",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#137--138"
+    },
+    {
+      "id": "removed-138",
+      "kind": "removed",
+      "title": "Euler.toVector3(), WebGLRenderTarget.setTexture() and VRMLoader were removed",
+      "detect": {
+        "pattern": "\\.toVector3\\s*\\(|\\.setTexture\\s*\\(|\\bVRMLoader\\b"
+      },
+      "todo": "Vector3.setFromEuler(), a new render target, the three-vrm package.",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#137--138"
+    }
+  ]
+}

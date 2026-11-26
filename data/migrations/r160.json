@@ -1,0 +1,26 @@
+{
+  "release": 160,
+  "guide": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#r159--r160",
+  "entries": [
+    {
+      "id": "hbao-pass-removed",
+      "kind": "rename",
+      "title": "HBAOPass was replaced by GTAOPass",
+      "detect": {
+        "pattern": "\\bHBAOPass\\b"
+      },
+      "todo": "Use GTAOPass.",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#r159--r160"
+    },
+    {
+      "id": "barycoord-null",
+      "kind": "behaviour",
+      "title": "Triangle.getBarycoord() and getInterpolation() return null for degenerate triangles",
+      "detect": {
+        "pattern": "\\.(?:getBarycoord|getInterpolation)\\s*\\("
+      },
+      "todo": "Check the result for null.",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#r159--r160"
+    }
+  ]
+}

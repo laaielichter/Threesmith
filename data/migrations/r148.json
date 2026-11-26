@@ -1,0 +1,28 @@
+{
+  "release": 148,
+  "guide": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#147--148",
+  "entries": [
+    {
+      "id": "examples-js-removed",
+      "kind": "removed",
+      "title": "examples/js was removed",
+      "detect": {
+        "rules": [
+          "examples-js"
+        ]
+      },
+      "todo": "Use ES modules from three/addons/... with an import map; decoder folders moved to examples/jsm/libs.",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#147--148"
+    },
+    {
+      "id": "radial-segments",
+      "kind": "appearance",
+      "title": "Circle, Ring, Cylinder, Cone and Torus have more radial segments by default",
+      "detect": {
+        "pattern": "\\bnew\\s+(?:[\\w$]+\\.)?(?:CircleGeometry|RingGeometry|CylinderGeometry|ConeGeometry|TorusGeometry)\\s*\\(\\s*[^,()]*(?:,\\s*[^,()]*)?\\s*\\)"
+      },
+      "todo": "Round shapes are smoother; pass the segment count to keep the old look.",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#147--148"
+    }
+  ]
+}

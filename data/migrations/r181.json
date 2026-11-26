@@ -1,0 +1,116 @@
+{
+  "release": 181,
+  "guide": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#180--181",
+  "entries": [
+    {
+      "id": "pbr-indirect-specular",
+      "kind": "appearance",
+      "title": "PBR indirect specular light is computed differently",
+      "detect": {
+        "pattern": "\\bMesh(?:Standard|Physical)Material\\b|\\bGLTFLoader\\b"
+      },
+      "todo": "PBR materials look slightly different: compare a screenshot from before.",
+      "source": "https://github.com/mrdoob/three.js/pull/32054"
+    },
+    {
+      "id": "rough-pbr-brighter",
+      "kind": "appearance",
+      "title": "Rough PBR materials (roughness > 0.5) are brighter",
+      "detect": {
+        "pattern": "\\bMesh(?:Standard|Physical)Material\\b|\\bGLTFLoader\\b"
+      },
+      "todo": "Rough materials conserve energy better and look brighter: lower light or environment intensity if the scene looks washed out.",
+      "source": "https://github.com/mrdoob/three.js/pull/32072"
+    },
+    {
+      "id": "pmrem-reflections",
+      "kind": "appearance",
+      "title": "PMREM reflections improved",
+      "detect": {
+        "pattern": "\\bPMREMGenerator\\b|\\.environment\\s*="
+      },
+      "todo": "Reflections look slightly different: compare a screenshot from before.",
+      "source": "https://github.com/mrdoob/three.js/pull/32102"
+    },
+    {
+      "id": "webgpu-async-deprecated",
+      "kind": "rename",
+      "title": "renderAsync(), computeAsync() and the other async renderer methods are deprecated",
+      "detect": {
+        "pattern": "\\.(?:renderAsync|computeAsync|clearAsync|initTextureAsync|hasFeatureAsync)\\s*\\(",
+        "rules": [
+          "deprecated-api"
+        ]
+      },
+      "todo": "await renderer.init() once (setAnimationLoop does it), then call render(), compute(), clear(), initTexture(), hasFeature().",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#180--181"
+    },
+    {
+      "id": "wait-for-gpu-removed",
+      "kind": "removed",
+      "title": "WebGPURenderer.waitForGPU() was removed",
+      "detect": {
+        "pattern": "\\.waitForGPU\\s*\\("
+      },
+      "todo": "Remove it.",
+      "source": "https://github.com/mrdoob/three.js/issues/32012"
+    },
+    {
+      "id": "ktx2-detect-support-async",
+      "kind": "rename",
+      "title": "KTX2Loader.detectSupportAsync() is deprecated",
+      "detect": {
+        "pattern": "\\.detectSupportAsync\\s*\\("
+      },
+      "todo": "await renderer.init(); ktx2Loader.detectSupport( renderer );",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#180--181"
+    },
+    {
+      "id": "tsl-pi2",
+      "kind": "rename",
+      "title": "TSL PI2 is TWO_PI",
+      "detect": {
+        "pattern": "\\bPI2\\b",
+        "rules": [
+          "tsl-renamed"
+        ],
+        "also": "three/(?:tsl|webgpu)"
+      },
+      "todo": "Rename it (three_fix does it).",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#180--181"
+    },
+    {
+      "id": "gtao-r-channel",
+      "kind": "behaviour",
+      "title": "GTAONode's AO is only in the r channel",
+      "detect": {
+        "pattern": "\\bGTAONode\\b|\\bao\\s*\\(",
+        "also": "three/(?:tsl|webgpu)"
+      },
+      "todo": "Blend with vec4( scenePassColor.rgb.mul( aoPass.r ), scenePassColor.a ).",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#180--181"
+    },
+    {
+      "id": "pass-node-resolution-scale",
+      "kind": "rename",
+      "title": "PassNode setResolution() / getResolution() are setResolutionScale() / getResolutionScale()",
+      "detect": {
+        "pattern": "\\.(?:setResolution|getResolution)\\s*\\(",
+        "also": "\\bpass\\s*\\(|\\bPassNode\\b"
+      },
+      "todo": "Rename the calls.",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#180--181"
+    },
+    {
+      "id": "water-mesh-resolution-scale",
+      "kind": "rename",
+      "title": "WaterMesh resolution is resolutionScale",
+      "detect": {
+        "pattern": "\\.resolution\\b",
+        "also": "\\bWaterMesh\\b"
+      },
+      "todo": "Rename it to resolutionScale.",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#180--181"
+    }
+  ]
+}

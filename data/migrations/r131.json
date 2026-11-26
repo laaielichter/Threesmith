@@ -1,0 +1,26 @@
+{
+  "release": 131,
+  "guide": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#130--131",
+  "entries": [
+    {
+      "id": "morph-skinning-flags-removed",
+      "kind": "removed",
+      "title": "Material morphTargets, morphNormals and vertexTangents were removed",
+      "detect": {
+        "pattern": "\\b(?:morphTargets|morphNormals|vertexTangents)\\s*:\\s*true\\b"
+      },
+      "todo": "Remove them: the renderer reads them from the geometry.",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#130--131"
+    },
+    {
+      "id": "env-map-pmrem",
+      "kind": "appearance",
+      "title": "envMap of MeshStandardMaterial is converted to a PMREM",
+      "detect": {
+        "pattern": "\\benvMap\\s*[:=]"
+      },
+      "todo": "Reflections look blurrier on rough materials, as they should; light levels may change.",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#130--131"
+    }
+  ]
+}

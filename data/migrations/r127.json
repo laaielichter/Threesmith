@@ -1,0 +1,26 @@
+{
+  "release": 127,
+  "guide": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#r126--r127",
+  "entries": [
+    {
+      "id": "background-cube-render-target",
+      "kind": "removed",
+      "title": "Scene.background no longer takes a WebGLCubeRenderTarget",
+      "detect": {
+        "pattern": "\\.background\\s*=\\s*[\\w$.]*(?:[cC]ube[rR]ender[tT]arget|[cC]ubeRT)\\b(?!\\.texture)"
+      },
+      "todo": "scene.background = cubeRenderTarget.texture;",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#r126--r127"
+    },
+    {
+      "id": "removed-127",
+      "kind": "removed",
+      "title": "setFramebuffer(), AssimpLoader and maxMorphTargets were removed",
+      "detect": {
+        "pattern": "\\.setFramebuffer\\s*\\(|\\bAssimpLoader\\b|\\bmaxMorph(?:Targets|Normals)\\b"
+      },
+      "todo": "Remove them.",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#r126--r127"
+    }
+  ]
+}

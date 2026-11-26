@@ -1,0 +1,49 @@
+{
+  "release": 164,
+  "guide": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#163--r164",
+  "entries": [
+    {
+      "id": "lwo-handedness",
+      "kind": "behaviour",
+      "title": "LWOLoader converts to right-handed coordinates",
+      "detect": {
+        "pattern": "\\bLWOLoader\\b"
+      },
+      "todo": "Imported LWO models face another way: check their rotation.",
+      "source": "https://github.com/mrdoob/three.js/pull/28029"
+    },
+    {
+      "id": "usdz-parse-async",
+      "kind": "rename",
+      "title": "USDZLoader's async parse is parseAsync()",
+      "detect": {
+        "pattern": "\\bawait\\s+[\\w$.]+\\.parse\\s*\\(",
+        "also": "\\bUSDZLoader\\b"
+      },
+      "todo": "await loader.parseAsync( buffer ).",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#163--r164"
+    },
+    {
+      "id": "lightmap-fragment-removed",
+      "kind": "removed",
+      "title": "The lightmap_fragment chunk was removed",
+      "detect": {
+        "pattern": "#include\\s*<lightmap_fragment>|['\\\"]#include <lightmap_fragment>['\\\"]"
+      },
+      "todo": "Inline its GLSL in your shader.",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#163--r164"
+    },
+    {
+      "id": "webgl-node-builder-removed",
+      "kind": "removed",
+      "title": "Node materials no longer work with WebGLRenderer",
+      "detect": {
+        "rules": [
+          "node-material-webgl"
+        ]
+      },
+      "todo": "Use WebGPURenderer (with its WebGL 2 backend) for node materials.",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#163--r164"
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "release": 167,
+  "guide": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#166--r167",
+  "entries": [
+    {
+      "id": "hdrjpg-loader-removed",
+      "kind": "removed",
+      "title": "HDRJPGLoader was removed",
+      "detect": {
+        "pattern": "\\bHDRJPGLoader\\b"
+      },
+      "todo": "Use UltraHDRLoader.",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#166--r167"
+    }
+  ]
+}

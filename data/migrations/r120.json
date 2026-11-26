@@ -1,0 +1,40 @@
+{
+  "release": 120,
+  "guide": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#r119--r120",
+  "entries": [
+    {
+      "id": "glsl-version",
+      "kind": "behaviour",
+      "title": "Write GLSL 3 with glslVersion, not a #version line",
+      "detect": {
+        "rules": [
+          "shader-version-directive"
+        ]
+      },
+      "todo": "material.glslVersion = THREE.GLSL3 and remove #version from the shader.",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#r119--r120"
+    },
+    {
+      "id": "render-target-stencil",
+      "kind": "behaviour",
+      "title": "Render targets have no stencil buffer by default",
+      "detect": {
+        "pattern": "\\bnew\\s+(?:[\\w$]+\\.)?WebGL(?:Cube)?RenderTarget\\s*\\(",
+        "also": "\\bstencil(?:Func|Op|Write|Ref|Mask)\\b",
+        "unless": "\\bstencilBuffer\\s*:\\s*true"
+      },
+      "todo": "new WebGLRenderTarget( w, h, { stencilBuffer: true } ).",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#r119--r120"
+    },
+    {
+      "id": "scene-dispose-removed",
+      "kind": "removed",
+      "title": "Scene.dispose() was removed",
+      "detect": {
+        "pattern": "\\b[\\w$]*[sS]cene\\w*\\.dispose\\s*\\("
+      },
+      "todo": "Dispose geometries, materials and textures yourself.",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#r119--r120"
+    }
+  ]
+}

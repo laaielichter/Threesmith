@@ -1,0 +1,26 @@
+{
+  "release": 132,
+  "guide": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#131--132",
+  "entries": [
+    {
+      "id": "buffer-geometry-utils-import",
+      "kind": "rename",
+      "title": "BufferGeometryUtils is a namespace import",
+      "detect": {
+        "pattern": "import\\s*\\{\\s*BufferGeometryUtils\\s*\\}"
+      },
+      "todo": "import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js'.",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#131--132"
+    },
+    {
+      "id": "rough-less-shiny",
+      "kind": "appearance",
+      "title": "MeshStandardMaterial and MeshPhysicalMaterial are more correct: rough materials less shiny",
+      "detect": {
+        "pattern": "\\bMesh(?:Standard|Physical)Material\\b"
+      },
+      "todo": "Compare a screenshot from before.",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#131--132"
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "release": 133,
+  "guide": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#132--133",
+  "entries": [
+    {
+      "id": "raycast-recursive-default",
+      "kind": "behaviour",
+      "title": "intersectObject() / intersectObjects() are recursive by default",
+      "detect": {
+        "pattern": "\\.intersectObjects?\\s*\\(\\s*[^,()]+\\)"
+      },
+      "todo": "Pass false as the second argument where only the object itself should be hit.",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#132--133"
+    },
+    {
+      "id": "core-to-addons-133",
+      "kind": "rename",
+      "title": "ParametricGeometry, TextGeometry, FontLoader and Font moved to the addons",
+      "detect": {
+        "pattern": "\\bTHREE\\.(?:ParametricGeometry|TextGeometry|FontLoader|Font)\\b"
+      },
+      "todo": "import { TextGeometry } from 'three/addons/geometries/TextGeometry.js' and so on.",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#132--133"
+    }
+  ]
+}

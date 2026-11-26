@@ -1,0 +1,42 @@
+{
+  "release": 182,
+  "guide": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#181--182",
+  "entries": [
+    {
+      "id": "pcf-soft-shadow",
+      "kind": "rename",
+      "title": "PCFSoftShadowMap is deprecated (WebGLRenderer)",
+      "detect": {
+        "rules": [
+          "pcf-soft-shadow"
+        ]
+      },
+      "todo": "renderer.shadowMap.type = THREE.PCFShadowMap; (soft as well; three_fix does it).",
+      "replacement": "PCFShadowMap",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#181--182"
+    },
+    {
+      "id": "output-buffer-type",
+      "kind": "rename",
+      "title": "colorBufferType / getColorBufferType() are outputBufferType / getOutputBufferType()",
+      "detect": {
+        "pattern": "\\bgetColorBufferType\\s*\\(|\\bcolorBufferType\\s*:",
+        "rules": [
+          "color-buffer-type-option"
+        ]
+      },
+      "todo": "Rename them (three_fix does the option).",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#181--182"
+    },
+    {
+      "id": "vox-loader-result",
+      "kind": "behaviour",
+      "title": "VOXLoader's onLoad result holds a scene",
+      "detect": {
+        "pattern": "\\bVOXLoader\\b"
+      },
+      "todo": "Read the meshes from result.scene.",
+      "source": "https://github.com/mrdoob/three.js/pull/32488"
+    }
+  ]
+}

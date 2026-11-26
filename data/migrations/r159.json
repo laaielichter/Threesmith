@@ -1,0 +1,29 @@
+{
+  "release": 159,
+  "guide": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#r158--r159",
+  "entries": [
+    {
+      "id": "batched-apply-geometry",
+      "kind": "rename",
+      "title": "BatchedMesh.applyGeometry() is addGeometry()",
+      "detect": {
+        "pattern": "\\.applyGeometry\\s*\\("
+      },
+      "todo": "Rename it.",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#r158--r159"
+    },
+    {
+      "id": "update-ranges",
+      "kind": "rename",
+      "title": "updateRange was replaced by addUpdateRange()",
+      "detect": {
+        "rules": [
+          "update-range-removed"
+        ]
+      },
+      "todo": "attribute.clearUpdateRanges(); attribute.addUpdateRange( start, count );",
+      "removedIn": 169,
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#r158--r159"
+    }
+  ]
+}

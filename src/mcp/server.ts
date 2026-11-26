@@ -13,6 +13,8 @@ import { review } from "../review/review.js";
 import { formatCompact, formatFinding } from "../review/compact.js";
 import { formatDelta, reviewDelta } from "../review/delta.js";
 import { RULES } from "../review/rules.js";
+import { migratePlan } from "../migrate/migrate.js";
+import { formatMigrate } from "../migrate/format.js";
 import { applyFeedback, formatLearned, recordFeedback } from "../learn/feedback.js";
 import { formatTriage, triage } from "../doctor/triage.js";
 import { formatProjectMap, projectRootOf, scanProject } from "../scan/scan.js";
@@ -306,6 +308,29 @@ export function createServer(options: ServerOptions = {}): McpServer {
           r.files.map((f) => ({ file: relative(root, join(folder, f.file)), data: f.fixed })),
         );
         return text(`${formatFix({ ...r, written: true })}\nUndo with three_undo (journal #${id}).`);
+      }),
+  );
+
+  tool(
+    "three_migrate",
+    {
+      title: "Plan a three.js release upgrade",
+      description:
+        "Moving code from an older three release (r1xx) to the installed one, or to a given release: the breaking changes per release that apply to THIS code (renames, removed APIs, changed behaviour, changed look), each with file:line, a TO DO list for the hand work with the replacement checked against the installed API, the places three_fix renames, and what will look different (colour management, physical lights, PBR and AO changes). `from` auto reads CDN URLs, package.json, @types/three, the lockfile and git history. Data from the three.js migration guide, a source link per change. Read-only.",
+      inputSchema: {
+        path: pathParam,
+        from: z.string().optional().describe("release the code was written for, e.g. r150 (default auto)"),
+        to: z.string().optional().describe("release to move to, e.g. r188 (default: the installed one)"),
+        files: z.array(z.string()).optional().describe("only these files, relative to the project"),
+        detail: detailParam,
+        three: threeParam,
+      },
+      annotations: READ,
+    },
+    async ({ path, from, to, files, detail, three }) =>
+      guard(() => {
+        const plan = migratePlan({ path: where(path), ...(from ? { from } : {}), ...(to ? { to } : {}), ...(files ? { files } : {}), ...(three ? { three } : {}) });
+        return text(formatMigrate(plan, { detail: detail ?? profile.detail }));
       }),
   );
 

@@ -1,0 +1,16 @@
+{
+  "release": 134,
+  "guide": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#133--134",
+  "entries": [
+    {
+      "id": "removed-134",
+      "kind": "removed",
+      "title": "DeviceOrientationControls and ImmediateRenderObject were removed",
+      "detect": {
+        "pattern": "\\b(?:DeviceOrientationControls|ImmediateRenderObject)\\b"
+      },
+      "todo": "Keep your own copy, or use BufferGeometry with drawRange for ImmediateRenderObject.",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#133--134"
+    }
+  ]
+}

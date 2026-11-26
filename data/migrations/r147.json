@@ -1,0 +1,37 @@
+{
+  "release": 147,
+  "guide": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#146--147",
+  "entries": [
+    {
+      "id": "light-decay-2",
+      "kind": "appearance",
+      "title": "PointLight and SpotLight decay defaults to 2",
+      "detect": {
+        "pattern": "\\bnew\\s+(?:[\\w$]+\\.)?(?:PointLight|SpotLight)\\s*\\(",
+        "unless": "\\bdecay\\b"
+      },
+      "todo": "Lights fall off faster: raise intensity or set decay = 1 to keep the old look.",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#146--147"
+    },
+    {
+      "id": "spec-gloss-removed",
+      "kind": "removed",
+      "title": "KHR_materials_pbrSpecularGlossiness is not supported any more",
+      "detect": {
+        "pattern": "\\bKHR_materials_pbrSpecularGlossiness\\b"
+      },
+      "todo": "Convert the models from spec/gloss to metal/rough.",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#146--147"
+    },
+    {
+      "id": "pixel-shader-removed",
+      "kind": "removed",
+      "title": "PixelShader was removed",
+      "detect": {
+        "pattern": "\\bPixelShader\\b"
+      },
+      "todo": "Use RenderPixelatedPass.",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#146--147"
+    }
+  ]
+}

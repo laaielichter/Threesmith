@@ -1,0 +1,70 @@
+{
+  "release": 168,
+  "guide": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#167--r168",
+  "entries": [
+    {
+      "id": "tsl-viewport-uv",
+      "kind": "rename",
+      "title": "viewportTopLeft is viewportUV; viewportBottomLeft was removed",
+      "detect": {
+        "pattern": "\\bviewport(?:TopLeft|BottomLeft)\\b"
+      },
+      "todo": "viewportUV, and viewportUV.flipY() for the bottom-left origin.",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#167--r168"
+    },
+    {
+      "id": "tsl-uniform-array",
+      "kind": "rename",
+      "title": "TSL uniforms() is uniformArray()",
+      "detect": {
+        "pattern": "(?<![\\w$.])uniforms\\s*\\(",
+        "also": "three/(?:tsl|webgpu)"
+      },
+      "todo": "Rename it.",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#167--r168"
+    },
+    {
+      "id": "tsl-chaining-removed",
+      "kind": "behaviour",
+      "title": "TSL post-processing is no longer chained",
+      "detect": {
+        "pattern": "\\.\\s*(?:fxaa|smaa|bloom|dof|gaussianBlur|afterImage|anamorphic)\\s*\\(\\s*\\)?",
+        "also": "three/(?:tsl|webgpu)"
+      },
+      "todo": "Call the function instead: fxaa( outputPass ) instead of outputPass.fxaa().",
+      "source": "https://github.com/mrdoob/three.js/pull/29187"
+    },
+    {
+      "id": "drag-controls-api",
+      "kind": "rename",
+      "title": "DragControls activate()/deactivate() are connect()/disconnect(); getObjects()/setObjects()/getRaycaster() were removed",
+      "detect": {
+        "pattern": "\\.(?:activate|deactivate|getObjects|setObjects|getRaycaster)\\s*\\(",
+        "also": "\\bDragControls\\b"
+      },
+      "todo": "controls.connect(), controls.disconnect(), controls.objects, controls.raycaster.",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#167--r168"
+    },
+    {
+      "id": "pointer-lock-get-object",
+      "kind": "removed",
+      "title": "PointerLockControls.getObject() was removed",
+      "detect": {
+        "pattern": "\\.getObject\\s*\\(\\s*\\)",
+        "also": "\\bPointerLockControls\\b"
+      },
+      "todo": "Use controls.object.",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#167--r168"
+    },
+    {
+      "id": "logluv-loader-removed",
+      "kind": "removed",
+      "title": "LogLuvLoader was removed",
+      "detect": {
+        "pattern": "\\bLogLuvLoader\\b"
+      },
+      "todo": "Use UltraHDRLoader.",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#167--r168"
+    }
+  ]
+}

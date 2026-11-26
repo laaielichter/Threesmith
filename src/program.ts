@@ -23,6 +23,8 @@ import { RULES } from "./review/rules.js";
 import { formatJournal, formatUndo, readJournal, undoJournal, writeFiles } from "./project/journal.js";
 import { applyFeedback, formatLearned } from "./learn/feedback.js";
 import { envFlag } from "./mcp/toolsets.js";
+import { migratePlan } from "./migrate/migrate.js";
+import { formatMigrate } from "./migrate/format.js";
 import { checkTypes, formatTypes } from "./types/types.js";
 import { toSarif } from "./review/sarif.js";
 import { LESSON_TOPICS } from "./lessons/types.js";
@@ -208,6 +210,22 @@ export function buildProgram(): Command {
         r.written = true;
       }
       out(o.json ? JSON.stringify({ ...r, files: r.files.map(({ fixed: _f, ...rest }) => rest) }, null, 2) : formatFix(r) + (id ? `\nUndo with \`threesmith undo\` (journal #${id}).` : ""));
+    });
+
+  program
+    .command("migrate")
+    .description("Plan a move from one three release to another: the changes per release that apply to this code, a TO DO list with file:line, what will look different")
+    .argument("[path]", "project directory or file", ".")
+    .option("--from <release>", "the release the code was written for (r150), or auto: CDN URLs, package.json, @types/three, the lockfile, git history", "auto")
+    .option("--to <release>", "the release to move to, or installed", "installed")
+    .option("--three <dir>", "path to a three package")
+    .option("--files <paths...>", "only these files (relative to the project)")
+    .option("--full", "every place, the changes not found and the sources")
+    .option("--json", "JSON output")
+    .action((path: string, o: { from: string; to: string; three?: string; files?: string[]; full?: boolean; json?: boolean }) => {
+      existingPath(path);
+      const plan = migratePlan({ path, from: o.from, to: o.to, ...(o.three ? { three: o.three } : {}), ...(o.files ? { files: o.files } : {}) });
+      out(o.json ? JSON.stringify(plan, null, 2) : formatMigrate(plan, { detail: o.full ? "full" : "brief" }));
     });
 
   program

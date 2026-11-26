@@ -1,0 +1,38 @@
+{
+  "release": 173,
+  "guide": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#172--173",
+  "entries": [
+    {
+      "id": "gouraud-deprecated",
+      "kind": "rename",
+      "title": "MeshGouraudMaterial is deprecated",
+      "detect": {
+        "pattern": "\\bMeshGouraudMaterial\\b"
+      },
+      "todo": "Use MeshLambertMaterial.",
+      "replacement": "MeshLambertMaterial",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#172--173"
+    },
+    {
+      "id": "instanced-points-node-removed",
+      "kind": "removed",
+      "title": "InstancedPointsNodeMaterial was removed",
+      "detect": {
+        "pattern": "\\bInstancedPointsNodeMaterial\\b"
+      },
+      "todo": "Use PointsNodeMaterial.",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#172--173"
+    },
+    {
+      "id": "tsl-to-varying",
+      "kind": "rename",
+      "title": "TSL varying() / vertexStage() are toVarying() / toVertexStage()",
+      "detect": {
+        "pattern": "(?<![\\w$.])(?:varying|vertexStage)\\s*\\(",
+        "also": "three/(?:tsl|webgpu)"
+      },
+      "todo": "Rename the calls.",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#172--173"
+    }
+  ]
+}

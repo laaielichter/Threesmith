@@ -11,13 +11,16 @@ Bring the project (or $ARGUMENTS) up to the installed three release.
 
 1. `three_version` and `three_scan`: which release is installed, which one the code was written for (CDN URLs,
    `@types/three`, import paths), and whether `three` and `three/webgpu` are mixed.
-2. `three_review` and count the `api` findings. This is the "before" picture; show it.
-3. `three_fix` without `write`, show what it will change, then with `write: true`. It only does renames that mean
+2. `three_migrate` (pass `from` when it cannot tell, `to` for a release other than the installed one): the plan per
+   release with file:line, the TO DO list, what `three_fix` renames and what will look different. Show the plan
+   before you change anything; work through the TO DO list oldest release first.
+3. `three_review` and count the `api` findings. This is the "before" picture; show it.
+4. `three_fix` without `write`, show what it will change, then with `write: true`. It only does renames that mean
    exactly the same thing.
-4. Do the rest by hand, one rule at a time, with `three_api` for every replacement (it reads the installed release):
+5. Do the rest by hand, one rule at a time, with `three_api` for every replacement (it reads the installed release):
    `Geometry` to `BufferGeometry` with attributes, `examples/js` to `three/addons/...` modules with an import map,
    light intensities for physical units after `useLegacyLights`, texture `colorSpace` instead of `encoding`.
-5. `three_review` with `only_new: true` after each file until no `api` errors are left; `three_types` in TypeScript.
-6. `three_check` on the page before and after; with a `baseline` from before the upgrade, the diff shows what changed
+6. `three_review` with `only_new: true` after each file until no `api` errors are left; `three_types` in TypeScript.
+7. `three_check` on the page before and after; with a `baseline` from before the upgrade, the diff shows what changed
    on screen (colours and light levels usually do after r152 and r155: say so, do not hide it).
-7. End with the counts before and after, the hand-made changes, and what looks different now.
+8. End with the counts before and after, the hand-made changes, and what looks different now.

@@ -1,0 +1,53 @@
+{
+  "release": 152,
+  "guide": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#151--152",
+  "entries": [
+    {
+      "id": "uv-channels-renamed",
+      "kind": "rename",
+      "title": "uv2, uv3, uv4 attributes are uv1, uv2, uv3",
+      "detect": {
+        "pattern": "setAttribute\\s*\\(\\s*['\\\"]uv[234]['\\\"]|attributes\\.uv[234]\\b"
+      },
+      "todo": "Rename the attributes: uv2 -> uv1, uv3 -> uv2, uv4 -> uv3.",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#151--152"
+    },
+    {
+      "id": "output-color-space",
+      "kind": "rename",
+      "title": "outputEncoding is outputColorSpace",
+      "detect": {
+        "rules": [
+          "output-encoding",
+          "gamma-output"
+        ]
+      },
+      "todo": "renderer.outputColorSpace = THREE.SRGBColorSpace (the default; three_fix does the rename).",
+      "removedIn": 162,
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#151--152"
+    },
+    {
+      "id": "texture-color-space",
+      "kind": "rename",
+      "title": "texture.encoding and the *Encoding constants are colorSpace",
+      "detect": {
+        "rules": [
+          "texture-encoding"
+        ]
+      },
+      "todo": "texture.colorSpace = THREE.SRGBColorSpace for colour maps (three_fix does the exact renames).",
+      "removedIn": 162,
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#151--152"
+    },
+    {
+      "id": "color-management-on",
+      "kind": "appearance",
+      "title": "Colour management is on by default",
+      "detect": {
+        "pattern": "\\bnew\\s+(?:[\\w$]+\\.)?Color\\s*\\(|\\bcolor\\s*:\\s*0x[0-9a-fA-F]+|\\.color\\.set\\w*\\s*\\(|\\bTextureLoader\\b"
+      },
+      "todo": "Hex and CSS colours are sRGB and converted now, and colour textures need colorSpace = SRGBColorSpace: colours that were tuned by eye may look different.",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#151--152"
+    }
+  ]
+}

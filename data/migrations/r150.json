@@ -1,0 +1,36 @@
+{
+  "release": 150,
+  "guide": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#149--150",
+  "entries": [
+    {
+      "id": "basis-texture-loader-removed",
+      "kind": "removed",
+      "title": "BasisTextureLoader was removed",
+      "detect": {
+        "pattern": "\\bBasisTextureLoader\\b"
+      },
+      "todo": "Use KTX2 files with KTX2Loader.",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#149--150"
+    },
+    {
+      "id": "color-management-legacy-mode",
+      "kind": "rename",
+      "title": "ColorManagement.legacyMode = false is ColorManagement.enabled = true",
+      "detect": {
+        "pattern": "\\bColorManagement\\.legacyMode\\b"
+      },
+      "todo": "ColorManagement.enabled = true (the default since r152).",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#149--150"
+    },
+    {
+      "id": "physically-correct-lights",
+      "kind": "rename",
+      "title": "physicallyCorrectLights = true is useLegacyLights = false",
+      "detect": {
+        "pattern": "\\bphysicallyCorrectLights\\b"
+      },
+      "todo": "Delete it: physical lighting is the default since r155.",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#149--150"
+    }
+  ]
+}

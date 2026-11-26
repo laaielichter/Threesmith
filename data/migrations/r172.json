@@ -1,0 +1,38 @@
+{
+  "release": 172,
+  "guide": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#171--172",
+  "entries": [
+    {
+      "id": "texture-node-sample",
+      "kind": "rename",
+      "title": "TextureNode.uv() is sample()",
+      "detect": {
+        "pattern": "\\btexture\\s*\\([^()]*\\)\\s*\\.uv\\s*\\(",
+        "also": "three/(?:tsl|webgpu)"
+      },
+      "todo": "texture( map ).sample( uvNode ).",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#171--172"
+    },
+    {
+      "id": "tsl-fog",
+      "kind": "rename",
+      "title": "rangeFog() / densityFog() are deprecated",
+      "detect": {
+        "pattern": "\\b(?:rangeFog|densityFog)\\s*\\(",
+        "also": "three/(?:tsl|webgpu)"
+      },
+      "todo": "fog( color, rangeFogFactor( near, far ) ) or fog( color, densityFogFactor( density ) ).",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#171--172"
+    },
+    {
+      "id": "tsl-renamed-172",
+      "kind": "rename",
+      "title": "materialAOMap, shadowWorldPosition and PostProcessingUtils were renamed",
+      "detect": {
+        "pattern": "\\b(?:materialAOMap|shadowWorldPosition|PostProcessingUtils)\\b"
+      },
+      "todo": "materialAO, shadowPositionWorld, RendererUtils.",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#171--172"
+    }
+  ]
+}

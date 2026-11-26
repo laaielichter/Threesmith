@@ -1,0 +1,16 @@
+{
+  "release": 135,
+  "guide": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#134--135",
+  "entries": [
+    {
+      "id": "logluv-encoding-removed",
+      "kind": "removed",
+      "title": "LogLuvEncoding was removed",
+      "detect": {
+        "pattern": "\\bLogLuvEncoding\\b"
+      },
+      "todo": "Load LogLuv TIFF with a float texture loader.",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#134--135"
+    }
+  ]
+}

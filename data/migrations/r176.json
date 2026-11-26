@@ -1,0 +1,27 @@
+{
+  "release": 176,
+  "guide": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#175--176",
+  "entries": [
+    {
+      "id": "capsule-height",
+      "kind": "rename",
+      "title": "CapsuleGeometry `length` is `height`",
+      "detect": {
+        "pattern": "\\.parameters\\.length\\b",
+        "also": "\\bCapsuleGeometry\\b"
+      },
+      "todo": "Read geometry.parameters.height.",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#175--176"
+    },
+    {
+      "id": "lottie-loader-deprecated",
+      "kind": "removed",
+      "title": "LottieLoader is deprecated",
+      "detect": {
+        "pattern": "\\bLottieLoader\\b"
+      },
+      "todo": "Use lottie-web and build the animated texture yourself.",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#175--176"
+    }
+  ]
+}

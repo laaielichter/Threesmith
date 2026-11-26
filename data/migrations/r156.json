@@ -1,0 +1,16 @@
+{
+  "release": 156,
+  "guide": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#155--156",
+  "entries": [
+    {
+      "id": "film-sao-pass-ctor",
+      "kind": "behaviour",
+      "title": "FilmPass and SAOPass constructors lost parameters; SSAOPass needs a RenderPass first",
+      "detect": {
+        "pattern": "\\bnew\\s+(?:[\\w$]+\\.)?(?:FilmPass\\s*\\([^()]*,[^()]*,|SAOPass\\s*\\([^()]*,[^()]*,)"
+      },
+      "todo": "new FilmPass( intensity, grayscale ); new SAOPass( scene, camera, resolution ).",
+      "source": "https://github.com/mrdoob/three.js/wiki/Migration-Guide#155--156"
+    }
+  ]
+}
