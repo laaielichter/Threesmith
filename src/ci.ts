@@ -122,7 +122,7 @@ export async function ci(opts: CiOptions): Promise<CiResult> {
     else {
       const VERDICT = { same: "nothing changed", explained: "every change is explained by a migration note", changed: "something changed that no migration note explains: a probable regression", broken: "the page breaks" } as const;
       lines.push(`r${cmp.base.release} → r${cmp.target.release}: **${VERDICT[cmp.verdict]}**.`);
-      for (const ch of cmp.changes.slice(0, 15)) lines.push(`- ${ch.unexplained ? "▲" : "✔"} ${ch.message.replace(/\|/g, "\\|")}${ch.explainedBy.length ? ` — r${ch.explainedBy[0]!.release}: ${ch.explainedBy[0]!.title}` : ""}`);
+      for (const ch of cmp.changes.slice(0, 15)) lines.push(`- ${ch.unexplained ? "▲" : "✔"} ${ch.message.replace(/\\/g, "\\\\").replace(/\|/g, "\\|")}${ch.explainedBy.length ? ` — r${ch.explainedBy[0]!.release}: ${ch.explainedBy[0]!.title}` : ""}`);
       if (cmp.changes.length > 15) lines.push(`- … ${cmp.changes.length - 15} more`);
       for (const p of cmp.problems) lines.push(`- ✖ ${p}`);
     }
