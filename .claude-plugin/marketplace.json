@@ -9,7 +9,7 @@
     {
       "name": "threesmith",
       "source": "./plugins/threesmith",
-      "description": "Doctor, version-pinned API and review, asset checks, headless runs with claims, perf and leaks, and 3D models for three.js."
+      "description": "Doctor, version-pinned API and review, upgrade plans, your page compared on two three releases, asset checks, headless runs with claims, perf and leaks, and 3D models for three.js."
     }
   ]
 }

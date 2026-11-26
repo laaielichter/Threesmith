@@ -10,7 +10,7 @@
 - Build: three_assets (paths, case, decoders), three_decoders (Draco/KTX2/meshopt wired with the installed three's decoder files, hash-checked, write copies and sets up), three_gltf (validate with glTF-Validator, optimize with gltf-transform; optional packages), three_build (bundle check and the built page headless)
 - Models: three_model_brief, three_model_identify, three_model_spec, three_model_build, three_model_view, three_model_lint, three_model_inspect
 - Options: --tier cheap|premium, --tools core,run,live,build,model, --read-only
-- CLI: threesmith doctor | scan | api | search | review | types | fix | rules | undo | lessons | assets | decoders | gltf | check | inspect | play | scenario | perf | device | leaks | compare | build | model | explain | ci | mcp
+- CLI: threesmith doctor | scan | api | search | review | types | fix | migrate | rules | undo | lessons | assets | decoders | gltf | check | inspect | play | scenario | perf | device | leaks | compare | build | model | explain | ci | mcp
 - GitHub Action: laaielichter/Threesmith (receipt on pull requests: review, headless check, scenarios)
 - Privacy: nothing leaves the machine, no telemetry
 - Source: https://github.com/laaielichter/Threesmith

@@ -23,10 +23,19 @@ Done since (unreleased, each has tests):
 - [x] A live headless page between calls (`three_session`, `three_page`).
 - [x] 3D models without Blender: build, view as text, lint, inspect with loader needs.
 - [x] Undo journal for every write, protected paths.
+- [x] Lean mode (`three` + `three_help`), MCP prompts and the skills as resources.
+- [x] Deterministic clock (`seed`, `fixed_dt`) for check, play and scenarios.
+- [x] Upgrade plans from the migration guide r120 to r188 (`three_migrate`): exact rewrites with undo, what will look
+  different, WebGPU readiness and TSL drafts.
+- [x] Decoders wired from the installed three (`three_decoders`), glTF validate and optimize (`three_gltf`).
+- [x] Device profiles, clamped WebGL limits and context-loss recovery (`three_device`).
+- [x] The same page on two three releases, compared by meaning and explained by the migration notes, with bisect to
+  the first release that changes it (`three_compare`).
 
 Next:
 
 - [ ] Publish to npm and the MCP registry; add the Action to the marketplace.
+- [ ] Action input `compare: next`: a `three_compare` receipt on every three bump pull request.
 - [ ] Run the benchmark with real agents (N >= 10 per arm) and publish outputs and results.
 - [ ] More rules from the migration guide as three releases (each verified in the source).
 - [ ] Best-effort WebGPU runs on runners with a usable adapter; GPU-based baselines.
