@@ -76,6 +76,7 @@ export type IssueKind =
   | "context-lost"
   | "blank"
   | "no-frames"
+  | "video"
   | "baseline-diff"
   | "baseline-size"
   | "baseline-missing"

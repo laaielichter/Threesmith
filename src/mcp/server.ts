@@ -63,6 +63,7 @@ import {
   viewModel,
 } from "../model/index.js";
 import { VERSION } from "../version.js";
+import { capture, formatCapture } from "../check/capture.js";
 import { formatModelCode, modelCode } from "../model/code.js";
 import { publicDirOf } from "../scan/assets.js";
 import { fileAnimations, formatFileAnimations, formatMixers, formatSweep, mixers, playClip, sweep } from "../check/animation.js";
@@ -865,6 +866,42 @@ export function createServer(options: ServerOptions = {}): McpServer {
         });
         const t = formatLook(r, { maxObjects: tier === "cheap" ? 12 : 40 });
         return { content: [{ type: "text" as const, text: t }, ...(r.image ? [{ type: "image" as const, data: r.image.toString("base64"), mimeType: "image/png" }] : [])], ...(r.ok ? {} : { isError: true }) };
+      }),
+  );
+
+  tool(
+    "three_capture",
+    {
+      title: "Frames of the page, 1/fps apart, with a contact sheet and a video",
+      description:
+        "Record the page as frames exactly 1/fps apart on the deterministic clock (time and Math.random are virtual, so a slow software renderer still gives smooth, repeatable frames), after optional steps. Returns a contact sheet of the motion in one picture, the change from frame to frame (a scene that does not move, a frame that pops: a model that appears, a camera cut, a reset), the frames as PNG in .threesmith/capture/<name>/, and an .mp4 when ffmpeg is installed (video: true), else the ffmpeg command. Use it to check an animation, a camera move or a transition, and to make a clip for a trailer or a README.",
+      inputSchema: {
+        ...pageParams,
+        fps: z.number().int().min(1).max(60).optional().describe("frames per second (default 30)"),
+        seconds: z.number().min(0.1).max(20).optional().describe("length (default 2)"),
+        wait: z.number().int().min(0).max(30000).optional(),
+        steps: playStep,
+        name: z.string().optional().describe("capture folder name (default capture)"),
+        video: z.boolean().optional().describe("encode an .mp4 with ffmpeg when it is installed"),
+        sheet: z.number().int().min(1).max(24).optional().describe("pictures on the contact sheet (default 12)"),
+        seed: seedParam,
+      },
+      annotations: { ...WRITES, openWorldHint: true },
+    },
+    async (a) =>
+      guard(async () => {
+        const r = await capture({
+          ...pageOpts(a),
+          ...(a.fps ? { fps: a.fps } : {}),
+          ...(a.seconds ? { seconds: a.seconds } : {}),
+          ...(a.wait !== undefined ? { wait: a.wait } : {}),
+          ...(a.steps ? { steps: parsePlaySteps(a.steps) } : {}),
+          ...(a.name ? { name: a.name } : {}),
+          ...(a.video ? { video: true } : {}),
+          ...(a.sheet ? { sheet: a.sheet } : {}),
+          ...(a.seed !== undefined ? { seed: a.seed } : {}),
+        });
+        return { content: [{ type: "text" as const, text: formatCapture(r) }, ...(r.sheet ? [{ type: "image" as const, data: r.sheet.toString("base64"), mimeType: "image/png" }] : [])], ...(r.ok ? {} : { isError: true }) };
       }),
   );
 
