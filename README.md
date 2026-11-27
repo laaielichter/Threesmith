@@ -2,8 +2,10 @@
   <img src="docs/logo.svg" alt="Threesmith logo" width="72" height="72">
 </p>
 <h1 align="center">Threesmith</h1>
-<p align="center"><b>Less debugging. More dimension.</b><br>
-MCP server, CLI and Claude Code plugin. Works with Claude Code, Codex, Cursor, VS Code, Gemini CLI and any MCP client.</p>
+<p align="center"><b>The three.js toolkit for coding agents.</b><br>
+Checks the code your agent writes against the three.js you have installed, opens the page to see what it really
+draws, and builds the 3D models it needs. Local, free, MIT.</p>
+<p align="center">MCP server · CLI · Claude Code plugin · GitHub Action. Works with Claude Code, Codex, Cursor, VS Code, Gemini CLI and any MCP client.</p>
 <p align="center">
   <a href="https://github.com/laaielichter/Threesmith/actions/workflows/ci.yml"><img src="https://github.com/laaielichter/Threesmith/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <a href="https://www.npmjs.com/package/threesmith"><img src="https://img.shields.io/npm/v/threesmith?color=cb3837&logo=npm" alt="npm version"></a>
@@ -16,58 +18,87 @@ MCP server, CLI and Claude Code plugin. Works with Claude Code, Codex, Cursor, V
 </p>
 <p align="center">
   <a href="https://laaielichter.github.io/Threesmith/">Website</a> ·
-  <a href="https://laaielichter.github.io/Threesmith/install.html">Install in your agent</a> ·
-  <a href="https://laaielichter.github.io/Threesmith/models.html">3D models</a> ·
+  <a href="https://laaielichter.github.io/Threesmith/install.html">Install</a> ·
+  <a href="https://laaielichter.github.io/Threesmith/library.html">1000-model library</a> ·
+  <a href="https://laaielichter.github.io/Threesmith/models.html">Models</a> ·
   <a href="examples/agent-mistakes">Example</a> ·
   <a href="CHANGELOG.md">Changelog</a>
 </p>
 <p align="center">
-  <a href="https://laaielichter.github.io/Threesmith/"><img src="docs/assets/social.jpg" alt="Threesmith: less debugging, more dimension; a real model built from code" width="1000"></a><br>
-  <sub>Explore the <a href="https://laaielichter.github.io/Threesmith/">interactive model preview</a>, toolkit and real before-and-after demo.</sub>
+  <img src="docs/assets/demo.gif" alt="Terminal: threesmith review scores an agent-written three.js scene 73/100 with errors such as outputEncoding and BoxBufferGeometry, threesmith fix --write fixes 5 places, and after the listed fixes the review is 100/100" width="860"><br>
+  <sub>Real output on <a href="examples/agent-mistakes">examples/agent-mistakes</a>, a scene written the way agents often write three.js.</sub>
 </p>
+
+three.js ships a release almost every month and removes old APIs. Coding agents learned it from years of code with
+`THREE.Geometry`, `outputEncoding`, `three/examples/js` and import paths that no longer exist, and they cannot see the
+canvas they draw on. So you get a black screen, a model that is a 404 on the server, and an agent that says "done".
+
+Threesmith is the check between the agent and your project. It knows **the three release you have installed**, runs
+your page in headless Chromium and measures the frame object by object, fixes only what is safe (and undoable), and
+makes clean `.glb` models from code. Everything runs on your machine.
+
+## Quickstart
+
+**1. See what is wrong.** Nothing to install but the package:
+
+```sh
+npx -y threesmith doctor          # what is wrong, grouped by cause, most urgent first, with next steps
+npx -y threesmith review          # score 0-100, `file:line severity [rule] message Fix: ...`
+npx -y threesmith check .         # open the page headless, errors and a screenshot
+```
+
+**2. Give it to your agent.** In Claude Code:
+
+```text
+/plugin marketplace add laaielichter/Threesmith
+/plugin install threesmith@threesmith
+```
+
+Or any MCP client: `npx -y threesmith mcp` ([all clients](#install-in-your-agent)).
+
+**3. Ask for something.** *"Find out why the scene is black and fix it."* Every three.js file the agent edits is
+reviewed right after the edit, its errors and broken asset paths go straight back to the agent, and the session starts
+with a brief of the project.
+
+## What it does
+
+### 1. Catches the three.js your agent remembers wrong
+
 <p align="center">
   <img src="docs/before-after.jpg" alt="Left: the black canvas of a scene a coding agent wrote. Right: the same scene after the fixes Threesmith listed, a lit crate and a character model" width="860"><br>
-  <sub>Real run on <a href="examples/agent-mistakes">examples/agent-mistakes</a>: as the agent wrote it (3 review errors, 2 asset paths that 404, a black canvas), and after <code>threesmith fix</code> plus the fixes <code>threesmith doctor</code> listed (<a href="examples/agent-mistakes-fixed">100/100, check passes</a>).</sub>
+  <sub>Left: the scene as the agent wrote it (3 review errors, 2 asset paths that 404, a black canvas). Right: after <code>threesmith fix</code> and the fixes <code>threesmith doctor</code> listed (<a href="examples/agent-mistakes-fixed">100/100, check passes</a>).</sub>
 </p>
 
-three.js ships a release almost every month and removes old APIs. Coding agents learned it from years of code that used
-`THREE.Geometry`, `outputEncoding`, `three/examples/js` and import paths that no longer exist, and they cannot see the
-canvas they draw on. Threesmith is the check between the agent and your project: the API of **the three version you
-have installed**, a scored review, the assets and decoders the code needs, the page run in headless Chromium with the
-frame measured object by object, and safe, undoable edits. Everything runs locally; nothing leaves the machine
-(`three_compare` fetches another three release from npm, only when you ask for one).
+104 review rules pinned to the installed release, the exact API from `node_modules/three`, asset paths resolved like
+your server does, shader includes checked against the installed `ShaderChunk`, and an upgrade plan per release.
 
-## New in 0.5: a library of 1000 models
-
-<p align="center">
-  <img src="docs/assets/library-mix.jpg" alt="A grid of library models rendered by three.js: chairs, tables, benches, trees, rocks, crates, houses, cars and props" width="860"><br>
-  <sub>Library models built by <code>threesmith model build &lt;id&gt;</code> and rendered by three.js. <a href="https://laaielichter.github.io/Threesmith/library.html">See all 1000</a>.</sub>
-</p>
-
-- **1000 ready-made base models** in seven groups: furniture, street, storage, nature, buildings, vehicles and props.
-  `three_model_library` searches them in English or Dutch ("oak chair", "eiken stoel").
-- **Build by id, change by parameter.** `three_model_build` with `kind: "furniture/dining-chair-oak-ladder"`, or
-  `model build <id> --param seatHeight=0.5`. Or print the spec and make it your own.
-- **Every one checked:** a clean `.glb` that passes the model lint and the check against what it is, at its defaults
-  and at the ends of its parameters. The list as text: [LIBRARY.md](LIBRARY.md).
-
-## New in 0.4: it reads the frame
+### 2. Sees what the page really draws
 
 <p align="center">
   <img src="docs/assets/look-annotated.jpg" alt="A house, a red car and a small robot on grass, each with a numbered box and its share of the frame: 2 House 31%, 3 Car 4.6%, 4 Robot 0.8%" width="860"><br>
-  <sub>Real output of <code>threesmith look --annotate</code> on three models Threesmith built. The boxes come from the pixels each object really shows.</sub>
+  <sub>Real output of <code>threesmith look --annotate</code>. The boxes come from the pixels each object really shows.</sub>
 </p>
 
-- **See the frame as numbers.** `three_look` renders with and without each object: how much of the frame it shows,
-  where, cut by the edge, hidden behind what, too dark. Claims such as `"car visible >= 5%"` pass or fail.
-- **Tune it live, keep it in code.** `three_tune` changes a light, a colour or the camera in the running page, then
-  writes each value where your code sets it, as one undoable step.
-- **Animation, TSL and motion.** `three_animation` says why a clip does not play and finds feet that sink into the
-  floor; `three_tsl` catches `uv().x * 8` and `if` on a node; `three_capture` records frames on a virtual clock.
-- **Prove the whole change.** `three_impact` follows the diff to the pages and tests that run it; in CI the receipt
-  says what changed between two three releases and why.
-- **And:** `three_model_code` (the module or R3F component for a `.glb`), `three_dream` (learns from past sessions on
-  your machine), `three_session` with `cdp` (your own Chrome, the real GPU). See the [changelog](CHANGELOG.md).
+The page in headless Chromium: errors with their causes, why an object is not visible, each object's share of the
+frame, claims like `"car visible >= 5%"` that pass or fail, performance against a budget, and leaks. Change a light or
+the camera live, and Threesmith writes the value back where your code sets it.
+
+### 3. Builds 3D models from code, no Blender
+
+<p align="center">
+  <a href="https://laaielichter.github.io/Threesmith/library.html"><img src="docs/assets/library-mix.jpg" alt="A grid of library models rendered by three.js: chairs, tables, benches, trees, rocks, crates, houses, cars and props" width="860"></a><br>
+  <sub>A few of the <a href="https://laaielichter.github.io/Threesmith/library.html">1000 library models</a>, built by <code>threesmith model build &lt;id&gt;</code> and rendered by three.js.</sub>
+</p>
+
+A library of **1000 parametric base models** (furniture, street, storage, nature, buildings, vehicles, props),
+searchable in English or Dutch, plus 110 ready-made kinds from cars to dragons. Each one is a clean `.glb` with UVs,
+textures and a node per part, and passes the model lint. Change it by parameter, or copy its spec and make it yours.
+
+### 4. Proves the change and ships it
+
+`three_impact` follows a change to the pages and tests that run it. `three_compare` runs your page on two three
+releases and explains each difference. `three_build` checks the built output before you deploy. In CI, the GitHub
+Action posts one receipt on the pull request.
 
 ## Without and with
 
@@ -91,31 +122,18 @@ frame measured object by object, and safe, undoable edits. Everything runs local
 | finishes a change | checks the file it touched, not the pages that run it | `three_impact` names what the change touches, which pages and tests run it, and the checks that prove it |
 | does not know the project | reads twenty files | `three_scan` and `three_doctor` give the map and the order to fix things in one call |
 
-<p align="center">
-  <a href="https://laaielichter.github.io/Threesmith/models.html"><img src="docs/gallery/overview.jpg" alt="A car, an airship, a wizard tower, an excavator, a treasure chest, a dragon, a lighthouse, a mech, a longship, a stone golem, a hot-air balloon and a castle, built by Threesmith and rendered by three.js" width="860"></a><br>
-  <sub>3D models from code, no Blender: 110 ready-made kinds and a library of 1000 base models (see <a href="LIBRARY.md">LIBRARY.md</a>), from cars and airships to swords, teapots and golems, rendered here by three.js itself. <a href="https://laaielichter.github.io/Threesmith/models.html">See all</a></sub>
-</p>
+## How it compares
 
-## Quickstart
-
-**1. See what is wrong.** Nothing to install but the package:
-
-```sh
-npx -y threesmith doctor          # what is wrong, grouped by cause, most urgent first, with next steps
-npx -y threesmith review          # score 0-100, `file:line severity [rule] message Fix: ...`
-npx -y threesmith check .         # open the page headless, errors and a screenshot
-```
-
-**2. Give it to your agent.** In Claude Code:
-
-```text
-/plugin marketplace add laaielichter/Threesmith
-/plugin install threesmith@threesmith
-```
-
-**3. Ask for something.** *"Find out why the scene is black and fix it."* Every three.js file Claude edits is reviewed
-right after the edit, its errors and broken asset paths go straight back to Claude, and the session starts with a
-brief of the project.
+| | Threesmith | A docs MCP server | A generic browser MCP (e.g. Playwright MCP) | By hand |
+| --- | --- | --- | --- | --- |
+| Knows your installed three release | yes, reads `node_modules/three` | usually the latest docs | no | you look it up |
+| Reviews three.js code | 104 rules, pinned to that release | no | no | code review |
+| Sees the rendered frame | per object: share, place, hidden, too dark | no | a screenshot | your eyes |
+| Fixes | safe renames only, undoable | no | no | yes |
+| Makes 3D models | 1000 library models and 110 kinds, linted `.glb` | no | no | Blender |
+| CI | GitHub Action with a PR receipt | no | no | your own scripts |
+| Runs | locally, MIT | varies | locally | |
+| Does not | judge art direction, or replace a real GPU test | | | |
 
 ## Install in your agent
 
@@ -304,6 +322,24 @@ CI: `threesmith ci --check dist --compare previous --impact origin/main --junit 
   for meshopt and simplification. Threesmith does not bundle them; their licences apply when you install them.
   `optimize` leaves textures as they are (KTX2 needs KTX-Software's `toktx`, WebP and resizing need `sharp`).
 
+## FAQ
+
+**Does my code leave my machine?** No. Everything runs locally. Only `three_compare` downloads another three release
+from npm, when you ask for one.
+
+**Do I need Claude Code?** No. It is a standard MCP server and a CLI; the Claude Code plugin adds hooks and skills.
+
+**Which three.js versions?** The review is pinned to the release you have installed; the upgrade plan covers r120 to
+r188. The API lookup is tested on r187.
+
+**React Three Fiber?** Yes: R3F mistakes are in the review, and `three_model_code` writes an R3F component for a
+`.glb`.
+
+**WebGPU?** The review knows TSL and node materials; headless WebGPU depends on the machine, see [Limits](#limits).
+
+**Is the output safe to trust?** Fixes are only renames that mean exactly the same, shown as a dry run first and
+undoable. Everything else is a finding with a fix for you or your agent to decide on.
+
 ## Benchmarks
 
 `bench/` has tasks and a deterministic grader for comparing an agent with and without Threesmith. No results are
@@ -316,9 +352,17 @@ From the same author, local and open source: [ReversePort](https://github.com/la
 (check the Godot code your agent writes), [Stashpad](https://github.com/laaielichter/Stashpad)
 (agent memory you can trust) and [agentdisk](https://github.com/laaielichter/Agentdisk) (clean up after agents).
 
+## Contribute
+
+Good first issues are labelled
+[good first issue](https://github.com/laaielichter/Threesmith/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22):
+a review rule, a lesson, a model kind. Read [CONTRIBUTING.md](CONTRIBUTING.md); questions and ideas are welcome as an
+[issue](https://github.com/laaielichter/Threesmith/issues/new/choose).
+
 ## Support the project
 
-If Threesmith is useful to you, a ⭐ on [GitHub](https://github.com/laaielichter/Threesmith) helps other people find it.
+If Threesmith saved you a debugging session, a ⭐ on [GitHub](https://github.com/laaielichter/Threesmith) helps other
+people find it.
 
 Thanks to everyone who has contributed: [@chiragjangiir](https://github.com/chiragjangiir), [@timmiballz22](https://github.com/timmiballz22) and [@IG-ABHINAV](https://github.com/IG-ABHINAV).
 
