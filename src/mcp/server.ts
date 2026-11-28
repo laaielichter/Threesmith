@@ -208,6 +208,7 @@ export function createServer(options: ServerOptions = {}): McpServer {
     },
     async ({ query, inherited, full, path, three }) =>
       guard(() => {
+        if (!query.trim().replace(/^THREE\./, "").trim()) return text("give a name to look up, e.g. Mesh or WebGLRenderer.setSize", true);
         const r = lookup(indexFor(where(path), three), query, { ...(inherited ? { inherited } : {}), ...(full || tier === "premium" ? { full: full ?? false } : {}) });
         if (r.found) return text(r.text);
         recordApiMiss(query, r.suggestions ?? []);
@@ -226,6 +227,7 @@ export function createServer(options: ServerOptions = {}): McpServer {
     },
     async ({ query, members, limit, path, three }) =>
       guard(() => {
+        if (!query.trim().replace(/^THREE\./, "").trim()) return text("give part of a name to search for, e.g. box", true);
         const index = indexFor(where(path), three);
         return text(formatSearch(index, search(index, query, { ...(members ? { members } : {}), limit: limit ?? (tier === "cheap" ? 10 : 25) })));
       }),
@@ -1553,6 +1555,7 @@ export function createServer(options: ServerOptions = {}): McpServer {
     },
     async ({ message, path, three }) =>
       guard(() => {
+        if (!message.trim()) return text("give the error text as an argument or on stdin", true);
         let index;
         try {
           index = indexFor(where(path), three);

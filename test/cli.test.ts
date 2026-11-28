@@ -163,6 +163,29 @@ describe.skipIf(!existsSync("dist/cli.js"))("built cli", () => {
     expect(noScenarios.stdout.toString()).toContain("No scenarios to run.");
   });
 
+  it("rejects empty api, search and explain input without misleading output", () => {
+    const cases: { args: string[]; message: string; input?: string }[] = [
+      { args: ["api", "", "--json"], message: "give a name to look up" },
+      { args: ["api", " "], message: "give a name to look up" },
+      { args: ["api", "THREE."], message: "give a name to look up" },
+      { args: ["search", ""], message: "give part of a name to search for" },
+      { args: ["search", "  "], message: "give part of a name to search for" },
+      { args: ["search", "THREE."], message: "give part of a name to search for" },
+      { args: ["explain", ""], message: "give the error text as an argument or on stdin" },
+      { args: ["explain"], input: "", message: "give the error text as an argument or on stdin" },
+      { args: ["explain"], input: "  \n", message: "give the error text as an argument or on stdin" },
+    ];
+    for (const { args, message, input } of cases) {
+      const r = spawnSync("node", ["dist/cli.js", ...args], { ...(input !== undefined ? { input } : {}) });
+      expect(r.status, args.join(" ")).toBe(2);
+      expect(r.stderr.toString()).toContain("threesmith: " + message);
+      expect(r.stdout.toString()).toBe("");
+      expect(r.stderr.toString()).not.toContain("Did you mean");
+    }
+    const missing = spawnSync("node", ["dist/cli.js", "api", "NoSuchThreeSymbol", "--three", THREE_DIR]);
+    expect(missing.status).toBe(1);
+  });
+
   it("rejects unknown lesson filters and keeps the valid ones working", () => {
     const badTopic = spawnSync("node", ["dist/cli.js", "lessons", "--topic", "shadowz", "shadow"]);
     expect(badTopic.status).toBe(2);

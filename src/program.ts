@@ -150,6 +150,7 @@ export function buildProgram(): Command {
     .option("--full", "full class description")
     .option("--json", "JSON output")
     .action((query: string, o: { path: string; three?: string; inherited?: boolean; full?: boolean; json?: boolean }) => {
+      if (!query.trim().replace(/^THREE\./, "").trim()) throw new Error("give a name to look up, e.g. Mesh or WebGLRenderer.setSize");
       const r = lookup(indexFor(o.path, o.three), query, { ...(o.inherited ? { inherited: true } : {}), ...(o.full ? { full: true } : {}) });
       const hint = r.found ? undefined : apiHintFor(projectRootOf(o.path), query);
       if (!r.found) recordApiMiss(query, r.suggestions ?? []);
@@ -167,6 +168,7 @@ export function buildProgram(): Command {
     .option("--limit <n>", "max results", "15")
     .option("--json", "JSON output")
     .action((query: string, o: { path: string; three?: string; members?: boolean; limit: string; json?: boolean }) => {
+      if (!query.trim().replace(/^THREE\./, "").trim()) throw new Error("give part of a name to search for, e.g. box");
       const limit = positiveInt("--limit", o.limit);
       const index = indexFor(o.path, o.three);
       const hits = search(index, query, { ...(o.members ? { members: true } : {}), limit });
@@ -375,6 +377,7 @@ export function buildProgram(): Command {
     .option("--json", "JSON output")
     .action((words: string[], o: { path: string; json?: boolean }) => {
       const text = words.length ? words.join(" ") : readFileSync(0, "utf8");
+      if (!text.trim()) throw new Error("give the error text as an argument or on stdin");
       let index;
       try {
         index = indexFor(o.path);

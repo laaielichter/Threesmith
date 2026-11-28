@@ -22,6 +22,7 @@ export function levenshtein(a: string, b: string, max = 3): number {
 
 /** Closest public symbol names, for "did you mean". */
 export function suggest(index: ApiIndex, name: string, limit = 3): string[] {
+  if (!name.trim()) return [];
   const lower = name.toLowerCase();
   const scored: { n: string; d: number }[] = [];
   for (const n of index.exports.keys()) {
